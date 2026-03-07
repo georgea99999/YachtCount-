@@ -280,8 +280,6 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
       {/* Table Header */}
       <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium">
         <div className="flex-1 min-w-0">Product</div>
-        <div className="w-20 text-center flex-shrink-0">Qty</div>
-        <div className="w-20 text-center flex-shrink-0">Actions</div>
       </div>
 
       {/* Items List */}
@@ -358,29 +356,11 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                         <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                       )}
                     </div>
-                    <div className="w-20 text-center flex-shrink-0 font-medium">{item.quantity}</div>
-                    <div className="w-20 flex justify-center gap-1 flex-shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-primary"
-                        onClick={(e) => { e.stopPropagation(); handleStartEdit(item); }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={(e) => { e.stopPropagation(); onDeleteItem(item.id); }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </div>
                   {/* Expanded details panel */}
                   {isExpanded && (
-                    <div className="px-4 py-2 bg-muted/30 border-t space-y-1">
+                    <div className="px-4 py-3 bg-muted/30 border-t space-y-2">
+                      <p className="text-sm"><span className="text-muted-foreground">Quantity:</span> {item.quantity}</p>
                       {item.colour && (
                         <p className="text-sm"><span className="text-muted-foreground">Colour:</span> {item.colour}</p>
                       )}
@@ -399,9 +379,26 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                           <span className="break-all">{item.link}</span>
                         </a>
                       )}
-                      {!item.colour && !item.size && !item.link && (
-                        <p className="text-sm text-muted-foreground">No additional details</p>
-                      )}
+                      <div className="flex gap-2 pt-2 border-t border-border/50">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          onClick={(e) => { e.stopPropagation(); handleStartEdit(item); }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => { e.stopPropagation(); onDeleteItem(item.id); }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>

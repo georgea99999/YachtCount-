@@ -1,21 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DeckOrderItem } from '@/types/inventory';
+import { yardOrderItems } from '@/data/yardOrderItems';
 
 const STORAGE_KEY = 'yachtCountDeckOrder';
 
 export function useDeckOrder() {
   const [orderItems, setOrderItems] = useState<DeckOrderItem[]>([]);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount, seed with yard order if empty
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        setOrderItems(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (parsed.length > 0) {
+          setOrderItems(parsed);
+          return;
+        }
       } catch {
-        setOrderItems([]);
+        // fall through to seed
       }
     }
+    // Seed with yard order items
+    const seeded: DeckOrderItem[] = yardOrderItems.map((item, index) => ({
+      ...item,
+      id: Date.now() + index,
+    }));
+    setOrderItems(seeded);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
   }, []);
 
   // Save to localStorage

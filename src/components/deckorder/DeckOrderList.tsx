@@ -99,17 +99,23 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
       <head>
         <title>Deck Order - ${currentDate}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 40px; }
-          h1 { color: #1a365d; margin-bottom: 5px; }
-          .date { color: #666; margin-bottom: 30px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th { background-color: #5f8b9a; color: white; padding: 12px 8px; text-align: left; }
-          td { padding: 10px 8px; border-bottom: 1px solid #ddd; }
+          * { box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; padding: 20px; margin: 0; }
+          h1 { color: #1a365d; margin-bottom: 5px; font-size: 20px; }
+          .date { color: #666; margin-bottom: 20px; font-size: 13px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed; }
+          th { background-color: #5f8b9a; color: white; padding: 8px 6px; text-align: left; font-size: 11px; }
+          td { padding: 7px 6px; border-bottom: 1px solid #ddd; font-size: 11px; word-wrap: break-word; overflow-wrap: break-word; }
           tr:nth-child(even) { background-color: #f9f9f9; }
-          .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
-          a { color: #5f8b9a; }
+          col.col-product { width: 30%; }
+          col.col-colour { width: 15%; }
+          col.col-size { width: 15%; }
+          col.col-qty { width: 10%; }
+          col.col-link { width: 30%; }
+          .footer { margin-top: 30px; text-align: center; color: #666; font-size: 11px; }
+          a { color: #5f8b9a; word-break: break-all; font-size: 10px; }
           .back-btn { 
-            position: fixed; 
+            position: fixed;
             top: 20px; 
             right: 20px; 
             padding: 10px 20px; 

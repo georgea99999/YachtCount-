@@ -149,6 +149,13 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
         <h1>YachtCount - Deck Order</h1>
         <p class="date">Generated: ${currentDate}</p>
         <table>
+          <colgroup>
+            <col class="col-product" />
+            <col class="col-colour" />
+            <col class="col-size" />
+            <col class="col-qty" />
+            <col class="col-link" />
+          </colgroup>
           <thead>
             <tr>
               <th>Product</th>

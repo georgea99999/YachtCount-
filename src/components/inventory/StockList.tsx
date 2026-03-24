@@ -72,6 +72,7 @@ const StockList = ({
   onSendToDeckOrder,
   usageHistory = [],
   onReorderItems,
+  onRenameBox,
 }: StockListProps) => {
   const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);

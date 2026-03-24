@@ -430,7 +430,7 @@ const StockList = ({
             // Item reorder mode within boxes
             sortedBoxEntries.map(([box, boxItems]) => (
               <div key={box}>
-                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">
+                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0 flex items-center gap-2">
                   {box}
                 </div>
                 <SortableContext items={boxItems.map(i => i.id)} strategy={verticalListSortingStrategy}>

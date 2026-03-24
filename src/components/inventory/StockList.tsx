@@ -389,9 +389,13 @@ const StockList = ({
           </SelectTrigger>
           <SelectContent className="max-h-60 bg-popover">
             <SelectItem value="all">All Boxes</SelectItem>
-            {BOX_OPTIONS.map(box => (
-              <SelectItem key={box} value={box}>{box}</SelectItem>
-            ))}
+            {(() => {
+              const allBoxNames = Array.from(new Set(allItems.map(i => i.box)));
+              const combined = Array.from(new Set([...BOX_OPTIONS, ...allBoxNames]));
+              return combined.map(box => (
+                <SelectItem key={box} value={box}>{box}</SelectItem>
+              ));
+            })()}
           </SelectContent>
         </Select>
       </div>

@@ -468,6 +468,35 @@ export function useInventory() {
     return Object.values(aggregated).sort((a, b) => b.quantity - a.quantity);
   }, [usageHistory]);
 
+  // Rename a box across all items and tables
+  const renameBox = useCallback(async (oldName: string, newName: string) => {
+    if (!newName.trim() || oldName === newName) return;
+
+    // Update stock_items
+    const { error: stockErr } = await supabase
+      .from('stock_items')
+      .update({ box: newName })
+      .eq('box', oldName);
+
+    if (stockErr) {
+      console.error('Error renaming box in stock_items:', stockErr);
+      return;
+    }
+
+    // Update custom_boxes if it was a custom box
+    const userId = await getUserId();
+    if (customBoxes.includes(oldName)) {
+      await supabase.from('custom_boxes').delete().eq('name', oldName).eq('user_id', userId);
+      await supabase.from('custom_boxes').insert({ name: newName, user_id: userId });
+      setCustomBoxes(prev => prev.map(b => b === oldName ? newName : b));
+    }
+
+    // Update local state
+    setStockItems(prev => prev.map(i => i.box === oldName ? { ...i, box: newName } : i));
+    setUsageHistory(prev => prev.map(e => e.box === oldName ? { ...e, box: newName } : e));
+    addNotification('updated', oldName, `Renamed "${oldName}" to "${newName}"`);
+  }, [customBoxes, addNotification]);
+
   // Reorder stock items
   const reorderStockItems = useCallback(async (reorderedItems: StockItem[]) => {
     setStockItems(reorderedItems);
@@ -555,6 +584,7 @@ export function useInventory() {
     clearNotifications,
     addCustomBox,
     reorderStockItems,
+    renameBox,
     restoreFromNotification,
     isLoading,
   };

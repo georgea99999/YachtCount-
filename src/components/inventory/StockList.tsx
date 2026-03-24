@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Download, Package, GripVertical } from 'lucide-react';
+import { ArrowUpDown, Download, Package, GripVertical, Pencil, Check, X } from 'lucide-react';
 import { StockItem, BOX_OPTIONS, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import {
@@ -52,6 +52,7 @@ interface StockListProps {
   onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
   usageHistory?: UsageEntry[];
   onReorderItems?: (items: StockItem[]) => void;
+  onRenameBox?: (oldName: string, newName: string) => void;
 }
 
 type SortOption = 'default' | 'name-asc' | 'name-desc' | 'qty-asc' | 'qty-desc';
@@ -71,6 +72,7 @@ const StockList = ({
   onSendToDeckOrder,
   usageHistory = [],
   onReorderItems,
+  onRenameBox,
 }: StockListProps) => {
   const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -78,6 +80,8 @@ const StockList = ({
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [reorderBoxes, setReorderBoxes] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [editingBox, setEditingBox] = useState<string | null>(null);
+  const [editBoxValue, setEditBoxValue] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
@@ -385,9 +389,13 @@ const StockList = ({
           </SelectTrigger>
           <SelectContent className="max-h-60 bg-popover">
             <SelectItem value="all">All Boxes</SelectItem>
-            {BOX_OPTIONS.map(box => (
-              <SelectItem key={box} value={box}>{box}</SelectItem>
-            ))}
+            {(() => {
+              const allBoxNames = Array.from(new Set(allItems.map(i => i.box)));
+              const combined = Array.from(new Set([...BOX_OPTIONS, ...allBoxNames]));
+              return combined.map(box => (
+                <SelectItem key={box} value={box}>{box}</SelectItem>
+              ));
+            })()}
           </SelectContent>
         </Select>
       </div>
@@ -419,14 +427,14 @@ const StockList = ({
             // Box reorder mode
             <SortableContext items={sortedBoxEntries.map(([box]) => box)} strategy={verticalListSortingStrategy}>
               {sortedBoxEntries.map(([box, boxItems]) => (
-                <SortableBoxHeader key={box} id={box} boxName={box} itemCount={boxItems.length} />
+                <SortableBoxHeader key={box} id={box} boxName={box} itemCount={boxItems.length} onRenameBox={onRenameBox} />
               ))}
             </SortableContext>
           ) : isReorderMode ? (
             // Item reorder mode within boxes
             sortedBoxEntries.map(([box, boxItems]) => (
               <div key={box}>
-                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">
+                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0 flex items-center gap-2">
                   {box}
                 </div>
                 <SortableContext items={boxItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
@@ -475,8 +483,43 @@ const StockList = ({
           ) : (
             sortedBoxEntries.map(([box, boxItems]) => (
               <div key={box}>
-                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">
-                  {box}
+                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0 flex items-center gap-2">
+                  {editingBox === box ? (
+                    <>
+                      <input
+                        value={editBoxValue}
+                        onChange={(e) => setEditBoxValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const trimmed = editBoxValue.trim();
+                            if (trimmed && trimmed !== box) onRenameBox?.(box, trimmed);
+                            setEditingBox(null);
+                          }
+                          if (e.key === 'Escape') setEditingBox(null);
+                        }}
+                        className="h-6 px-2 text-sm bg-background border border-input rounded"
+                        autoFocus
+                      />
+                      <button onClick={() => {
+                        const trimmed = editBoxValue.trim();
+                        if (trimmed && trimmed !== box) onRenameBox?.(box, trimmed);
+                        setEditingBox(null);
+                      }} className="text-primary"><Check className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setEditingBox(null)} className="text-muted-foreground"><X className="w-3.5 h-3.5" /></button>
+                    </>
+                  ) : (
+                    <>
+                      {box}
+                      {onRenameBox && (
+                        <button
+                          onClick={() => { setEditBoxValue(box); setEditingBox(box); }}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
                 {boxItems.map(item => (
                   <StockItemRow

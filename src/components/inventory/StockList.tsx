@@ -423,7 +423,7 @@ const StockList = ({
             // Box reorder mode
             <SortableContext items={sortedBoxEntries.map(([box]) => box)} strategy={verticalListSortingStrategy}>
               {sortedBoxEntries.map(([box, boxItems]) => (
-                <SortableBoxHeader key={box} id={box} boxName={box} itemCount={boxItems.length} />
+                <SortableBoxHeader key={box} id={box} boxName={box} itemCount={boxItems.length} onRenameBox={onRenameBox} />
               ))}
             </SortableContext>
           ) : isReorderMode ? (

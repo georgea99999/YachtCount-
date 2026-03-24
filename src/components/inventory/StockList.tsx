@@ -285,17 +285,25 @@ const StockList = ({
     return acc;
   }, {} as Record<string, StockItem[]>);
 
-  // Sort boxes by BOX_OPTIONS order (BS1 first, etc.)
+  // Sort boxes: preserve the order items appear in the array (respects drag reorder)
   const sortedBoxEntries = useMemo(() => {
+    // Build box order from the allItems array to preserve custom ordering
+    const boxOrder: string[] = [];
+    allItems.forEach(item => {
+      if (!boxOrder.includes(item.box)) {
+        boxOrder.push(item.box);
+      }
+    });
+
     return Object.entries(groupedItems).sort(([boxA], [boxB]) => {
-      const indexA = BOX_OPTIONS.indexOf(boxA);
-      const indexB = BOX_OPTIONS.indexOf(boxB);
-      if (indexA === -1 && indexB === -1) return boxA.localeCompare(boxB);
+      const indexA = boxOrder.indexOf(boxA);
+      const indexB = boxOrder.indexOf(boxB);
+      if (indexA === -1 && indexB === -1) return 0;
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
       return indexA - indexB;
     });
-  }, [groupedItems]);
+  }, [groupedItems, allItems]);
 
   return (
     <div className="flex flex-col h-full">

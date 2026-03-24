@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Download, Package, GripVertical } from 'lucide-react';
+import { ArrowUpDown, Download, Package, GripVertical, Pencil, Check, X } from 'lucide-react';
 import { StockItem, BOX_OPTIONS, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import {

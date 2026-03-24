@@ -107,6 +107,7 @@ const Index = ({ onLogout }: IndexProps) => {
                 onSendToDeckOrder={handleSendToDeckOrder}
                 usageHistory={usageHistory}
                 onReorderItems={reorderStockItems}
+                onRenameBox={renameBox}
               />
             )}
 

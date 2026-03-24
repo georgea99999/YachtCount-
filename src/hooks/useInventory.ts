@@ -584,6 +584,7 @@ export function useInventory() {
     clearNotifications,
     addCustomBox,
     reorderStockItems,
+    renameBox,
     restoreFromNotification,
     isLoading,
   };

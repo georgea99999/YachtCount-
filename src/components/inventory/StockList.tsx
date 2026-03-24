@@ -52,6 +52,7 @@ interface StockListProps {
   onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
   usageHistory?: UsageEntry[];
   onReorderItems?: (items: StockItem[]) => void;
+  onRenameBox?: (oldName: string, newName: string) => void;
 }
 
 type SortOption = 'default' | 'name-asc' | 'name-desc' | 'qty-asc' | 'qty-desc';

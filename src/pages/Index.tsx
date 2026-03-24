@@ -43,6 +43,7 @@ const Index = ({ onLogout }: IndexProps) => {
     clearNotifications,
     addCustomBox,
     reorderStockItems,
+    renameBox,
     restoreFromNotification,
   } = useInventory();
 

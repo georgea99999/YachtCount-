@@ -293,6 +293,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
       {/* Table Header */}
       <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium">
         <div className="flex-1 min-w-0">Product</div>
+        <div className="w-12 text-right shrink-0">Qty</div>
       </div>
 
       {/* Items List */}
@@ -369,6 +370,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                         <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                       )}
                     </div>
+                    <div className="w-12 text-right shrink-0 text-sm text-muted-foreground">{item.quantity}</div>
                   </div>
                   {/* Expanded details panel */}
                   {isExpanded && (

@@ -479,8 +479,43 @@ const StockList = ({
           ) : (
             sortedBoxEntries.map(([box, boxItems]) => (
               <div key={box}>
-                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">
-                  {box}
+                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0 flex items-center gap-2">
+                  {editingBox === box ? (
+                    <>
+                      <input
+                        value={editBoxValue}
+                        onChange={(e) => setEditBoxValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const trimmed = editBoxValue.trim();
+                            if (trimmed && trimmed !== box) onRenameBox?.(box, trimmed);
+                            setEditingBox(null);
+                          }
+                          if (e.key === 'Escape') setEditingBox(null);
+                        }}
+                        className="h-6 px-2 text-sm bg-background border border-input rounded"
+                        autoFocus
+                      />
+                      <button onClick={() => {
+                        const trimmed = editBoxValue.trim();
+                        if (trimmed && trimmed !== box) onRenameBox?.(box, trimmed);
+                        setEditingBox(null);
+                      }} className="text-primary"><Check className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setEditingBox(null)} className="text-muted-foreground"><X className="w-3.5 h-3.5" /></button>
+                    </>
+                  ) : (
+                    <>
+                      {box}
+                      {onRenameBox && (
+                        <button
+                          onClick={() => { setEditBoxValue(box); setEditingBox(box); }}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
                 {boxItems.map(item => (
                   <StockItemRow

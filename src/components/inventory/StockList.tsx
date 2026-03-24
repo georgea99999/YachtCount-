@@ -80,6 +80,8 @@ const StockList = ({
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [reorderBoxes, setReorderBoxes] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [editingBox, setEditingBox] = useState<string | null>(null);
+  const [editBoxValue, setEditBoxValue] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),

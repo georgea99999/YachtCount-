@@ -94,7 +94,7 @@ const StockItemRow = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-h-60 bg-popover">
-              {BOX_OPTIONS.map(box => (
+              {Array.from(new Set([...BOX_OPTIONS, ...allBoxNames])).map(box => (
                 <SelectItem key={box} value={box}>{box}</SelectItem>
               ))}
             </SelectContent>

@@ -359,7 +359,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
               return (
                 <div key={item.id}>
                   <div 
-                    className="flex items-center gap-2 px-4 py-3 hover:bg-muted/50 cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-3 hover:bg-muted/50 cursor-pointer overflow-hidden"
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}
                   >
                     <div className="flex-1 min-w-0 flex items-center gap-1">

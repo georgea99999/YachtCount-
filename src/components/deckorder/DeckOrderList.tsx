@@ -359,18 +359,18 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
               return (
                 <div key={item.id}>
                   <div 
-                    className="flex items-center gap-2 px-4 py-3 hover:bg-muted/50 cursor-pointer overflow-hidden"
+                    className="flex items-center px-3 py-3 hover:bg-muted/50 cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}
                   >
                     <div className="flex-1 min-w-0 flex items-center gap-1">
-                      <span className={isExpanded ? "font-medium break-words" : "font-medium truncate"}>{item.productName}</span>
+                      <span className={isExpanded ? "font-medium break-words text-sm" : "font-medium truncate text-sm"}>{item.productName}</span>
                       {isExpanded ? (
-                        <ChevronUp className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                        <ChevronUp className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
                       ) : (
-                        <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                        <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
                       )}
                     </div>
-                    <div className="w-8 text-right shrink-0 text-xs text-muted-foreground">{item.quantity}</div>
+                    <div className="w-10 text-right text-xs text-muted-foreground">{item.quantity}</div>
                   </div>
                   {/* Expanded details panel */}
                   {isExpanded && (

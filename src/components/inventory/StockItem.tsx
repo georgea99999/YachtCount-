@@ -38,6 +38,7 @@ const StockItemRow = ({
   onSelect,
   usageHistory = [],
   isDragEnabled = false,
+  allBoxNames = [],
 }: StockItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);

@@ -25,6 +25,7 @@ interface StockItemProps {
   onSelect?: (id: string) => void;
   usageHistory?: UsageEntry[];
   isDragEnabled?: boolean;
+  allBoxNames?: string[];
 }
 
 const StockItemRow = ({ 
@@ -37,6 +38,7 @@ const StockItemRow = ({
   onSelect,
   usageHistory = [],
   isDragEnabled = false,
+  allBoxNames = [],
 }: StockItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -92,7 +94,7 @@ const StockItemRow = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-h-60 bg-popover">
-              {BOX_OPTIONS.map(box => (
+              {Array.from(new Set([...BOX_OPTIONS, ...allBoxNames])).map(box => (
                 <SelectItem key={box} value={box}>{box}</SelectItem>
               ))}
             </SelectContent>

@@ -291,9 +291,9 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
       )}
 
       {/* Table Header */}
-      <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium">
+      <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium overflow-hidden">
         <div className="flex-1 min-w-0">Product</div>
-        <div className="w-12 text-right shrink-0">Qty</div>
+        <div className="w-8 text-right shrink-0 text-xs">Qty</div>
       </div>
 
       {/* Items List */}
@@ -359,7 +359,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
               return (
                 <div key={item.id}>
                   <div 
-                    className="flex items-center gap-2 px-4 py-3 hover:bg-muted/50 cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-3 hover:bg-muted/50 cursor-pointer overflow-hidden"
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}
                   >
                     <div className="flex-1 min-w-0 flex items-center gap-1">
@@ -370,7 +370,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                         <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                       )}
                     </div>
-                    <div className="w-12 text-right shrink-0 text-sm text-muted-foreground">{item.quantity}</div>
+                    <div className="w-8 text-right shrink-0 text-xs text-muted-foreground">{item.quantity}</div>
                   </div>
                   {/* Expanded details panel */}
                   {isExpanded && (

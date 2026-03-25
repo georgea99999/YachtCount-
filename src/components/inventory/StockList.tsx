@@ -289,6 +289,9 @@ const StockList = ({
     return acc;
   }, {} as Record<string, StockItem[]>);
 
+  // Compute all box names for edit dropdown
+  const allBoxNames = useMemo(() => Array.from(new Set(allItems.map(i => i.box))), [allItems]);
+
   // Sort boxes: preserve the order items appear in the array (respects drag reorder)
   const sortedBoxEntries = useMemo(() => {
     // Build box order from the allItems array to preserve custom ordering
@@ -449,6 +452,7 @@ const StockList = ({
                       onSelect={handleSelectForOrder}
                       usageHistory={usageHistory}
                       isDragEnabled
+                      allBoxNames={allBoxNames}
                     />
                   ))}
                 </SortableContext>
@@ -465,6 +469,7 @@ const StockList = ({
                 onEditItem={onEditItem}
                 onSelect={handleSelectForOrder}
                 usageHistory={usageHistory}
+                allBoxNames={allBoxNames}
               />
             ))
           ) : searchTerm ? (
@@ -478,6 +483,7 @@ const StockList = ({
                 onEditItem={onEditItem}
                 onSelect={handleSelectForOrder}
                 usageHistory={usageHistory}
+                allBoxNames={allBoxNames}
               />
             ))
           ) : (
@@ -531,6 +537,7 @@ const StockList = ({
                     onEditItem={onEditItem}
                     onSelect={handleSelectForOrder}
                     usageHistory={usageHistory}
+                    allBoxNames={allBoxNames}
                   />
                 ))}
               </div>

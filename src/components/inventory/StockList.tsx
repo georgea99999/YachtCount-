@@ -537,6 +537,7 @@ const StockList = ({
                     onEditItem={onEditItem}
                     onSelect={handleSelectForOrder}
                     usageHistory={usageHistory}
+                    allBoxNames={allBoxNames}
                   />
                 ))}
               </div>

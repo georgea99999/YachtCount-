@@ -370,7 +370,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                         <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
                       )}
                     </div>
-                    <span className="text-xs text-muted-foreground shrink-0 w-8 text-right">{item.quantity}</span>
+                    <span className="text-sm font-medium shrink-0 min-w-[2rem] text-right">{item.quantity}</span>
                   </div>
                   {/* Expanded details panel */}
                   {isExpanded && (

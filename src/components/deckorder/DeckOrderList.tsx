@@ -293,7 +293,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
       {/* Table Header */}
       <div className="flex items-center px-3 py-2 bg-primary text-primary-foreground text-sm font-medium">
         <div className="flex-1 min-w-0">Product</div>
-        <div className="w-10 text-right text-xs">Qty</div>
+        <div className="w-8 text-right text-xs shrink-0">Qty</div>
       </div>
 
       {/* Items List */}

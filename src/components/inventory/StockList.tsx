@@ -452,6 +452,7 @@ const StockList = ({
                       onSelect={handleSelectForOrder}
                       usageHistory={usageHistory}
                       isDragEnabled
+                      allBoxNames={allBoxNames}
                     />
                   ))}
                 </SortableContext>

@@ -177,7 +177,6 @@ const StockItemRow = ({
               )}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">{item.box}</p>
         </div>
         
         {/* Quantity Controls */}

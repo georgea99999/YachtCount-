@@ -363,7 +363,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                     onClick={() => setExpandedId(isExpanded ? null : item.id)}
                   >
                     <div className="flex-1 min-w-0 flex items-center gap-1">
-                      <span className={isExpanded ? "font-medium break-words text-sm" : "font-medium truncate text-sm"}>{item.productName}</span>
+                      <span className={isExpanded ? "font-medium text-sm text-foreground break-words" : "font-medium text-sm text-foreground truncate"}>{item.productName}</span>
                       {isExpanded ? (
                         <ChevronUp className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
                       ) : (

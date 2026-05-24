@@ -9,6 +9,8 @@ export interface Task {
   id: number;
   text: string;
   completed: boolean;
+  starred?: boolean;
+  completedAt?: string;
 }
 
 export interface UsageEntry {

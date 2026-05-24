@@ -166,7 +166,7 @@ const StockItemRow = ({
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div className="flex items-center gap-1">
-            <p className="font-medium text-sm break-words line-clamp-2">
+            <p className="font-medium text-sm text-foreground break-words line-clamp-2">
               {item.name}
             </p>
             <Button variant="ghost" size="icon" className="h-4 w-4 flex-shrink-0 p-0">

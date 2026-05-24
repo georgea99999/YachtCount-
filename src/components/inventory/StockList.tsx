@@ -553,7 +553,7 @@ const StockList = ({
               <div className="bg-card shadow-xl ring-2 ring-primary/30 rounded-md opacity-90 px-3 py-3">
                 <div className="flex items-center gap-2">
                   <GripVertical className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium text-sm">{activeDragItem.name}</span>
+                  <span className="font-medium text-sm text-foreground">{activeDragItem.name}</span>
                   <span className="ml-auto text-sm text-muted-foreground">{activeDragItem.quantity}</span>
                 </div>
               </div>

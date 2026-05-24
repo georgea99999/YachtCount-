@@ -122,6 +122,8 @@ const Index = ({ onLogout }: IndexProps) => {
               />
             )}
 
+            {activeTab === 'tasks' && <TaskList />}
+
             {activeTab === 'reports' && (
               <MonthlyReport
                 availableMonths={availableMonths}

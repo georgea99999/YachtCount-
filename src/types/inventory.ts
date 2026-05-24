@@ -9,6 +9,8 @@ export interface Task {
   id: number;
   text: string;
   completed: boolean;
+  starred?: boolean;
+  completedAt?: string;
 }
 
 export interface UsageEntry {
@@ -32,7 +34,7 @@ export interface Notification {
   };
 }
 
-export type TabType = 'stock' | 'deckOrder' | 'reports';
+export type TabType = 'stock' | 'deckOrder' | 'tasks' | 'reports';
 
 export interface DeckOrderItem {
   id: number;

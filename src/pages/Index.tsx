@@ -7,6 +7,7 @@ import Sidebar from '@/components/Sidebar';
 import StockList from '@/components/inventory/StockList';
 import MonthlyReport from '@/components/reports/MonthlyReport';
 import DeckOrderList from '@/components/deckorder/DeckOrderList';
+import TaskList from '@/components/tasks/TaskList';
 import UndoNotification from '@/components/UndoNotification';
 import FloatingAddButton from '@/components/FloatingAddButton';
 import { toast } from 'sonner';

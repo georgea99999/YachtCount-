@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, Trash2 } from 'lucide-react';
+import { Circle, CheckCircle2, Star, Plus, X, ChevronRight, ChevronDown, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useTasks } from '@/hooks/useTasks';
 import { cn } from '@/lib/utils';
 

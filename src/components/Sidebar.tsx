@@ -13,7 +13,7 @@ interface SidebarProps {
 const tabs = [
   { id: 'stock' as TabType, label: 'Stock Take', icon: Home },
   { id: 'deckOrder' as TabType, label: 'Deck Order', icon: ClipboardList },
-  { id: 'tasks' as TabType, label: 'Tasks', icon: ListTodo },
+  { id: 'tasks' as TabType, label: 'To Do', icon: ListTodo },
   { id: 'reports' as TabType, label: 'Monthly Report', icon: BarChart3 },
 ];
 

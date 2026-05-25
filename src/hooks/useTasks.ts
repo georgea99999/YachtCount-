@@ -58,6 +58,14 @@ export function useTasks() {
     });
   }, [save]);
 
+  const updateTaskNotes = useCallback((id: number, notes: string) => {
+    setTasks(prev => {
+      const updated = prev.map(t => (t.id === id ? { ...t, notes } : t));
+      save(updated);
+      return updated;
+    });
+  }, [save]);
+
   const deleteTask = useCallback((id: number) => {
     setTasks(prev => {
       const updated = prev.filter(t => t.id !== id);
@@ -66,5 +74,5 @@ export function useTasks() {
     });
   }, [save]);
 
-  return { tasks, addTask, toggleTask, toggleStar, updateTask, deleteTask };
+  return { tasks, addTask, toggleTask, toggleStar, updateTask, updateTaskNotes, deleteTask };
 }

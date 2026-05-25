@@ -22,9 +22,14 @@ const TaskList = () => {
     };
   }, [tasks]);
 
+  const [showForm, setShowForm] = useState(false);
+
   const handleAdd = () => {
-    addTask(newTask);
-    setNewTask('');
+    if (newTask.trim()) {
+      addTask(newTask);
+      setNewTask('');
+      setShowForm(false);
+    }
   };
 
   return (

@@ -88,27 +88,51 @@ const TaskList = () => {
         )}
       </div>
 
-      {/* Add task bar */}
-      <div className="absolute left-0 right-0 bottom-0 md:left-16 p-4 bg-gradient-to-t from-primary via-primary to-transparent">
-        <div className="flex items-center gap-3 bg-primary-foreground/10 backdrop-blur-sm border border-primary-foreground/15 rounded-xl px-4 py-3.5">
-          <Plus className="h-5 w-5 text-primary-foreground/80 shrink-0" />
-          <input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            placeholder="Add a Task"
-            className="flex-1 bg-transparent outline-none text-primary-foreground placeholder:text-primary-foreground/60 text-base"
-          />
-          {newTask.trim() && (
-            <button
-              onClick={handleAdd}
-              className="text-sm font-semibold text-accent hover:text-accent/80 transition-colors"
-            >
-              Add
-            </button>
-          )}
-        </div>
+      {/* Floating Add Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {!showForm ? (
+          <Button
+            onClick={() => setShowForm(true)}
+            className="w-14 h-14 rounded-full shadow-lg btn-add"
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        ) : (
+          <>
+            {/* Overlay */}
+            <div
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setShowForm(false)}
+            />
+            {/* Form */}
+            <div className="relative z-50 bg-card rounded-lg shadow-xl p-4 w-80 animate-fade-in border">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold text-card-foreground">Add New Task</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setShowForm(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Input
+                  type="text"
+                  placeholder="Task name..."
+                  value={newTask}
+                  onChange={(e) => setNewTask(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                  autoFocus
+                />
+                <Button onClick={handleAdd} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+                  Add Task
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

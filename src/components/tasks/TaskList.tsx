@@ -29,7 +29,7 @@ const TaskList = () => {
     <div className="h-full flex flex-col bg-primary text-primary-foreground">
       {/* Header */}
       <div className="px-5 pt-6 pb-4">
-        <h1 className="text-4xl font-bold tracking-tight">Tasks</h1>
+        <h1 className="text-4xl font-bold tracking-tight">To Do</h1>
       </div>
 
       {/* List */}

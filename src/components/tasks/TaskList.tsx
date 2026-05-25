@@ -1,15 +1,17 @@
 import { useState, useMemo } from 'react';
-import { Circle, CheckCircle2, Star, Plus, X, ChevronRight, ChevronDown, Trash2 } from 'lucide-react';
+import { Circle, CheckCircle2, Star, Plus, X, ChevronRight, ChevronDown, Trash2, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useTasks } from '@/hooks/useTasks';
 import { cn } from '@/lib/utils';
 
 const TaskList = () => {
-  const { tasks, addTask, toggleTask, toggleStar, updateTask, deleteTask } = useTasks();
+  const { tasks, addTask, toggleTask, toggleStar, updateTask, updateTaskNotes, deleteTask } = useTasks();
   const [newTask, setNewTask] = useState('');
   const [showCompleted, setShowCompleted] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [expandedNotesId, setExpandedNotesId] = useState<number | null>(null);
 
   const { active, completed } = useMemo(() => {
     const sorted = [...tasks].sort((a, b) => {
@@ -47,11 +49,14 @@ const TaskList = () => {
               key={task.id}
               task={task}
               editing={editingId === task.id}
+              notesExpanded={expandedNotesId === task.id}
               onToggle={() => toggleTask(task.id)}
               onStar={() => toggleStar(task.id)}
               onEdit={() => setEditingId(task.id)}
               onSave={(text) => { updateTask(task.id, text); setEditingId(null); }}
               onDelete={() => deleteTask(task.id)}
+              onToggleNotes={() => setExpandedNotesId(prev => prev === task.id ? null : task.id)}
+              onUpdateNotes={(notes) => updateTaskNotes(task.id, notes)}
             />
           ))}
           {active.length === 0 && (
@@ -75,11 +80,14 @@ const TaskList = () => {
                     key={task.id}
                     task={task}
                     editing={false}
+                    notesExpanded={expandedNotesId === task.id}
                     onToggle={() => toggleTask(task.id)}
                     onStar={() => toggleStar(task.id)}
                     onEdit={() => {}}
                     onSave={() => {}}
                     onDelete={() => deleteTask(task.id)}
+                    onToggleNotes={() => setExpandedNotesId(prev => prev === task.id ? null : task.id)}
+                    onUpdateNotes={(notes) => updateTaskNotes(task.id, notes)}
                   />
                 ))}
               </div>
@@ -139,68 +147,98 @@ const TaskList = () => {
 };
 
 interface TaskRowProps {
-  task: { id: number; text: string; completed: boolean; starred?: boolean };
+  task: { id: number; text: string; completed: boolean; starred?: boolean; notes?: string };
   editing: boolean;
+  notesExpanded: boolean;
   onToggle: () => void;
   onStar: () => void;
   onEdit: () => void;
   onSave: (text: string) => void;
   onDelete: () => void;
+  onToggleNotes: () => void;
+  onUpdateNotes: (notes: string) => void;
 }
 
-const TaskRow = ({ task, editing, onToggle, onStar, onEdit, onSave, onDelete }: TaskRowProps) => {
+const TaskRow = ({ task, editing, notesExpanded, onToggle, onStar, onEdit, onSave, onDelete, onToggleNotes, onUpdateNotes }: TaskRowProps) => {
   const [text, setText] = useState(task.text);
+  const [notes, setNotes] = useState(task.notes || '');
 
   return (
-    <div className="group flex items-center gap-3 bg-card text-card-foreground rounded-xl px-4 py-3.5 shadow-sm">
-      <button onClick={onToggle} className="shrink-0">
-        {task.completed ? (
-          <CheckCircle2 className="h-6 w-6 text-accent" />
-        ) : (
-          <Circle className="h-6 w-6 text-muted-foreground/60 hover:text-accent transition-colors" />
-        )}
-      </button>
-
-      {editing ? (
-        <input
-          autoFocus
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onBlur={() => onSave(text)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') onSave(text);
-            if (e.key === 'Escape') onSave(task.text);
-          }}
-          className="flex-1 bg-transparent outline-none text-sm font-medium"
-        />
-      ) : (
-        <button
-          onClick={onEdit}
-          className={cn(
-            "flex-1 text-left text-sm font-medium break-words",
-            task.completed && "line-through text-muted-foreground"
+    <div className="bg-card text-card-foreground rounded-xl shadow-sm overflow-hidden">
+      <div className="group flex items-center gap-3 px-4 py-3.5">
+        <button onClick={onToggle} className="shrink-0">
+          {task.completed ? (
+            <CheckCircle2 className="h-6 w-6 text-accent" />
+          ) : (
+            <Circle className="h-6 w-6 text-muted-foreground/60 hover:text-accent transition-colors" />
           )}
-        >
-          {task.text}
         </button>
-      )}
 
-      <button
-        onClick={onDelete}
-        className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-        aria-label="Delete task"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
+        {editing ? (
+          <input
+            autoFocus
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onBlur={() => onSave(text)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onSave(text);
+              if (e.key === 'Escape') onSave(task.text);
+            }}
+            className="flex-1 bg-transparent outline-none text-sm font-medium"
+          />
+        ) : (
+          <button
+            onClick={onEdit}
+            className={cn(
+              "flex-1 text-left text-sm font-medium break-words",
+              task.completed && "line-through text-muted-foreground"
+            )}
+          >
+            {task.text}
+          </button>
+        )}
 
-      <button onClick={onStar} className="shrink-0" aria-label="Star task">
-        <Star
+        <button
+          onClick={onDelete}
+          className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+          aria-label="Delete task"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+
+        <button
+          onClick={onToggleNotes}
           className={cn(
-            "h-5 w-5 transition-colors",
-            task.starred ? "fill-accent text-accent" : "text-muted-foreground/50 hover:text-accent"
+            "shrink-0 transition-colors",
+            task.notes ? "text-accent" : "text-muted-foreground/50 hover:text-accent",
+            notesExpanded && "text-accent"
           )}
-        />
-      </button>
+          aria-label="Toggle notes"
+        >
+          <StickyNote className="h-5 w-5" />
+        </button>
+
+        <button onClick={onStar} className="shrink-0" aria-label="Star task">
+          <Star
+            className={cn(
+              "h-5 w-5 transition-colors",
+              task.starred ? "fill-accent text-accent" : "text-muted-foreground/50 hover:text-accent"
+            )}
+          />
+        </button>
+      </div>
+
+      {notesExpanded && (
+        <div className="px-4 pb-3.5">
+          <Textarea
+            placeholder="Add notes..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={() => onUpdateNotes(notes)}
+            className="min-h-[80px] bg-muted/50 border-muted text-sm resize-none"
+          />
+        </div>
+      )}
     </div>
   );
 };

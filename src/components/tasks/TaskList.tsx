@@ -31,10 +31,19 @@ const TaskList = () => {
 
   const handleAdd = () => {
     if (newTask.trim()) {
-      addTask(newTask);
+      addTask(newTask, { notes: newNotes, starred: newStarred });
       setNewTask('');
+      setNewNotes('');
+      setNewStarred(false);
       setShowForm(false);
     }
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setNewTask('');
+    setNewNotes('');
+    setNewStarred(false);
   };
 
   return (

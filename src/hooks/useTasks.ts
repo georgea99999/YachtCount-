@@ -73,6 +73,14 @@ export function useTasks() {
     });
   }, [save]);
 
+  const updateTaskAssignee = useCallback((id: number, assignee: string) => {
+    setTasks(prev => {
+      const updated = prev.map(t => (t.id === id ? { ...t, assignee: assignee.trim() || undefined } : t));
+      save(updated);
+      return updated;
+    });
+  }, [save]);
+
   const deleteTask = useCallback((id: number) => {
     setTasks(prev => {
       const updated = prev.filter(t => t.id !== id);
@@ -81,5 +89,5 @@ export function useTasks() {
     });
   }, [save]);
 
-  return { tasks, addTask, toggleTask, toggleStar, updateTask, updateTaskNotes, deleteTask };
+  return { tasks, addTask, toggleTask, toggleStar, updateTask, updateTaskNotes, updateTaskAssignee, deleteTask };
 }

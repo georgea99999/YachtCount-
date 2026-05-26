@@ -109,51 +109,84 @@ const TaskList = () => {
       </div>
 
       {/* Floating Add Button */}
-      <div className="fixed bottom-6 right-6 z-50">
-        {!showForm ? (
-          <Button
-            onClick={() => setShowForm(true)}
-            className="w-14 h-14 rounded-full shadow-lg btn-add"
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
-        ) : (
-          <>
-            {/* Overlay */}
-            <div
-              className="fixed inset-0 bg-black/50 z-40"
-              onClick={() => setShowForm(false)}
-            />
-            {/* Form */}
-            <div className="relative z-50 bg-card rounded-lg shadow-xl p-4 w-80 animate-fade-in border">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-card-foreground">Add New Task</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setShowForm(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Input
-                  type="text"
-                  placeholder="Task name..."
-                  value={newTask}
-                  onChange={(e) => setNewTask(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                  autoFocus
-                />
-                <Button onClick={handleAdd} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                  Add Task
-                </Button>
-              </div>
+      <Button
+        onClick={() => setShowForm(true)}
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-lg btn-add"
+        aria-label="Add task"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      {/* Add Task Dialog */}
+      <Dialog open={showForm} onOpenChange={(o) => (o ? setShowForm(true) : closeForm())}>
+        <DialogContent className="sm:max-w-md bg-card">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">New Task</DialogTitle>
+            <DialogDescription>
+              Add a quick task. Star it to pin to the top, or include notes for context.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4 pt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Task
+              </label>
+              <Input
+                type="text"
+                placeholder="What needs doing?"
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAdd();
+                  }
+                }}
+                autoFocus
+                className="text-base"
+              />
             </div>
-          </>
-        )}
-      </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Notes <span className="normal-case text-muted-foreground/70">(optional)</span>
+              </label>
+              <Textarea
+                placeholder="Add details, links, or context..."
+                value={newNotes}
+                onChange={(e) => setNewNotes(e.target.value)}
+                className="min-h-[90px] resize-none"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setNewStarred(s => !s)}
+              className={cn(
+                "flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 border transition-colors w-fit",
+                newStarred
+                  ? "bg-accent/10 border-accent/40 text-accent"
+                  : "border-border text-muted-foreground hover:text-accent hover:border-accent/40"
+              )}
+            >
+              <Star className={cn("h-4 w-4", newStarred && "fill-accent text-accent")} />
+              {newStarred ? 'Starred' : 'Mark as starred'}
+            </button>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={closeForm}>Cancel</Button>
+              <Button
+                onClick={handleAdd}
+                disabled={!newTask.trim()}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
+                Add Task
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

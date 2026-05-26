@@ -21,10 +21,16 @@ export function useTasks() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, []);
 
-  const addTask = useCallback((text: string) => {
+  const addTask = useCallback((text: string, opts?: { notes?: string; starred?: boolean }) => {
     if (!text.trim()) return;
     setTasks(prev => {
-      const updated = [...prev, { id: Date.now(), text: text.trim(), completed: false, starred: false }];
+      const updated = [...prev, {
+        id: Date.now(),
+        text: text.trim(),
+        completed: false,
+        starred: opts?.starred ?? false,
+        notes: opts?.notes?.trim() || undefined,
+      }];
       save(updated);
       return updated;
     });

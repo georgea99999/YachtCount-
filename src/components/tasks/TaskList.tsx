@@ -3,6 +3,7 @@ import { Circle, CheckCircle2, Star, Plus, X, ChevronRight, ChevronDown, Trash2,
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useTasks } from '@/hooks/useTasks';
 import { cn } from '@/lib/utils';
 

@@ -12,6 +12,7 @@ export interface Task {
   starred?: boolean;
   completedAt?: string;
   notes?: string;
+  assignee?: string;
 }
 
 export interface UsageEntry {

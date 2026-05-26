@@ -21,7 +21,7 @@ export function useTasks() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, []);
 
-  const addTask = useCallback((text: string, opts?: { notes?: string; starred?: boolean }) => {
+  const addTask = useCallback((text: string, opts?: { notes?: string; starred?: boolean; assignee?: string }) => {
     if (!text.trim()) return;
     setTasks(prev => {
       const updated = [...prev, {
@@ -30,6 +30,7 @@ export function useTasks() {
         completed: false,
         starred: opts?.starred ?? false,
         notes: opts?.notes?.trim() || undefined,
+        assignee: opts?.assignee?.trim() || undefined,
       }];
       save(updated);
       return updated;
@@ -72,6 +73,14 @@ export function useTasks() {
     });
   }, [save]);
 
+  const updateTaskAssignee = useCallback((id: number, assignee: string) => {
+    setTasks(prev => {
+      const updated = prev.map(t => (t.id === id ? { ...t, assignee: assignee.trim() || undefined } : t));
+      save(updated);
+      return updated;
+    });
+  }, [save]);
+
   const deleteTask = useCallback((id: number) => {
     setTasks(prev => {
       const updated = prev.filter(t => t.id !== id);
@@ -80,5 +89,5 @@ export function useTasks() {
     });
   }, [save]);
 
-  return { tasks, addTask, toggleTask, toggleStar, updateTask, updateTaskNotes, deleteTask };
+  return { tasks, addTask, toggleTask, toggleStar, updateTask, updateTaskNotes, updateTaskAssignee, deleteTask };
 }

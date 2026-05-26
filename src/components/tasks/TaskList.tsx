@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 const TaskList = () => {
   const { tasks, addTask, toggleTask, toggleStar, updateTask, updateTaskNotes, deleteTask } = useTasks();
   const [newTask, setNewTask] = useState('');
+  const [newNotes, setNewNotes] = useState('');
+  const [newStarred, setNewStarred] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedNotesId, setExpandedNotesId] = useState<number | null>(null);

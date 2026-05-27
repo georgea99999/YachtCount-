@@ -1,26 +1,38 @@
+## Goal
 
+1. Tapping a task in the To Do list reopens the same dialog used for adding a task, prefilled with that task's fields, so the user can edit everything (text, notes, starred, assignees) in one place.
+2. Tasks can be assigned to multiple people instead of just one.
 
-## Plan: Add Box Renaming Feature
+## Changes
 
-Currently, box names are hardcoded in `BOX_OPTIONS` and stored as plain strings on each stock item. There's no UI to rename a box.
+### Types (`src/types/inventory.ts`)
+- Change `assignee?: string` to `assignees?: string[]` on the `Task` interface.
 
-### Approach
+### Hook (`src/hooks/useTasks.ts`)
+- `addTask` opts: replace `assignee?: string` with `assignees?: string[]`.
+- Replace `updateTaskAssignee(id, string)` with `updateTaskAssignees(id, string[])`.
+- Add a single `updateTaskFields(id, Partial<Task>)` helper so the edit dialog can save text + notes + starred + assignees in one call (cleaner than calling 4 setters).
+- Lightweight migration on load: if a stored task has legacy `assignee` string, map it into `assignees: [assignee]`.
 
-1. **Add a rename button to `SortableBoxHeader`** — Show a pencil/edit icon next to each box name. Clicking it opens an inline text input to type the new name.
+### TaskList (`src/components/tasks/TaskList.tsx`)
+Unify add and edit into one dialog:
+- Single `TaskDialog` component with mode `add | edit`. On submit:
+  - add → `addTask(...)`
+  - edit → `updateTaskFields(id, {...})`
+- Dialog title: "New Task" / "Edit Task". Edit mode shows a Delete button on the left of the footer.
+- Tapping a task row (the label area) opens the dialog in edit mode prefilled with that task. The circle checkbox, star, and delete icons keep their current behavior and do not open the dialog.
+- Remove the inline rename input, inline notes textarea, inline assign input, and the per-row StickyNote / UserPlus buttons — all of that lives in the dialog now. Row becomes: checkbox · text + assignee chips · star · delete (on hover).
 
-2. **Create a `renameBox` function in `useInventory`** — This will:
-   - Update all `stock_items` in the database where `box = oldName` to `box = newName`
-   - Update the `custom_boxes` table if the old name was a custom box
-   - Update `usage_history` entries (box column) for consistency
-   - Update local state accordingly
+Multi-assignee UI inside the dialog:
+- "Assign to" section becomes a chip editor: existing assignees render as removable pills; an input with the existing `datalist` suggestions adds a new one on Enter or comma. Empty list = unassigned.
+- Row display: show up to 2 assignee chips inline with a "+N" overflow chip.
+- Filter tabs at the top: "All", "Unassigned", and one tab per unique person across all tasks' `assignees` arrays. A task matches a person-tab if that person is in its `assignees`.
 
-3. **Also allow renaming in non-reorder mode** — Add an edit icon on the box header row (the collapsible section title) in `StockList.tsx` so users can rename boxes anytime, not just during reorder.
+### Out of scope
+- No backend/storage schema beyond the localStorage shape already used by `useTasks`.
+- No changes to other tabs, sidebar, or PDF export.
 
-4. **Update box filter dropdown** — The `Select` dropdown in `StockList.tsx` and the box selector in `StockItem.tsx` edit mode will automatically reflect renamed boxes since they derive from the items' actual box values.
-
-### Files to modify
-- `src/components/inventory/SortableBoxHeader.tsx` — Add inline rename UI
-- `src/components/inventory/StockList.tsx` — Add rename icon on box headers, pass rename handler
-- `src/hooks/useInventory.ts` — Add `renameBox` function (batch update in DB)
-- `src/pages/Index.tsx` — Wire through the rename handler
-
+## Technical notes
+- Legacy migration runs once in `useEffect` load: `tasks.map(t => t.assignee && !t.assignees ? { ...t, assignees: [t.assignee], assignee: undefined } : t)` then `save`.
+- `updateTaskFields` merges: `prev.map(t => t.id === id ? { ...t, ...patch } : t)`; trims strings, drops empty assignees, dedupes case-insensitively while preserving original casing of first occurrence.
+- Dialog state seeded from the task when opening edit mode; closing resets state. Reuse the existing `Dialog` shadcn component.

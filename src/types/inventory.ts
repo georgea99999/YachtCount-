@@ -12,6 +12,8 @@ export interface Task {
   starred?: boolean;
   completedAt?: string;
   notes?: string;
+  assignees?: string[];
+  /** @deprecated use assignees */
   assignee?: string;
 }
 

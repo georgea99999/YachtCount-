@@ -259,7 +259,7 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
   const [assigneeInput, setAssigneeInput] = useState('');
 
   // Seed state whenever dialog opens / target changes
-  useMemo(() => {
+  useEffect(() => {
     if (mode.kind === 'edit') {
       setText(mode.task.text);
       setNotes(mode.task.notes ?? '');

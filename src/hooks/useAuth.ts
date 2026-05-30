@@ -5,6 +5,7 @@ import type { Session } from '@supabase/supabase-js';
 const SHARED_EMAIL = 'oktodeck@yachtcount.app';
 const SHARED_PASSWORD = 'Okto26';
 const SHARED_USERNAME = 'Oktodeck';
+const KEEP_FLAG = 'yc_keep_logged_in';
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
@@ -16,10 +17,20 @@ export function useAuth() {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    // If the user didn't opt to stay logged in, force sign-out on every fresh load
+    // so the password screen always appears.
+    const keep = localStorage.getItem(KEEP_FLAG) === 'true';
+    if (!keep) {
+      supabase.auth.signOut().finally(() => {
+        setSession(null);
+        setLoading(false);
+      });
+    } else {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setLoading(false);
+      });
+    }
 
     return () => subscription.unsubscribe();
   }, []);
@@ -29,12 +40,10 @@ export function useAuth() {
       return { error: 'Invalid username or password' };
     }
 
-    if (!keepLoggedIn) {
-      // Clear any persisted session on tab close by not persisting
-      // We'll handle this by signing out on window unload
-      window.addEventListener('beforeunload', () => {
-        supabase.auth.signOut();
-      }, { once: true });
+    if (keepLoggedIn) {
+      localStorage.setItem(KEEP_FLAG, 'true');
+    } else {
+      localStorage.removeItem(KEEP_FLAG);
     }
 
     // Try sign in first
@@ -67,6 +76,7 @@ export function useAuth() {
   };
 
   const logout = async () => {
+    localStorage.removeItem(KEEP_FLAG);
     await supabase.auth.signOut();
   };
 

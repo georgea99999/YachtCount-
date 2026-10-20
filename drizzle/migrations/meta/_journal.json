@@ -57,6 +57,13 @@
       "when": 1792510231067,
       "tag": "0007_junior_admin_stock_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792511265004,
+      "tag": "0008_platform_admins",
+      "breakpoints": true
     }
   ]
 }

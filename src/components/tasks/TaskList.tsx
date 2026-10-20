@@ -165,11 +165,23 @@ const TaskRow = ({ task, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => 
   const assignees = task.assignees ?? [];
   const visible = assignees.slice(0, 2);
   const overflow = assignees.length - visible.length;
+  const [expanded, setExpanded] = useState(false);
+  const [isLong, setIsLong] = useState(false);
+  const notesRef = useRef<HTMLDivElement>(null);
+
+  // Measure only while collapsed — once expanded the text is never clipped, so
+  // re-measuring would hide the "Show less" control.
+  useEffect(() => {
+    if (expanded) return;
+    const el = notesRef.current;
+    if (!el) return;
+    setIsLong(el.scrollHeight > el.clientHeight + 1);
+  }, [task.notes, expanded]);
 
   return (
     <div className="bg-card text-card-foreground rounded-xl shadow-sm overflow-hidden">
-      <div className="group flex items-center gap-3 px-4 py-3.5">
-        <button onClick={onToggle} className="shrink-0" aria-label="Toggle complete">
+      <div className="group flex items-start gap-3 px-4 py-3.5">
+        <button onClick={onToggle} className="shrink-0 self-start -mt-0.5" aria-label="Toggle complete">
           {task.completed ? (
             <CheckCircle2 className="h-6 w-6 text-accent" />
           ) : (
@@ -177,49 +189,71 @@ const TaskRow = ({ task, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => 
           )}
         </button>
 
-        <button onClick={onOpen} className="flex-1 min-w-0 text-left">
-          <div
-            className={cn(
-              "text-sm font-medium break-words",
-              task.completed && "line-through text-muted-foreground"
+        <div className="flex-1 min-w-0">
+          <button onClick={onOpen} className="block w-full text-left">
+            <div
+              className={cn(
+                "text-sm font-medium break-words",
+                task.completed && "line-through text-muted-foreground"
+              )}
+            >
+              {task.text}
+            </div>
+            {assignees.length > 0 && (
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                {visible.map(a => (
+                  <span
+                    key={a}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent"
+                  >
+                    <User className="h-2.5 w-2.5" />
+                    {a}
+                  </span>
+                ))}
+                {overflow > 0 && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
+                    +{overflow}
+                  </span>
+                )}
+              </div>
             )}
-          >
-            {task.text}
-          </div>
-          {assignees.length > 0 && (
-            <div className="mt-1 flex flex-wrap items-center gap-1">
-              {visible.map(a => (
-                <span
-                  key={a}
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent"
+          </button>
+
+          {task.notes && (
+            <div onClick={onOpen} className="mt-1.5 w-full cursor-pointer">
+              <div
+                ref={notesRef}
+                className={cn(
+                  "text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap break-words",
+                  !expanded && "line-clamp-4"
+                )}
+              >
+                {task.notes}
+              </div>
+              {isLong && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setExpanded(v => !v); }}
+                  className="mt-1 inline-flex items-center gap-1 rounded px-1 py-0.5 -ml-1 text-[11px] font-semibold text-accent hover:bg-accent/10"
+                  aria-expanded={expanded}
                 >
-                  <User className="h-2.5 w-2.5" />
-                  {a}
-                </span>
-              ))}
-              {overflow > 0 && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
-                  +{overflow}
-                </span>
+                  {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  {expanded ? 'Show less' : 'Show more'}
+                </button>
               )}
             </div>
           )}
-          {task.notes && (
-            <div className="mt-1.5 w-full text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap break-words line-clamp-4">
-              {task.notes}
-            </div>
-          )}
-        </button>
+        </div>
 
         <button
           onClick={onDelete}
-          className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+          className="shrink-0 self-start mt-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
           aria-label="Delete task"
         >
           <Trash2 className="h-4 w-4" />
         </button>
 
-        <button onClick={onStar} className="shrink-0" aria-label="Star task">
+        <button onClick={onStar} className="shrink-0 self-start mt-0.5" aria-label="Star task">
           <Star
             className={cn(
               "h-5 w-5 transition-colors",

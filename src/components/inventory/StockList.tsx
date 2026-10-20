@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Download, Package, GripVertical, Pencil, Check, X } from 'lucide-react';
+import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Pencil, Check, X } from 'lucide-react';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
+import { exportInventoryToCsv } from '@/lib/csvExport';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -552,10 +553,25 @@ const StockList = ({
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-4 bg-card border-t">
-        <Button variant="outline" size="sm" className="w-full" onClick={handleExportPDF}>
+      <div className="p-4 bg-card border-t flex gap-2">
+        <Button variant="outline" size="sm" className="flex-1" onClick={handleExportPDF}>
           <Download className="h-4 w-4 mr-1" />
           Export as PDF
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          onClick={() => {
+            if (items.length === 0) {
+              alert('No items to export');
+              return;
+            }
+            exportInventoryToCsv(items);
+          }}
+        >
+          <FileSpreadsheet className="h-4 w-4 mr-1" />
+          Export as CSV
         </Button>
       </div>
 

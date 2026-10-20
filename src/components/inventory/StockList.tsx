@@ -334,8 +334,20 @@ const StockList = ({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 pb-2">
-        {stats.map(({ label, value, icon: Icon, alert }) => (
-          <Card key={label} className="relative overflow-hidden border-border shadow-sm">
+        {stats.map(({ label, value, icon: Icon, alert }) => {
+          const isOos = label === 'Out of stock';
+          const active = isOos && outOfStockOnly;
+          return (
+          <Card
+            key={label}
+            role={isOos ? 'button' : undefined}
+            tabIndex={isOos ? 0 : undefined}
+            aria-pressed={isOos ? active : undefined}
+            title={isOos ? (active ? 'Show all items' : 'Show only out of stock items') : undefined}
+            onClick={isOos ? () => setOutOfStockOnly(v => !v) : undefined}
+            onKeyDown={isOos ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOutOfStockOnly(v => !v); } } : undefined}
+            className={`relative overflow-hidden border-border shadow-sm ${isOos ? 'cursor-pointer transition-shadow hover:shadow-md' : ''} ${active ? 'ring-2 ring-destructive' : ''}`}
+          >
             <div className={`absolute inset-y-0 left-0 w-1 ${alert ? 'bg-destructive' : 'bg-accent'}`} />
             <CardContent className="p-4 pl-5 flex items-center justify-between gap-2">
               <div>
@@ -347,26 +359,34 @@ const StockList = ({
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {/* Box chips */}
       {allBoxNames.length > 0 && (
         <div className="flex gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
           {['', ...allBoxNames].map(box => {
-            const isActive = activeBox === box;
+            const isActive = !outOfStockOnly && activeBox === box;
             const count = box ? allItems.filter(i => i.box === box).length : allItems.length;
             return (
               <button
                 key={box || 'all'}
                 type="button"
-                onClick={() => onBoxChange(box || 'all')}
+                onClick={() => { setOutOfStockOnly(false); onBoxChange(box || 'all'); }}
                 className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-muted'}`}
               >
                 {box || 'All boxes'} <span className="ml-1 opacity-60">{count}</span>
               </button>
             );
           })}
+        </div>
+      )}
+
+      {outOfStockOnly && (
+        <div className="mx-4 mb-1 flex items-center justify-between gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
+          <span className="flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" />Showing out of stock items across all boxes</span>
+          <button type="button" onClick={() => setOutOfStockOnly(false)} className="underline">Clear filter</button>
         </div>
       )}
 

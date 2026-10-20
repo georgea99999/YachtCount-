@@ -68,7 +68,7 @@ const Login = ({ onLogin }: LoginProps) => {
                 autoCapitalize="none"
                 autoComplete="username"
                 type="text"
-                placeholder="e.g. George Atkinson"
+                placeholder="e.g. John Smith"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required

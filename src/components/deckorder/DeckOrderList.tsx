@@ -451,8 +451,8 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
         </div>
       </div>
 
-      {/* Floating add button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      {/* Floating add button — kept clear of the install badge in the corner */}
+      <div className="fixed bottom-24 right-6 z-50">
         <Button onClick={openAdd} className="w-14 h-14 rounded-full shadow-lg btn-add" title="Add item to deck order" aria-label="Add item to deck order">
           <Plus className="h-6 w-6" />
         </Button>

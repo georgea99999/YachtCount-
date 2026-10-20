@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Table2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,15 +17,19 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import BulkAddDialog from '@/components/inventory/BulkAddDialog';
+
 interface FloatingAddButtonProps {
   onAddItem: (name: string, quantity: number, box: string) => void;
+  onAddItems: (items: { name: string; quantity: number; box: string }[]) => void;
   customBoxes: string[];
   existingBoxes: string[];
   onAddCustomBox: (boxName: string) => void;
 }
 
-const FloatingAddButton = ({ onAddItem, customBoxes, existingBoxes, onAddCustomBox }: FloatingAddButtonProps) => {
+const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, onAddCustomBox }: FloatingAddButtonProps) => {
   const [showForm, setShowForm] = useState(false);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState(1);
   const [newItemBox, setNewItemBox] = useState('');
@@ -127,10 +131,29 @@ const FloatingAddButton = ({ onAddItem, customBoxes, existingBoxes, onAddCustomB
               <Button onClick={handleAddItem} disabled={!newItemBox} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
                 Add Item
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground"
+                onClick={() => { setShowForm(false); setShowBulkDialog(true); }}
+              >
+                <Table2 className="h-4 w-4 mr-1" />
+                Bulk entry sheet
+              </Button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Bulk Add Dialog */}
+      <BulkAddDialog
+        open={showBulkDialog}
+        onOpenChange={setShowBulkDialog}
+        existingBoxes={existingBoxes}
+        customBoxes={customBoxes}
+        onAddCustomBox={onAddCustomBox}
+        onAddItems={onAddItems}
+      />
 
       {/* Create New Box Dialog */}
       <Dialog open={showCreateBoxDialog} onOpenChange={setShowCreateBoxDialog}>

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-type Vessel = { id: string; name: string; created_at: string; active: boolean; crewCount: number; activeCrew: number; admins: string[]; ownVessel: boolean };
+type Vessel = { id: string; name: string; created_at: string; active: boolean; deactivated_at: string | null; crewCount: number; activeCrew: number; admins: string[]; ownVessel: boolean };
 
 async function call(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke('crew-access', { body });
@@ -17,6 +17,17 @@ export function VesselManagement() {
   const [vessels, setVessels] = useState<Vessel[] | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const fmt = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  const remove = async (v: Vessel) => {
+    setBusy(true);
+    const { message } = await call({ action: 'delete-vessel', vesselId: v.id });
+    setBusy(false); setDeleting(null);
+    if (message) { toast.error(message); return; }
+    toast.success(`${v.name} permanently deleted`);
+    void load();
+  };
 
   const load = async () => {
     const { data, message } = await call({ action: 'list-vessels' });
@@ -42,7 +53,8 @@ export function VesselManagement() {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="font-semibold break-words">{v.name}{v.ownVessel && <span className="ml-2 text-xs font-normal text-accent">Your vessel</span>}</p>
-          <p className="text-xs text-muted-foreground">Created {new Date(v.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+          <p className="text-xs text-muted-foreground">Created {fmt(v.created_at)}</p>
+          {!v.active && v.deactivated_at && <p className="text-xs text-destructive">Deactivated {fmt(v.deactivated_at)}</p>}
           <p className="text-xs text-muted-foreground">Admin: {v.admins.join(', ') || 'None'}</p>
           <p className="text-xs text-muted-foreground">Crew: {v.activeCrew} active of {v.crewCount}</p>
         </div>
@@ -51,6 +63,9 @@ export function VesselManagement() {
       {!v.ownVessel && (confirming === v.id
         ? <div className="flex gap-2"><Button size="sm" variant="destructive" disabled={busy} onClick={() => void toggle(v)}>Confirm deactivate</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setConfirming(null)}>Cancel</Button></div>
         : <Button size="sm" variant={v.active ? 'outline' : 'default'} disabled={busy} onClick={() => v.active ? setConfirming(v.id) : void toggle(v)}>{v.active ? 'Deactivate vessel' : 'Reactivate vessel'}</Button>)}
+      {!v.ownVessel && !v.active && (deleting === v.id
+        ? <div className="space-y-2 rounded-md border border-destructive/40 p-2"><p className="text-xs text-destructive">This permanently deletes {v.name}, its crew logins, inventory, tasks and orders. This cannot be undone.</p><div className="flex gap-2"><Button size="sm" variant="destructive" disabled={busy} onClick={() => void remove(v)}>Delete forever</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => setDeleting(null)}>Cancel</Button></div></div>
+        : <Button size="sm" variant="destructive" className="ml-2" disabled={busy} onClick={() => setDeleting(v.id)}>Delete permanently</Button>)}
     </li>)}
   </ul>;
 }

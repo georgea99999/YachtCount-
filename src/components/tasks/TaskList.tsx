@@ -54,9 +54,15 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
   ];
 
   return (
-    <div className="h-full flex flex-col bg-primary text-primary-foreground">
-      <div className="px-5 pt-6 pb-3">
-        <h1 className="text-4xl font-bold tracking-tight">To Do</h1>
+    <div className="h-full flex flex-col bg-background text-foreground">
+      <div className="px-5 pt-5 pb-2 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Tasks</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">To Do</h1>
+        </div>
+        <p className="hidden md:block text-xs text-muted-foreground">
+          {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+        </p>
       </div>
 
       <div className="px-4 pb-3 overflow-x-auto">
@@ -68,15 +74,15 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
               className={cn(
                 "shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border",
                 assignFilter === tab.id
-                  ? "bg-accent text-accent-foreground border-accent"
-                  : "bg-primary-foreground/5 text-primary-foreground/70 border-primary-foreground/10 hover:bg-primary-foreground/10"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-card text-foreground hover:bg-muted"
               )}
             >
               {tab.id !== 'all' && tab.id !== 'unassigned' && <User className="h-3 w-3" />}
               {tab.label}
               <span className={cn(
                 "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                assignFilter === tab.id ? "bg-accent-foreground/15" : "bg-primary-foreground/10"
+                assignFilter === tab.id ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground"
               )}>
                 {tab.count}
               </span>
@@ -98,7 +104,7 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
             />
           ))}
           {active.length === 0 && (
-            <p className="text-center text-primary-foreground/50 py-8 text-sm">No tasks here.</p>
+            <p className="text-center text-muted-foreground py-8 text-sm">No tasks here.</p>
           )}
         </div>
 
@@ -106,7 +112,7 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
           <div className="mt-6">
             <button
               onClick={() => setShowCompleted(s => !s)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold text-primary-foreground/90 hover:bg-primary-foreground/10 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold text-foreground hover:bg-muted transition-colors"
             >
               {showCompleted ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               Completed ({completed.length})
@@ -128,20 +134,20 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
           </div>
         )}
 
-        <section className="mt-6 border-t border-primary-foreground/15 pt-3">
-          <Button variant="ghost" size="sm" onClick={() => setShowDeleted(s => !s)} aria-expanded={showDeleted} className="text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground">
+        <section className="mt-6 border-t border-border pt-3">
+          <Button variant="ghost" size="sm" onClick={() => setShowDeleted(s => !s)} aria-expanded={showDeleted} className="text-muted-foreground hover:bg-muted hover:text-foreground">
             {showDeleted ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             <Trash2 className="h-3.5 w-3.5" /> Deleted ({deletedTasks.length})
           </Button>
           {showDeleted && <div className="mt-2 space-y-2.5">
             {deletedTasks.length > 0 ? <>
               <div className="flex justify-end">
-                <Button variant="ghost" size="sm" onClick={() => setConfirmClear(true)} className="text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground">
+                <Button variant="ghost" size="sm" onClick={() => setConfirmClear(true)} className="text-muted-foreground hover:bg-muted hover:text-foreground">
                   <Trash2 className="h-3.5 w-3.5" /> Clear deleted folder
                 </Button>
               </div>
               {deletedTasks.map(task => <TaskRow key={task.id} task={task} archived onToggle={() => {}} onStar={() => {}} onOpen={() => {}} onDelete={() => {}} onRestore={() => restoreTask(task.id)} />)}
-            </> : <p className="px-3 py-4 text-sm text-primary-foreground/50">No deleted tasks.</p>}
+            </> : <p className="px-3 py-4 text-sm text-muted-foreground">No deleted tasks.</p>}
           </div>}
         </section>
       </div>
@@ -216,7 +222,7 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete, o
   }, [task.notes, expanded]);
 
   return (
-    <div className="bg-card text-card-foreground rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-card text-card-foreground rounded-xl border border-border shadow-sm overflow-hidden">
       <div className="group flex items-start gap-3 px-4 py-3.5">
         {!archived && <button onClick={onToggle} className="shrink-0 self-start -mt-0.5" aria-label="Toggle complete">
           {task.completed ? (

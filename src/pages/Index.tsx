@@ -1,5 +1,5 @@
 // @refresh reset
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TabType } from '@/types/inventory';
 import { useInventory } from '@/hooks/useInventory';
 import { useDeckOrder } from '@/hooks/useDeckOrder';

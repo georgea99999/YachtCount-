@@ -1,6 +1,7 @@
 import { Home, BarChart3, ClipboardList, ListTodo, LogOut } from 'lucide-react';
 import { TabType } from '@/types/inventory';
 import { cn } from '@/lib/utils';
+import yachtcountLogo from '@/assets/yachtcount-logo.png';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -8,6 +9,8 @@ interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
   onLogout?: () => void;
+  /** Height of the sticky header in px — the rail starts below it on all screen sizes */
+  headerHeight?: number;
 }
 
 const tabs = [
@@ -17,25 +20,31 @@ const tabs = [
   { id: 'reports' as TabType, label: 'Monthly Report', icon: BarChart3 },
 ];
 
-const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout }: SidebarProps) => {
+const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, headerHeight = 0 }: SidebarProps) => {
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
           onClick={onClose}
         />
       )}
       
-      {/* Sidebar */}
+      {/* Sidebar rail — starts below the header so the header spans the full width */}
       <aside 
+        style={{ top: `${headerHeight}px`, height: `calc(100dvh - ${headerHeight}px)` }}
         className={cn(
-          "fixed left-0 top-0 h-full w-16 bg-primary z-50 flex flex-col pt-20 transition-transform duration-300",
+          "fixed left-0 w-16 bg-primary z-40 flex flex-col transition-transform duration-300",
           "md:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
+        {/* Logo at the top of the rail on larger screens */}
+        <div className="hidden md:flex items-center justify-center pt-3 pb-2">
+          <img src={yachtcountLogo} alt="YachtCount Logo" className="w-9 h-9 object-contain rounded" />
+        </div>
+
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;

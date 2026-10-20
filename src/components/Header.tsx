@@ -45,7 +45,7 @@ const Header = ({
   };
   const unreadCount = notifications.length;
   return <header id="yc-app-header" className="bg-primary text-primary-foreground sticky top-0 z-50">
-      <div className="flex items-center justify-between px-4 py-3 pb-[22px] md:min-h-[80px] md:gap-6 md:pt-0 md:pb-[10px] md:pl-6 md:pr-6">
+      <div className="flex items-center justify-between px-4 py-3 pb-[22px] md:min-h-[80px] md:gap-6 md:pt-0 md:pb-[10px] md:pl-3 md:pr-6">
         {/* Left: Menu, Logo & Vessel/Crew bubble */}
         <div className="flex min-w-0 items-center gap-3 md:flex-1 md:gap-5">
           <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>

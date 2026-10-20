@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Pencil, Check, X, Layers, Boxes, AlertTriangle } from 'lucide-react';
+import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Layers, Boxes, AlertTriangle } from 'lucide-react';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { InventoryImportItem } from '@/lib/inventoryImport';
 import { InventorySort, sortInventoryItems, sortBoxNames } from '@/lib/inventorySort';
@@ -88,8 +88,6 @@ const StockList = ({
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [reorderBoxes, setReorderBoxes] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
-  const [editingBox, setEditingBox] = useState<string | null>(null);
-  const [editBoxValue, setEditBoxValue] = useState('');
   const [outOfStockOnly, setOutOfStockOnly] = useState(false);
 
   const sensors = useSensors(
@@ -557,43 +555,8 @@ const StockList = ({
             sortedBoxEntries.map(([box, boxItems]) => (
               <div key={box} className="mt-4 first:mt-0">
                 <div className="sticky top-0 z-10 flex items-center gap-2 border-y border-border bg-secondary px-3 py-2.5">
-                  {editingBox === box ? (
-                    <>
-                      <input
-                        value={editBoxValue}
-                        onChange={(e) => setEditBoxValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            const trimmed = editBoxValue.trim();
-                            if (trimmed && trimmed !== box) onRenameBox?.(box, trimmed);
-                            setEditingBox(null);
-                          }
-                          if (e.key === 'Escape') setEditingBox(null);
-                        }}
-                        className="h-6 px-2 text-sm bg-background border border-input rounded"
-                        autoFocus
-                      />
-                      <Button variant="ghost" size="icon" title="Save box name" aria-label="Save box name" onClick={() => {
-                        const trimmed = editBoxValue.trim();
-                        if (trimmed && trimmed !== box) onRenameBox?.(box, trimmed);
-                        setEditingBox(null);
-                      }} className="h-6 w-6 text-primary"><Check className="w-3.5 h-3.5" /></Button>
-                      <Button variant="ghost" size="icon" title="Cancel box rename" aria-label="Cancel box rename" onClick={() => setEditingBox(null)} className="h-6 w-6 text-muted-foreground"><X className="w-3.5 h-3.5" /></Button>
-                    </>
-                  ) : (
-                    <>
-                      <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-accent" />
-                      <span className="text-xs font-bold uppercase tracking-[0.14em] text-foreground">{box}</span>
-                      {onRenameBox && (
-                        <Button variant="ghost" size="icon" title="Rename box" aria-label="Rename box"
-                          onClick={() => { setEditBoxValue(box); setEditingBox(box); }}
-                          className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                        >
-                          <Pencil className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </>
-                  )}
+                  <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-accent" />
+                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-foreground">{box}</span>
                 </div>
                 {boxItems.map(item => (
                   <StockItemRow

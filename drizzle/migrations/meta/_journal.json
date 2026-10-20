@@ -64,6 +64,13 @@
       "when": 1792511265004,
       "tag": "0008_platform_admins",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792511680497,
+      "tag": "0009_vessel_active",
+      "breakpoints": true
     }
   ]
 }

@@ -43,7 +43,7 @@ const Header = ({
   };
   const unreadCount = notifications.length;
   return <header className="bg-primary text-primary-foreground sticky top-0 z-50">
-      <div className="flex items-center justify-between px-4 py-3 md:px-6">
+      <div className="flex items-center justify-between px-4 py-3 md:pl-20 md:pr-6">
         {/* Left: Menu & Logo */}
         <div className="flex items-center gap-3">
           <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
@@ -131,9 +131,9 @@ const Header = ({
         </div>
       </div>
 
-      <div className="px-4 pb-2 md:px-6 text-xs text-primary-foreground/80 flex flex-wrap gap-x-3"><span>{vesselName}</span><span>{crewName}</span></div>
+      <div className="px-4 pb-2 md:pl-20 md:pr-6 text-xs text-primary-foreground/80 flex flex-wrap gap-x-3"><span>{vesselName}</span><span>{crewName}</span></div>
       {/* Slogan */}
-      <div className="px-4 pb-3 md:px-6 md:ml-16">
+      <div className="px-4 pb-3 md:pl-20 md:pr-6">
         <p className="text-sm text-primary-foreground/80 italic">
           Professional Inventory Systems for Maritime Excellence.
         </p>

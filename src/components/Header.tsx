@@ -42,15 +42,16 @@ const Header = ({
     });
   };
   const unreadCount = notifications.length;
-  return <header className="bg-primary text-primary-foreground sticky top-0 z-50">
-      <div className="flex items-center justify-between px-4 py-3 md:pl-20 md:pr-6">
+  return <header id="yc-app-header" className="bg-primary text-primary-foreground sticky top-0 z-50">
+      <div className="flex items-center justify-between px-4 py-3 md:pr-6">
         {/* Left: Menu & Logo */}
         <div className="flex items-center gap-3">
           <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <img src={yachtcountLogo} alt="YachtCount Logo" className="w-10 h-10 object-contain rounded" />
+            {/* Logo lives in the sidebar rail on larger screens; mobile keeps it here */}
+            <img src={yachtcountLogo} alt="YachtCount Logo" className="w-10 h-10 object-contain rounded md:hidden" />
             <span className="font-bold tracking-tight text-2xl font-sans">YachtCount</span>
           </div>
         </div>
@@ -131,9 +132,9 @@ const Header = ({
         </div>
       </div>
 
-      <div className="px-4 pb-2 md:pl-20 md:pr-6 text-xs text-primary-foreground/80 flex flex-wrap gap-x-3"><span>{vesselName}</span><span>{crewName}</span></div>
+      <div className="px-4 pb-2 md:pr-6 text-xs text-primary-foreground/80 flex flex-wrap gap-x-3"><span>{vesselName}</span><span>{crewName}</span></div>
       {/* Slogan */}
-      <div className="px-4 pb-3 md:pl-20 md:pr-6">
+      <div className="px-4 pb-3 md:pr-6">
         <p className="text-sm text-primary-foreground/80 italic">
           Professional Inventory Systems for Maritime Excellence.
         </p>

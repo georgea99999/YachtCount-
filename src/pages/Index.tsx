@@ -1,5 +1,5 @@
 // @refresh reset
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TabType } from '@/types/inventory';
 import { useInventory } from '@/hooks/useInventory';
 import { useDeckOrder } from '@/hooks/useDeckOrder';
@@ -23,6 +23,20 @@ const Index = ({ onLogout }: IndexProps) => {
   const {crew,loading:crewLoading,refresh:refreshCrew}=useCrew();
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  // Keep the sidebar rail starting exactly below the sticky header.
+  // Re-runs when crewLoading flips because the header only renders once crew resolves.
+  useEffect(() => {
+    if (crewLoading) return;
+    const el = document.getElementById('yc-app-header');
+    if (!el) return;
+    const update = () => setHeaderHeight(el.offsetHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [crewLoading]);
   
   const {
     stockItems,
@@ -96,6 +110,7 @@ const Index = ({ onLogout }: IndexProps) => {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           onLogout={onLogout}
+          headerHeight={headerHeight}
         />
 
         {/* Main Content */}

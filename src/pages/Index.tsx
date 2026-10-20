@@ -24,23 +24,19 @@ const Index = ({ onLogout }: IndexProps) => {
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
-  const measuringRef = useRef(false);
 
-  // Keep the sidebar rail starting exactly below the sticky header
+  // Keep the sidebar rail starting exactly below the sticky header.
+  // Re-runs when crewLoading flips because the header only renders once crew resolves.
   useEffect(() => {
-    if (measuringRef.current) return;
-    measuringRef.current = true;
+    if (crewLoading) return;
     const el = document.getElementById('yc-app-header');
     if (!el) return;
     const update = () => setHeaderHeight(el.offsetHeight);
     update();
     const observer = new ResizeObserver(update);
     observer.observe(el);
-    return () => {
-      observer.disconnect();
-      measuringRef.current = false;
-    };
-  }, []);
+    return () => observer.disconnect();
+  }, [crewLoading]);
   
   const {
     stockItems,

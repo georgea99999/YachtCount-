@@ -13,7 +13,7 @@ const input = z.discriminatedUnion('action', [
   z.object({action:z.literal('rename'),userId:z.string().uuid(),username:name}),
   z.object({action:z.literal('deactivate'),userId:z.string().uuid()}),
   z.object({action:z.literal('remove'),userId:z.string().uuid()}),
-  z.object({action:z.literal('set-admin'),userId:z.string().uuid(),admin:z.boolean()}),
+  z.object({action:z.literal('set-admin'),userId:z.string().uuid(),role:z.enum(['owner','junior']).nullable()}),
   z.object({action:z.literal('reset-password'),password:passwordSchema,newPassword:passwordSchema}),
 ]);
 Deno.serve(async req => {
@@ -54,8 +54,8 @@ Deno.serve(async req => {
       if(targetError) return respond({error:targetError.replace('deactivate your own admin account','change your own account here')},403);
       if(request.action==='set-admin') {
         if(!target!.active) return respond({error:'Only active crew can be made admin'},400);
-        const {error}=request.admin
-          ? await admin.from('user_roles').upsert({user_id:request.userId,vessel_id:membership.vessel_id,role:'owner'},{onConflict:'user_id,vessel_id',ignoreDuplicates:true})
+        const {error}=request.role
+          ? await admin.from('user_roles').upsert({user_id:request.userId,vessel_id:membership.vessel_id,role:request.role},{onConflict:'user_id,vessel_id'})
           : await admin.from('user_roles').delete().eq('user_id',request.userId).eq('vessel_id',membership.vessel_id);
         if(error) return respond({error:'Unable to update admin access'},500);
         return respond({ok:true});

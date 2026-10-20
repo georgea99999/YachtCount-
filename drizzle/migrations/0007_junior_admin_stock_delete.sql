@@ -1,0 +1,1 @@
+ALTER POLICY admin_stock_delete ON public.stock_items USING ((vessel_id = public.current_vessel()) AND (EXISTS (SELECT 1 FROM public.user_roles r WHERE r.user_id = auth.uid() AND r.vessel_id = stock_items.vessel_id AND r.role IN ('owner','junior'))));

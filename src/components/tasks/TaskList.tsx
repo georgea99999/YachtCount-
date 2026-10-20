@@ -16,8 +16,11 @@ type DialogMode =
 
 const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
   const {members}=useCrew();
-  const { tasks, addTask, toggleTask, toggleStar, updateTaskFields, deleteTask } = useTasks();
+  const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, deleteTask, clearDeletedTasks } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);
+  const [showDeleted, setShowDeleted] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [assignFilter, setAssignFilter] = useState<string>('all');
   const [dialog, setDialog] = useState<DialogMode>({ kind: 'closed' });
 
@@ -124,7 +127,40 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
             )}
           </div>
         )}
+
+        <section className="mt-6 border-t border-primary-foreground/15 pt-3">
+          <Button variant="ghost" size="sm" onClick={() => setShowDeleted(s => !s)} aria-expanded={showDeleted} className="text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground">
+            {showDeleted ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            <Trash2 className="h-3.5 w-3.5" /> Deleted ({deletedTasks.length})
+          </Button>
+          {showDeleted && <div className="mt-2 space-y-2.5">
+            {deletedTasks.length > 0 ? <>
+              <div className="flex justify-end">
+                <Button variant="ghost" size="sm" onClick={() => setConfirmClear(true)} className="text-primary-foreground/70 hover:bg-primary-foreground/10 hover:text-primary-foreground">
+                  <Trash2 className="h-3.5 w-3.5" /> Clear deleted folder
+                </Button>
+              </div>
+              {deletedTasks.map(task => <TaskRow key={task.id} task={task} archived onToggle={() => {}} onStar={() => {}} onOpen={() => {}} onDelete={() => {}} />)}
+            </> : <p className="px-3 py-4 text-sm text-primary-foreground/50">No deleted tasks.</p>}
+          </div>}
+        </section>
       </div>
+
+      <Dialog open={confirmClear} onOpenChange={setConfirmClear}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Clear deleted folder?</DialogTitle>
+            <DialogDescription>All {deletedTasks.length} deleted tasks will be permanently removed for this vessel. This cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" disabled={clearing} onClick={() => setConfirmClear(false)}>Cancel</Button>
+            <Button variant="destructive" disabled={clearing} onClick={async () => {
+              setClearing(true);
+              try { if (await clearDeletedTasks()) setConfirmClear(false); } finally { setClearing(false); }
+            }}>{clearing ? 'Clearing…' : 'Clear deleted folder'}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Button
         onClick={() => setDialog({ kind: 'add' })}
@@ -154,13 +190,14 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
 
 interface TaskRowProps {
   task: Task;
+  archived?: boolean;
   onToggle: () => void;
   onStar: () => void;
   onOpen: () => void;
   onDelete: () => void;
 }
 
-const TaskRow = ({ task, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => {
+const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => {
   const assignees = task.assignees ?? [];
   const visible = assignees.slice(0, 2);
   const overflow = assignees.length - visible.length;
@@ -180,16 +217,16 @@ const TaskRow = ({ task, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => 
   return (
     <div className="bg-card text-card-foreground rounded-xl shadow-sm overflow-hidden">
       <div className="group flex items-start gap-3 px-4 py-3.5">
-        <button onClick={onToggle} className="shrink-0 self-start -mt-0.5" aria-label="Toggle complete">
+        {!archived && <button onClick={onToggle} className="shrink-0 self-start -mt-0.5" aria-label="Toggle complete">
           {task.completed ? (
             <CheckCircle2 className="h-6 w-6 text-accent" />
           ) : (
             <Circle className="h-6 w-6 text-muted-foreground/60 hover:text-accent transition-colors" />
           )}
-        </button>
+        </button>}
 
         <div className="flex-1 min-w-0">
-          <button onClick={onOpen} className="block w-full text-left">
+          <button onClick={onOpen} disabled={archived} className="block w-full text-left">
             <div
               className={cn(
                 "text-sm font-medium break-words",
@@ -219,9 +256,10 @@ const TaskRow = ({ task, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => 
           </button>
 
           <p className="mt-1 text-[11px] text-muted-foreground">{task.createdBy ? `Added by ${task.createdBy}` : 'Earlier task'}{task.completedBy && ` · Completed by ${task.completedBy}`}</p>
+          {task.deletedAt && <p className="mt-1 text-[11px] text-muted-foreground">Deleted {new Date(task.deletedAt).toLocaleString('en-GB')}</p>}
 
           {task.notes && (
-            <div onClick={onOpen} className="mt-1.5 w-full cursor-pointer">
+            <div onClick={archived ? undefined : onOpen} className={cn("mt-1.5 w-full", !archived && "cursor-pointer")}>
               <div
                 ref={notesRef}
                 className={cn(
@@ -246,22 +284,22 @@ const TaskRow = ({ task, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => 
           )}
         </div>
 
-        <button
+        {!archived && <button
           onClick={onDelete}
           className="shrink-0 self-start mt-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
           aria-label="Delete task"
         >
           <Trash2 className="h-4 w-4" />
-        </button>
+        </button>}
 
-        <button onClick={onStar} className="shrink-0 self-start mt-0.5" aria-label="Star task">
+        {!archived && <button onClick={onStar} className="shrink-0 self-start mt-0.5" aria-label="Star task">
           <Star
             className={cn(
               "h-5 w-5 transition-colors",
               task.starred ? "fill-accent text-accent" : "text-muted-foreground/50 hover:text-accent"
             )}
           />
-        </button>
+        </button>}
       </div>
     </div>
   );

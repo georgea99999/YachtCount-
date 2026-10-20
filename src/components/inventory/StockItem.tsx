@@ -27,6 +27,7 @@ interface StockItemProps {
   usageHistory?: UsageEntry[];
   isDragEnabled?: boolean;
   allBoxNames?: string[];
+  showBox?: boolean;
 }
 
 const StockItemRow = ({ 
@@ -41,6 +42,7 @@ const StockItemRow = ({
   usageHistory = [],
   isDragEnabled = false,
   allBoxNames = [],
+  showBox = false,
 }: StockItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -170,10 +172,15 @@ const StockItemRow = ({
           className="flex-1 min-w-0 cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
             <p className="font-medium text-sm text-foreground break-words line-clamp-2">
               {item.name}
             </p>
+            {showBox && item.box && (
+              <span className="flex-shrink-0 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {item.box}
+              </span>
+            )}
             <Button title={isExpanded ? "Hide quantity changes" : "Show quantity changes"} aria-label={isExpanded ? "Hide quantity changes" : "Show quantity changes"} variant="ghost" size="icon" className="h-4 w-4 flex-shrink-0 p-0">
               {isExpanded ? (
                 <ChevronUp className="h-3 w-3 text-muted-foreground" />

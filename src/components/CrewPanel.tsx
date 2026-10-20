@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Pencil, UserX, KeyRound, X } from 'lucide-react';
+import { Users, Pencil, UserX, KeyRound, X, Trash2, ShieldCheck, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,13 +17,14 @@ export function CrewPanel({ setup = false, onReady }: {setup?:boolean;onReady?:(
   const [busy,setBusy]=useState(false);
   const [editing,setEditing]=useState<{id:string;username:string}|null>(null);
   const [deactivating,setDeactivating]=useState<{id:string;username:string}|null>(null);
+  const [removing,setRemoving]=useState<{id:string;username:string}|null>(null);
   const [editName,setEditName]=useState('');
   const [resetting,setResetting]=useState(false);
   const [currentPassword,setCurrentPassword]=useState('');
   const [newPassword,setNewPassword]=useState('');
   const [confirmPassword,setConfirmPassword]=useState('');
-  const cancelAction=()=>{setEditing(null);setDeactivating(null);setResetting(false);setCurrentPassword('');setNewPassword('');setConfirmPassword('');};
-  const manage=async(body:Record<string,string>,success:string)=>{
+  const cancelAction=()=>{setEditing(null);setDeactivating(null);setRemoving(null);setResetting(false);setCurrentPassword('');setNewPassword('');setConfirmPassword('');};
+  const manage=async(body:Record<string,string|boolean>,success:string)=>{
     setBusy(true);
     try {
       const {data,error}=await supabase.functions.invoke('crew-access',{body});
@@ -52,16 +53,17 @@ export function CrewPanel({ setup = false, onReady }: {setup?:boolean;onReady?:(
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{setup?'Admin vessel setup':crew?.vesselName || 'Crew'}</DialogTitle></DialogHeader>
         {!setup && <><p className="text-sm text-muted-foreground">{crew?.owner ? 'Vessel admin' : 'Crew member'} · {crew?.username}</p><ul className="divide-y divide-border">{accounts.filter(person=>crew?.owner || person.active).map(person=><li className="flex items-center gap-2 py-3 text-sm" key={person.id}>
-          <div className="min-w-0 flex-1"><span className="break-words">{person.username}</span>{!person.active && <span className="block text-xs text-muted-foreground">Inactive</span>}</div>
-          {crew?.owner && <><Button variant="ghost" size="icon" disabled={busy} title={`Edit ${person.username}`} aria-label={`Edit ${person.username}`} onClick={()=>{cancelAction();setEditing(person);setEditName(person.username);}}><Pencil className="h-4 w-4"/></Button>{person.active && person.username!==crew.username && <Button variant="ghost" size="icon" disabled={busy} className="text-destructive" title={`Deactivate ${person.username}`} aria-label={`Deactivate ${person.username}`} onClick={()=>{cancelAction();setDeactivating(person);}}><UserX className="h-4 w-4"/></Button>}</>}
+          <div className="min-w-0 flex-1"><span className="break-words">{person.username}</span>{person.admin && person.active && <span className="block text-xs text-accent">Admin</span>}{!person.active && <span className="block text-xs text-muted-foreground">Inactive</span>}</div>
+          {crew?.owner && <><Button variant="ghost" size="icon" disabled={busy} title={`Edit ${person.username}`} aria-label={`Edit ${person.username}`} onClick={()=>{cancelAction();setEditing(person);setEditName(person.username);}}><Pencil className="h-4 w-4"/></Button>{person.active && person.username!==crew.username && <Button variant="ghost" size="icon" disabled={busy} className={person.admin?'text-accent':''} title={person.admin?`Remove admin from ${person.username}`:`Make ${person.username} admin`} aria-label={person.admin?`Remove admin from ${person.username}`:`Make ${person.username} admin`} onClick={()=>void manage({action:'set-admin',userId:person.id,admin:!person.admin},person.admin?`${person.username} is no longer admin`:`${person.username} is now admin`)}>{person.admin?<ShieldCheck className="h-4 w-4"/>:<Shield className="h-4 w-4"/>}</Button>}{!person.active && <Button variant="ghost" size="icon" disabled={busy} className="text-destructive" title={`Remove ${person.username}`} aria-label={`Remove ${person.username}`} onClick={()=>{cancelAction();setRemoving(person);}}><Trash2 className="h-4 w-4"/></Button>}{person.active && person.username!==crew.username && <Button variant="ghost" size="icon" disabled={busy} className="text-destructive" title={`Deactivate ${person.username}`} aria-label={`Deactivate ${person.username}`} onClick={()=>{cancelAction();setDeactivating(person);}}><UserX className="h-4 w-4"/></Button>}</>}
         </li>)}</ul></>}
-        {crew?.owner && !setup && (editing || deactivating || resetting) && <section className="space-y-4 border-t border-border pt-4">
-          <div className="flex items-center justify-between gap-2"><h3 className="font-medium">{editing?'Edit crew name':deactivating?'Deactivate crew member':'Reset vessel password'}</h3><Button variant="ghost" size="icon" disabled={busy} aria-label="Cancel account change" title="Cancel" onClick={cancelAction}><X className="h-4 w-4"/></Button></div>
+        {crew?.owner && !setup && (editing || deactivating || removing || resetting) && <section className="space-y-4 border-t border-border pt-4">
+          <div className="flex items-center justify-between gap-2"><h3 className="font-medium">{editing?'Edit crew name':deactivating?'Deactivate crew member':removing?'Remove crew member':'Reset vessel password'}</h3><Button variant="ghost" size="icon" disabled={busy} aria-label="Cancel account change" title="Cancel" onClick={cancelAction}><X className="h-4 w-4"/></Button></div>
           {editing && <form className="space-y-4" onSubmit={event=>{event.preventDefault();try {normalizeCrewName(editName);} catch {toast.error('Enter a valid full name');return;}void manage({action:'rename',userId:editing.id,username:editName},'Crew name updated');}}>
             <div className="space-y-2"><Label htmlFor="edit-crew-name">Full name</Label><Input id="edit-crew-name" value={editName} onChange={event=>setEditName(event.target.value)} minLength={3} maxLength={100} autoCapitalize="words" required disabled={busy}/></div>
             <p className="text-sm text-muted-foreground">They will sign in with the new name. Previous activity keeps its original name.</p><Button type="submit" disabled={busy} className="w-full">{busy?'Saving…':'Save name'}</Button>
           </form>}
           {deactivating && <><p className="text-sm text-muted-foreground">Remove {deactivating.username}’s vessel access? Their previous stock changes and tasks will be kept.</p><Button variant="destructive" disabled={busy} className="w-full" onClick={()=>void manage({action:'deactivate',userId:deactivating.id},'Crew member deactivated')}>{busy?'Saving…':'Deactivate crew member'}</Button></>}
+          {removing && <><p className="text-sm text-muted-foreground">Permanently remove {removing.username}? Their login is deleted and they disappear from the crew list. Past stock changes and tasks keep their name.</p><Button variant="destructive" disabled={busy} className="w-full" onClick={()=>void manage({action:'remove',userId:removing.id},'Crew member removed')}>{busy?'Removing…':'Remove permanently'}</Button></>}
           {resetting && <form className="space-y-4" onSubmit={event=>{event.preventDefault();if(newPassword!==confirmPassword){toast.error('New passwords do not match');return;}void manage({action:'reset-password',password:currentPassword,newPassword},'Vessel password updated for all crew');}}>
             <div className="space-y-2"><Label htmlFor="current-vessel-password">Current vessel password</Label><Input id="current-vessel-password" type="password" autoComplete="current-password" value={currentPassword} onChange={event=>setCurrentPassword(event.target.value)} minLength={8} maxLength={100} required disabled={busy}/></div>
             <div className="space-y-2"><Label htmlFor="new-vessel-password">New vessel password</Label><Input id="new-vessel-password" type="password" autoComplete="new-password" value={newPassword} onChange={event=>setNewPassword(event.target.value)} minLength={8} maxLength={100} required disabled={busy}/></div>
@@ -69,8 +71,8 @@ export function CrewPanel({ setup = false, onReady }: {setup?:boolean;onReady?:(
             <p className="text-sm text-muted-foreground">All crew will use this password at their next sign-in. Share it with your active crew.</p><Button type="submit" disabled={busy} className="w-full">{busy?'Saving…':'Update vessel password'}</Button>
           </form>}
         </section>}
-        {crew?.owner && !setup && !editing && !deactivating && !resetting && <Button variant="outline" disabled={busy} onClick={()=>{cancelAction();setResetting(true);}}><KeyRound className="mr-2 h-4 w-4"/>Reset vessel password</Button>}
-        {(setup || (crew?.owner && !editing && !deactivating && !resetting)) && <form className="space-y-4" onSubmit={submit}>
+        {crew?.owner && !setup && !editing && !deactivating && !removing && !resetting && <Button variant="outline" disabled={busy} onClick={()=>{cancelAction();setResetting(true);}}><KeyRound className="mr-2 h-4 w-4"/>Reset vessel password</Button>}
+        {(setup || (crew?.owner && !editing && !deactivating && !removing && !resetting)) && <form className="space-y-4" onSubmit={submit}>
           {setup && <div className="space-y-2"><Label htmlFor="vessel-name">Vessel name</Label><Input id="vessel-name" value={vesselName} onChange={e=>setVesselName(e.target.value)} required maxLength={100}/></div>}
           <div className="space-y-2"><Label htmlFor="crew-name">{setup?'Admin full name':'Crew member full name'}</Label><Input id="crew-name" value={username} onChange={e=>setUsername(e.target.value)} required minLength={3} maxLength={100} placeholder="e.g. John Smith" autoCapitalize="words" autoComplete="name"/></div>
           <div className="space-y-2"><Label htmlFor="vessel-password">{setup?'Choose vessel password':'Vessel password'}</Label><Input id="vessel-password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={8} autoComplete="new-password"/></div>

@@ -1,0 +1,1 @@
+CREATE POLICY vessel_roles_read ON public.user_roles FOR SELECT TO authenticated USING (vessel_id = public.current_vessel());

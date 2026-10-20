@@ -1,3 +1,4 @@
+import { type CSSProperties } from 'react';
 import { Home, BarChart3, ClipboardList, ListTodo, LogOut } from 'lucide-react';
 import { TabType } from '@/types/inventory';
 import { cn } from '@/lib/utils';
@@ -31,11 +32,12 @@ const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, hea
         />
       )}
       
-      {/* Sidebar rail — starts below the header so the header spans the full width */}
+      {/* Sidebar rail — full height on desktop; on mobile the drawer starts below the header */}
       <aside 
-        style={{ top: `${headerHeight}px`, height: `calc(100dvh - ${headerHeight}px)` }}
+        style={{ "--header-h": `${headerHeight}px` } as CSSProperties}
         className={cn(
-          "fixed left-0 w-16 bg-primary z-40 flex flex-col transition-transform duration-300",
+          "fixed left-0 top-[var(--header-h)] h-[calc(100dvh-var(--header-h))] w-16 bg-primary z-50 flex flex-col transition-transform duration-300",
+          "md:top-0 md:h-full",
           "md:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}

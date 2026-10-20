@@ -153,6 +153,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_username: string | null
+          deleted_at: string | null
           id: number
           notes: string | null
           starred: boolean
@@ -168,6 +169,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_username?: string | null
+          deleted_at?: string | null
           id?: number
           notes?: string | null
           starred?: boolean
@@ -183,6 +185,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_username?: string | null
+          deleted_at?: string | null
           id?: number
           notes?: string | null
           starred?: boolean

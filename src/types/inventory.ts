@@ -13,6 +13,7 @@ export interface Task {
   completedAt?: string;
   createdBy?: string;
   completedBy?: string;
+  deletedAt?: string;
   notes?: string;
   assignees?: string[];
   /** @deprecated use assignees */

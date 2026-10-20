@@ -113,6 +113,7 @@ const Index = ({ onLogout }: IndexProps) => {
                 onUpdateQuantityDirect={updateStockQuantityDirect}
                 onEditItem={editStockItem}
                 onDelete={deleteStockItem}
+                canDelete={crew.owner}
                 totalItems={totalItems}
                 totalQuantity={totalQuantity}
                 onSendToDeckOrder={handleSendToDeckOrder}

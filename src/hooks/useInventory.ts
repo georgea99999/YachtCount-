@@ -290,12 +290,13 @@ export function useInventory(vesselId?: string) {
 
     const deletedItem = stockItems[itemIndex];
 
-    const { error } = await supabase
+    const { data: removed, error } = await supabase
       .from('stock_items')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .select('id');
 
-    if (error) {
+    if (error || !removed?.length) {
       console.error('Error deleting stock item:', error);
       return;
     }

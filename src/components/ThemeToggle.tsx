@@ -21,7 +21,9 @@ const ThemeToggle = () => {
   }
 
   return (
-    <Button 
+    <Button
+      title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       variant="ghost" 
       size="icon" 
       className="text-primary-foreground hover:bg-sidebar-accent"

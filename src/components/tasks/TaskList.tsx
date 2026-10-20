@@ -524,6 +524,7 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
               >
                 {editing ? 'Save' : 'Add Task'}
               </Button>
+            </div>
           </div>
 
           {editing && (
@@ -531,7 +532,6 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
               Added by {editing.createdBy || 'Not recorded'}
             </p>
           )}
-        </div>
         </div>
       </DialogContent>
     </Dialog>

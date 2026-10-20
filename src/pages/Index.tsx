@@ -23,6 +23,24 @@ const Index = ({ onLogout }: IndexProps) => {
   const {crew,loading:crewLoading,refresh:refreshCrew}=useCrew();
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const measuringRef = useRef(false);
+
+  // Keep the sidebar rail starting exactly below the sticky header
+  useEffect(() => {
+    if (measuringRef.current) return;
+    measuringRef.current = true;
+    const el = document.getElementById('yc-app-header');
+    if (!el) return;
+    const update = () => setHeaderHeight(el.offsetHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      measuringRef.current = false;
+    };
+  }, []);
   
   const {
     stockItems,
@@ -96,10 +114,11 @@ const Index = ({ onLogout }: IndexProps) => {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           onLogout={onLogout}
+          headerHeight={headerHeight}
         />
 
         {/* Main Content */}
-        <main className="flex-1 md:ml-16 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden">
           {/* Tab Content */}
           <div className="flex-1 overflow-hidden">
             {activeTab === 'stock' && (

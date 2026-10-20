@@ -36,6 +36,13 @@
       "when": 1792495881259,
       "tag": "0004_task_archive_and_admin_stock_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792507443448,
+      "tag": "0005_delete_empty_inventory_box",
+      "breakpoints": true
     }
   ]
 }

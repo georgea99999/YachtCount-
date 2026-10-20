@@ -599,22 +599,6 @@ const StockList = ({
           </DragOverlay>
         </DndContext>
       </div>
-
-      {/* Bottom Actions */}
-      <div className="p-4 bg-card border-t flex gap-2">
-        <Button variant="outline" size="sm" className="flex-1" onClick={handleExportPDF}>
-          <Download className="h-4 w-4 mr-1" />
-          Export as PDF
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={() => setImportOpen(true)}
-        >
-          <FileSpreadsheet className="h-4 w-4 mr-1" />
-          Import from CSV
-        </Button>
       </div>
 
       {importOpen && <ImportInventoryDialog open={importOpen} onOpenChange={setImportOpen} onImport={onImportItems} />}

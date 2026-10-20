@@ -1,5 +1,5 @@
 import { type CSSProperties } from 'react';
-import { Home, BarChart3, ClipboardList, ListTodo, LogOut, Ship, UserRound } from 'lucide-react';
+import { Home, BarChart3, ClipboardList, ListTodo, LogOut } from 'lucide-react';
 import { TabType } from '@/types/inventory';
 import { cn } from '@/lib/utils';
 
@@ -11,8 +11,6 @@ interface SidebarProps {
   onLogout?: () => void;
   /** Height of the sticky header in px — the rail starts below it on all screen sizes */
   headerHeight?: number;
-  vesselName?: string;
-  crewName?: string;
 }
 
 const tabs = [
@@ -22,7 +20,7 @@ const tabs = [
   { id: 'reports' as TabType, label: 'Monthly Report', icon: BarChart3 },
 ];
 
-const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, headerHeight = 0, vesselName, crewName }: SidebarProps) => {
+const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, headerHeight = 0 }: SidebarProps) => {
   return (
     <>
       {/* Mobile overlay */}
@@ -38,16 +36,11 @@ const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, hea
         style={{ "--header-h": `${headerHeight}px` } as CSSProperties}
         className={cn(
           "fixed left-0 top-[var(--header-h)] h-[calc(100dvh-var(--header-h))] w-16 bg-primary z-50 flex flex-col transition-transform duration-300",
+          "md:top-0 md:h-full",
           "md:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {(vesselName || crewName) && (
-          <div className="md:hidden flex flex-col items-center gap-2 border-b border-primary-foreground/15 py-3 text-primary-foreground/85">
-            {vesselName && <span className="flex flex-col items-center gap-1"><Ship className="h-4 w-4 text-primary-foreground/70" /><span className="vertical-text text-[11px] font-semibold tracking-wide">{vesselName}</span></span>}
-            {crewName && <span className="flex flex-col items-center gap-1"><UserRound className="h-4 w-4 text-primary-foreground/70" /><span className="vertical-text text-[11px] tracking-wide">{crewName}</span></span>}
-          </div>
-        )}
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;

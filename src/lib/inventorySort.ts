@@ -12,3 +12,8 @@ export function sortInventoryItems(items: StockItem[], sort: InventorySort = 'de
     return compareName(a, b);
   });
 }
+
+export function sortBoxNames(boxes: string[], manual = false): string[] {
+  if (manual) return [...boxes];
+  return [...boxes].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base', numeric: true }));
+}

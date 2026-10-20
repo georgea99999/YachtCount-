@@ -51,9 +51,9 @@ Deno.serve(async req => {
     if(request.action==='set-admin' || request.action==='remove') {
       const {data:target}=await admin.from('vessel_members').select('user_id,vessel_id,active').eq('user_id',request.userId).maybeSingle();
       const targetError=crewAdminError(membership,true,target,true);
-      if(targetError) return respond({error:targetError.replace('deactivate','change')},403);
+      if(targetError) return respond({error:targetError.replace('deactivate your own admin account','change your own account here')},403);
       if(request.action==='set-admin') {
-        if(!target!.active) return respond({error:'Reactivate is not available; only active crew can be admins'},400);
+        if(!target!.active) return respond({error:'Only active crew can be made admin'},400);
         const {error}=request.admin
           ? await admin.from('user_roles').upsert({user_id:request.userId,vessel_id:membership.vessel_id,role:'owner'},{onConflict:'user_id,vessel_id',ignoreDuplicates:true})
           : await admin.from('user_roles').delete().eq('user_id',request.userId).eq('vessel_id',membership.vessel_id);

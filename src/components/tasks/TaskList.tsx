@@ -47,10 +47,12 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
     };
   }, [filteredTasks]);
 
+  const outstanding = useMemo(() => tasks.filter(t => !t.completed), [tasks]);
+
   const filterTabs = [
-    { id: 'all', label: 'All', count: tasks.length },
-    { id: 'unassigned', label: 'Unassigned', count: tasks.filter(t => !t.assignees || t.assignees.length === 0).length },
-    ...assignees.map(a => ({ id: a, label: a, count: tasks.filter(t => t.assignees?.includes(a)).length })),
+    { id: 'all', label: 'All', count: outstanding.length },
+    { id: 'unassigned', label: 'Unassigned', count: outstanding.filter(t => !t.assignees || t.assignees.length === 0).length },
+    ...assignees.map(a => ({ id: a, label: a, count: outstanding.filter(t => t.assignees?.includes(a)).length })),
   ];
 
   return (
@@ -262,7 +264,14 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete, o
             )}
           </button>
 
-          <p className="mt-1 text-[11px] text-muted-foreground">{task.createdBy ? `Added by ${task.createdBy}` : 'Earlier task'}{task.completedBy && ` · Completed by ${task.completedBy}`}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">{task.createdBy ? `Added by ${task.createdBy}` : 'Earlier task'}{task.completedBy && task.completedAt && (
+            <>
+              {' · '}
+              <span title={`Completed ${new Date(task.completedAt).toLocaleString('en-GB')}`}>
+                Completed by {task.completedBy} · {new Date(task.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} {new Date(task.completedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </>
+          )}</p>
           {task.deletedAt && <p className="mt-1 text-[11px] text-muted-foreground">Deleted {new Date(task.deletedAt).toLocaleString('en-GB')}</p>}
 
           {task.notes && (

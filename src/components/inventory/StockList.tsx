@@ -376,7 +376,7 @@ const StockList = ({
                 onClick={() => { setOutOfStockOnly(false); onBoxChange(box || 'all'); }}
                 className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-muted'}`}
               >
-                {box || 'All boxes'} <span className="ml-1 opacity-60">{count}</span>
+                {box || 'All boxes'}
               </button>
             );
           })}

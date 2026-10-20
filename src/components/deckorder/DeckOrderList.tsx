@@ -1,9 +1,37 @@
-import { useState } from 'react';
-import { Plus, Download, Trash2, ChevronDown, ChevronUp, ExternalLink, XCircle, Pencil, Check, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import {
+  AlertTriangle,
+  ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  ExternalLink,
+  Layers,
+  Link2,
+  ListChecks,
+  Pencil,
+  Plus,
+  Trash2,
+  XCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { DeckOrderItem } from '@/types/inventory';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +43,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { DeckOrderItem } from '@/types/inventory';
 
 interface DeckOrderListProps {
   items: DeckOrderItem[];
@@ -24,69 +53,64 @@ interface DeckOrderListProps {
   onClearAll: () => void;
 }
 
-const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAll }: DeckOrderListProps) => {
-  const [isAdding, setIsAdding] = useState(false);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({
-    productName: '',
-    quantity: '',
-    colour: '',
-    size: '',
-    link: '',
-  });
-  const [newItem, setNewItem] = useState({
-    productName: '',
-    quantity: '',
-    colour: '',
-    size: '',
-    link: '',
-  });
+type SortOption = 'default' | 'name-asc' | 'name-desc' | 'qty-asc' | 'qty-desc';
 
-  const handleAddItem = () => {
-    if (newItem.productName.trim()) {
-      onAddItem({
-        productName: newItem.productName.trim(),
-        quantity: newItem.quantity.trim() || '1',
-        colour: newItem.colour.trim(),
-        size: newItem.size.trim(),
-        link: newItem.link.trim(),
-      });
-      setNewItem({ productName: '', quantity: '', colour: '', size: '', link: '' });
-      setIsAdding(false);
-    }
+const emptyForm = { productName: '', quantity: '', colour: '', size: '', link: '' };
+
+const qtyValue = (quantity: string) => {
+  const n = parseInt(quantity, 10);
+  return Number.isFinite(n) ? n : 0;
+};
+
+const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAll }: DeckOrderListProps) => {
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>('default');
+  const [missingLinkOnly, setMissingLinkOnly] = useState(false);
+  const [dialog, setDialog] = useState<{ kind: 'closed' } | { kind: 'add' } | { kind: 'edit'; item: DeckOrderItem }>({ kind: 'closed' });
+  const [form, setForm] = useState(emptyForm);
+
+  const openAdd = () => {
+    setForm(emptyForm);
+    setDialog({ kind: 'add' });
   };
 
-  const handleStartEdit = (item: DeckOrderItem) => {
-    setEditingId(item.id);
-    setEditForm({
+  const openEdit = (item: DeckOrderItem) => {
+    setForm({
       productName: item.productName,
       quantity: item.quantity,
       colour: item.colour,
       size: item.size,
       link: item.link,
     });
+    setDialog({ kind: 'edit', item });
   };
 
-  const handleSaveEdit = () => {
-    if (editingId && editForm.productName.trim()) {
-      onUpdateItem(editingId, {
-        productName: editForm.productName.trim(),
-        quantity: editForm.quantity.trim() || '1',
-        colour: editForm.colour.trim(),
-        size: editForm.size.trim(),
-        link: editForm.link.trim(),
-      });
-      setEditingId(null);
-    }
+  const closeDialog = () => {
+    setDialog({ kind: 'closed' });
+    setForm(emptyForm);
   };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditForm({ productName: '', quantity: '', colour: '', size: '', link: '' });
+  const handleConfirm = () => {
+    const productName = form.productName.trim();
+    if (!productName) return;
+    const payload = {
+      productName,
+      quantity: form.quantity.trim() || '1',
+      colour: form.colour.trim(),
+      size: form.size.trim(),
+      link: form.link.trim(),
+    };
+    if (dialog.kind === 'edit') onUpdateItem(dialog.item.id, payload);
+    else onAddItem(payload);
+    closeDialog();
   };
 
   const handleDownloadPDF = () => {
+    if (items.length === 0) {
+      alert('No items to export');
+      return;
+    }
+
     const currentDate = new Date().toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'long',
@@ -192,250 +216,319 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
     }
   };
 
-  const isLongName = (name: string) => name.length > 10;
+  const withLink = items.filter(i => i.link.trim()).length;
+  const missingLink = items.length - withLink;
+  const totalQty = items.reduce((sum, i) => sum + qtyValue(i.quantity), 0);
+
+  const stats = [
+    { label: 'Items', value: items.length, icon: ListChecks },
+    { label: 'Total qty', value: totalQty, icon: Layers },
+    { label: 'With links', value: withLink, icon: Link2 },
+    { label: 'Missing link', value: missingLink, icon: AlertTriangle, alert: missingLink > 0 },
+  ];
+
+  const visibleItems = useMemo(() => {
+    const base = missingLinkOnly ? items.filter(i => !i.link.trim()) : items;
+    const sorted = [...base];
+    switch (sortOption) {
+      case 'name-asc':
+        sorted.sort((a, b) => a.productName.localeCompare(b.productName));
+        break;
+      case 'name-desc':
+        sorted.sort((a, b) => b.productName.localeCompare(a.productName));
+        break;
+      case 'qty-asc':
+        sorted.sort((a, b) => qtyValue(a.quantity) - qtyValue(b.quantity));
+        break;
+      case 'qty-desc':
+        sorted.sort((a, b) => qtyValue(b.quantity) - qtyValue(a.quantity));
+        break;
+      default:
+        break;
+    }
+    return sorted;
+  }, [items, missingLinkOnly, sortOption]);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b bg-muted/30">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">Deck Order</h2>
-            <p className="text-sm text-muted-foreground">
-              {items.length} items in order
-            </p>
-          </div>
-          <div className="flex gap-2">
-            {items.length > 0 && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1 text-destructive hover:text-destructive"
-                  >
-                    <XCircle className="h-4 w-4" />
-                    Clear All
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete all {items.length} items from your deck order.
-                      This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={onClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Yes, Clear All
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            <Button
-              onClick={() => setIsAdding(true)}
-              size="sm"
-              className="gap-1"
-            >
-              <Plus className="h-4 w-4" />
-              Add Item
-            </Button>
-          </div>
+    <div className="flex flex-col h-full w-full max-w-5xl mx-auto">
+      {/* Page title */}
+      <div className="px-4 pt-5 pb-1 hidden md:flex items-end justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Ordering</p>
+          <h1 className="text-2xl font-bold text-foreground">Deck Order</h1>
         </div>
+        <p className="text-xs text-muted-foreground">
+          {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+        </p>
       </div>
 
-      {/* Add Item Form */}
-      {isAdding && (
-        <div className="p-4 border-b bg-accent/20">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
-            <Input
-              placeholder="Product Name *"
-              value={newItem.productName}
-              onChange={(e) => setNewItem({ ...newItem, productName: e.target.value })}
-              autoFocus
-            />
-            <Input
-              placeholder="Colour"
-              value={newItem.colour}
-              onChange={(e) => setNewItem({ ...newItem, colour: e.target.value })}
-            />
-            <Input
-              placeholder="Size"
-              value={newItem.size}
-              onChange={(e) => setNewItem({ ...newItem, size: e.target.value })}
-            />
-            <Input
-              placeholder="Quantity (e.g. 10 packs)"
-              value={newItem.quantity}
-              onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
-            />
-            <Input
-              placeholder="Link (optional)"
-              value={newItem.link}
-              onChange={(e) => setNewItem({ ...newItem, link: e.target.value })}
-              className="md:col-span-2"
-            />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" size="sm" onClick={() => setIsAdding(false)}>
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleAddItem} disabled={!newItem.productName.trim()}>
-              Add to Order
-            </Button>
-          </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 pb-2">
+        {stats.map(({ label, value, icon: Icon, alert }) => {
+          const isMissing = label === 'Missing link';
+          const active = isMissing && missingLinkOnly;
+          return (
+            <Card
+              key={label}
+              role={isMissing ? 'button' : undefined}
+              tabIndex={isMissing ? 0 : undefined}
+              aria-pressed={isMissing ? active : undefined}
+              title={isMissing ? (active ? 'Show all items' : 'Show only items without a link') : undefined}
+              onClick={isMissing ? () => setMissingLinkOnly(v => !v) : undefined}
+              onKeyDown={isMissing ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMissingLinkOnly(v => !v); } } : undefined}
+              className={`relative overflow-hidden border-border shadow-sm ${isMissing ? 'cursor-pointer transition-shadow hover:shadow-md' : ''} ${active ? 'ring-2 ring-destructive' : ''}`}
+            >
+              <div className={`absolute inset-y-0 left-0 w-1 ${alert ? 'bg-destructive' : 'bg-accent'}`} />
+              <CardContent className="p-4 pl-5 flex items-center justify-between gap-2">
+                <div>
+                  <p className={`text-2xl font-bold leading-none ${alert ? 'text-destructive' : 'text-foreground'}`}>{value}</p>
+                  <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+                </div>
+                <div className={`rounded-full p-2 ${alert ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-primary dark:text-primary-foreground'}`}>
+                  <Icon className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {missingLinkOnly && (
+        <div className="mx-4 mb-1 flex items-center justify-between gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
+          <span className="flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" />Showing items with no supplier link</span>
+          <button type="button" onClick={() => setMissingLinkOnly(false)} className="underline">Clear filter</button>
         </div>
       )}
 
-      {/* Table Header */}
-      <div className="flex items-center px-3 py-2 bg-primary text-primary-foreground text-sm font-medium">
-        <div className="flex-1 min-w-0">Product</div>
-        <div className="w-8 text-right text-xs shrink-0">Qty</div>
+      {/* Filters */}
+      <div className="flex items-center gap-2 px-4 py-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1">
+              <ArrowUpDown className="h-4 w-4" />
+              Sort
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="bg-popover">
+            <DropdownMenuItem onClick={() => setSortOption('default')}>Default (added order)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortOption('name-asc')}>Name (A-Z)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortOption('name-desc')}>Name (Z-A)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortOption('qty-asc')}>Quantity (Low to High)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortOption('qty-desc')}>Quantity (High to Low)</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="flex-1" />
+
+        {items.length > 0 && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-destructive" title="Clear all items">
+                <XCircle className="h-4 w-4" /><span className="hidden sm:inline">Clear</span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear the deck order?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete all {items.length} items from your deck order. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, Clear All
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
+        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={handleDownloadPDF} title="Export as PDF">
+          <Download className="h-4 w-4" /><span className="hidden sm:inline">PDF</span>
+        </Button>
       </div>
 
-      {/* Items List */}
-      <ScrollArea className="flex-1">
-        {items.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">
-            <p>No items in deck order yet.</p>
-            <p className="text-sm mt-1">Click "Add Item" to start your order.</p>
-          </div>
-        ) : (
-          <div className="divide-y">
-            {items.map((item) => {
-              const hasLongName = isLongName(item.productName);
-              const isExpanded = expandedId === item.id;
-              const isEditing = editingId === item.id;
-              
-              if (isEditing) {
+      <div className="mx-4 mb-4 flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        {/* Table Header */}
+        <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b">
+          <div className="flex-1 min-w-0">PRODUCT</div>
+          <div className="w-12 text-right shrink-0">QTY</div>
+        </div>
+
+        {/* Items List */}
+        <div className="flex-1 overflow-auto bg-card">
+          {visibleItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+              <div className="mb-4 rounded-full bg-secondary p-4 text-primary dark:text-primary-foreground">
+                <ListChecks className="h-8 w-8" />
+              </div>
+              <p className="text-base font-semibold text-foreground">
+                {missingLinkOnly ? 'Every item has a link' : 'Your deck order is empty'}
+              </p>
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                {missingLinkOnly
+                  ? 'Nothing is waiting on a supplier link.'
+                  : 'Add items with the + button, or send stock straight from Stock Take.'}
+              </p>
+              {!missingLinkOnly && (
+                <Button size="sm" className="mt-5 gap-1" onClick={openAdd}>
+                  <Plus className="h-4 w-4" /> Add item
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="divide-y">
+              {visibleItems.map((item) => {
+                const isExpanded = expandedId === item.id;
                 return (
-                  <div key={item.id} className="p-4 bg-accent/20">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
-                      <Input
-                        placeholder="Product Name *"
-                        value={editForm.productName}
-                        onChange={(e) => setEditForm({ ...editForm, productName: e.target.value })}
-                        autoFocus
-                      />
-                      <Input
-                        placeholder="Colour"
-                        value={editForm.colour}
-                        onChange={(e) => setEditForm({ ...editForm, colour: e.target.value })}
-                      />
-                      <Input
-                        placeholder="Size"
-                        value={editForm.size}
-                        onChange={(e) => setEditForm({ ...editForm, size: e.target.value })}
-                      />
-                      <Input
-                        placeholder="Quantity (e.g. 10 packs)"
-                        value={editForm.quantity}
-                        onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
-                      />
-                      <Input
-                        placeholder="Link (optional)"
-                        value={editForm.link}
-                        onChange={(e) => setEditForm({ ...editForm, link: e.target.value })}
-                        className="md:col-span-2"
-                      />
+                  <div key={item.id}>
+                    <div
+                      className="flex items-center gap-2 px-3 py-3 hover:bg-muted/50 cursor-pointer"
+                      onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                    >
+                      <div className="flex-1 min-w-0 flex items-center gap-1">
+                        <span className={`font-medium text-sm text-foreground ${isExpanded ? 'break-words' : 'truncate'}`}>
+                          {item.productName}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                        )}
+                      </div>
+                      <span className="text-sm font-medium shrink-0 w-12 text-right tabular-nums">{item.quantity}</span>
                     </div>
-                    <div className="flex gap-2 justify-end">
-                      <Button variant="outline" size="sm" onClick={handleCancelEdit}>
-                        <X className="h-4 w-4 mr-1" />
-                        Cancel
-                      </Button>
-                      <Button size="sm" onClick={handleSaveEdit} disabled={!editForm.productName.trim()}>
-                        <Check className="h-4 w-4 mr-1" />
-                        Save
-                      </Button>
-                    </div>
+
+                    {isExpanded && (
+                      <div className="px-4 py-3 bg-muted/30 border-t space-y-2">
+                        <p className="text-sm"><span className="text-muted-foreground">Quantity:</span> {item.quantity}</p>
+                        {item.colour && (
+                          <p className="text-sm"><span className="text-muted-foreground">Colour:</span> {item.colour}</p>
+                        )}
+                        {item.size && (
+                          <p className="text-sm"><span className="text-muted-foreground">Size:</span> {item.size}</p>
+                        )}
+                        {item.link && (
+                          <a
+                            href={item.link.startsWith('http') ? item.link : `https://${item.link}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                            <span className="break-all">{item.link}</span>
+                          </a>
+                        )}
+                        <div className="flex gap-2 pt-2 border-t border-border/50">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1"
+                            onClick={(e) => { e.stopPropagation(); openEdit(item); }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={(e) => { e.stopPropagation(); onDeleteItem(item.id); }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
-              }
-
-              return (
-                <div key={item.id}>
-                  <div 
-                    className="flex items-center px-3 py-3 hover:bg-muted/50 cursor-pointer gap-2"
-                    onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                  >
-                    <div className="flex-1 min-w-0 flex items-center gap-1">
-                      <span className={isExpanded ? "font-medium text-sm text-foreground break-words" : "font-medium text-sm text-foreground truncate"}>{item.productName}</span>
-                      {isExpanded ? (
-                        <ChevronUp className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-                      )}
-                    </div>
-                    <span className="text-sm font-medium shrink-0 min-w-[2rem] text-right">{item.quantity}</span>
-                  </div>
-                  {/* Expanded details panel */}
-                  {isExpanded && (
-                    <div className="px-4 py-3 bg-muted/30 border-t space-y-2">
-                      <p className="text-sm"><span className="text-muted-foreground">Quantity:</span> {item.quantity}</p>
-                      {item.colour && (
-                        <p className="text-sm"><span className="text-muted-foreground">Colour:</span> {item.colour}</p>
-                      )}
-                      {item.size && (
-                        <p className="text-sm"><span className="text-muted-foreground">Size:</span> {item.size}</p>
-                      )}
-                      {item.link && (
-                        <a
-                          href={item.link.startsWith('http') ? item.link : `https://${item.link}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-sm text-primary hover:underline"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                          <span className="break-all">{item.link}</span>
-                        </a>
-                      )}
-                      <div className="flex gap-2 pt-2 border-t border-border/50">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1"
-                          onClick={(e) => { e.stopPropagation(); handleStartEdit(item); }}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={(e) => { e.stopPropagation(); onDeleteItem(item.id); }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </ScrollArea>
-
-      {/* Download Button */}
-      {items.length > 0 && (
-        <div className="p-4 border-t bg-muted/30">
-          <Button
-            onClick={handleDownloadPDF}
-            className="w-full gap-2"
-            variant="default"
-          >
-            <Download className="h-4 w-4" />
-            Download as PDF
-          </Button>
+              })}
+            </div>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* Floating add button — kept clear of the install badge in the corner */}
+      <div className="fixed bottom-24 right-6 z-50">
+        <Button onClick={openAdd} className="w-14 h-14 rounded-full shadow-lg btn-add" title="Add item to deck order" aria-label="Add item to deck order">
+          <Plus className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* Add / Edit dialog */}
+      <Dialog open={dialog.kind !== 'closed'} onOpenChange={(open) => { if (!open) closeDialog(); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{dialog.kind === 'edit' ? 'Edit Item' : 'Add to Deck Order'}</DialogTitle>
+            <DialogDescription>
+              {dialog.kind === 'edit'
+                ? 'Update the details for this item on your deck order.'
+                : 'Add an item to your deck order. Only the name and quantity are needed.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="do-product">Product Name</Label>
+              <Input
+                id="do-product"
+                placeholder="e.g. Non-slip deck paint"
+                value={form.productName}
+                onChange={(e) => setForm({ ...form, productName: e.target.value })}
+                autoFocus
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="do-quantity">Quantity</Label>
+                <Input
+                  id="do-quantity"
+                  placeholder="e.g. 10 packs"
+                  value={form.quantity}
+                  onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="do-colour">Colour</Label>
+                <Input
+                  id="do-colour"
+                  placeholder="Optional"
+                  value={form.colour}
+                  onChange={(e) => setForm({ ...form, colour: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="do-size">Size</Label>
+                <Input
+                  id="do-size"
+                  placeholder="Optional"
+                  value={form.size}
+                  onChange={(e) => setForm({ ...form, size: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="do-link">Link</Label>
+                <Input
+                  id="do-link"
+                  placeholder="Optional URL"
+                  value={form.link}
+                  onChange={(e) => setForm({ ...form, link: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+            <Button onClick={handleConfirm} disabled={!form.productName.trim()}>
+              {dialog.kind === 'edit' ? 'Save' : 'Add to Order'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

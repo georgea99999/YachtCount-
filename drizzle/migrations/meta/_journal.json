@@ -15,6 +15,13 @@
       "when": 1792493835117,
       "tag": "0001_tighten_vessel_access",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792494026277,
+      "tag": "0002_vessel_box_names",
+      "breakpoints": true
     }
   ]
 }

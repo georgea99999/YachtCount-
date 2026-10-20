@@ -1,4 +1,5 @@
 - [x] Support full-name admin and crew usernames with admin-led vessel setup and shared-password crew creation.
+- [ ] Add and verify admin crew renaming, shared-password reset, and account deactivation.
 - [x] Add vessel setup and personalized crew access with a shared vessel password.
 - [x] Share inventory, Deck Order and To Do across vessel members and record activity authors.
 - [ ] Verify admin setup, full-name crew sign-in, add-crew and second-vessel isolation — waiting on a working preview session and initial vessel setup.

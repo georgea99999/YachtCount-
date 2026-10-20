@@ -3,6 +3,7 @@ import { Search, Bell, Menu, Trash2, RotateCcw, Ship, UserRound } from 'lucide-r
 import yachtcountLogo from '@/assets/yachtcount-logo.png';
 import ThemeToggle from './ThemeToggle';
 import { CrewPanel } from './CrewPanel';
+import { ProvisionVesselPanel } from './ProvisionVesselPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -77,6 +78,7 @@ const Header = ({
         </div>
 
         <div className="flex items-center gap-1 md:shrink-0">
+          <ProvisionVesselPanel />
           <CrewPanel />
           {/* Theme Toggle */}
           <ThemeToggle />

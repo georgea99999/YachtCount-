@@ -1,6 +1,8 @@
 - [x] Support full-name admin and crew usernames with admin-led vessel setup and shared-password crew creation.
+- [x] Add admin crew renaming, shared-password reset, and deactivation; verify name saving, incorrect-password rejection, and permission/password rollback tests.
+- [ ] Verify a successful password rotation and crew deactivation with disposable vessel accounts — blocked by no disposable vessel password/accounts; do not change the live admin password for testing.
 - [x] Add vessel setup and personalized crew access with a shared vessel password.
 - [x] Share inventory, Deck Order and To Do across vessel members and record activity authors.
-- [ ] Verify admin setup, full-name crew sign-in, add-crew and second-vessel isolation — waiting on a working preview session and initial vessel setup.
+- [ ] Verify full-name crew sign-in, add-crew and second-vessel isolation — waiting on disposable crew/vessel accounts; signed-in admin controls are verified.
 - [x] Replace inventory CSV export with validated CSV import.
 - [x] Default products to alphabetical order within boxes and verify both changes.

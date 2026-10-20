@@ -291,16 +291,19 @@ export type Database = {
       }
       vessel_members: {
         Row: {
+          active: boolean
           created_at: string
           user_id: string
           vessel_id: string
         }
         Insert: {
+          active?: boolean
           created_at?: string
           user_id: string
           vessel_id: string
         }
         Update: {
+          active?: boolean
           created_at?: string
           user_id?: string
           vessel_id?: string
@@ -342,7 +345,12 @@ export type Database = {
         Args: { absolute_quantity?: number; delta?: number; item_id: string }
         Returns: number
       }
+      crew_access_enabled: { Args: never; Returns: boolean }
       current_vessel: { Args: never; Returns: string }
+      reset_vessel_password: {
+        Args: { new_password: string; vid: string }
+        Returns: undefined
+      }
       setup_vessel: {
         Args: {
           crew_username: string

@@ -49,18 +49,18 @@ const Header = ({
           <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex items-center gap-2 md:shrink-0">
             {/* Logo lives in the sidebar rail on larger screens; mobile keeps it here */}
             <img src={yachtcountLogo} alt="YachtCount Logo" className="w-10 h-10 object-contain rounded md:hidden" />
             <span className="font-bold text-2xl font-sans">YachtCount</span>
           </div>
           <div className="hidden min-w-0 max-w-lg items-center gap-3 rounded-md border border-primary-foreground/15 bg-primary-foreground/5 px-3 py-2 text-sm md:flex">
-            {vesselName && <span className="flex min-w-0 flex-1 items-center gap-2" title={vesselName}>
+            {vesselName && <span className="flex min-w-0 items-center gap-2" title={vesselName}>
               <Ship className="h-4 w-4 shrink-0 text-primary-foreground/70" />
               <span className="truncate font-medium">{vesselName}</span>
             </span>}
             {vesselName && crewName && <span className="h-4 shrink-0 border-l border-primary-foreground/20" aria-hidden="true" />}
-            {crewName && <span className="flex min-w-0 flex-1 items-center gap-2 text-primary-foreground/80" title={crewName}>
+            {crewName && <span className="flex min-w-0 items-center gap-2 text-primary-foreground/80" title={crewName}>
               <UserRound className="h-4 w-4 shrink-0" />
               <span className="truncate">{crewName}</span>
             </span>}
@@ -68,7 +68,7 @@ const Header = ({
         </div>
 
         {/* Right: Theme, Search & Notifications */}
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex items-center gap-1 md:shrink-0">
           <CrewPanel />
           {/* Theme Toggle */}
           <ThemeToggle />

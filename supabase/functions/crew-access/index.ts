@@ -2,7 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3';
 import { crewEmail, normalizeCrewName } from '../_shared/crewIdentity.ts';
-import { crewAdminError } from '../_shared/crewAdmin.ts';
+import { crewAdminError, rotateCrewPasswords } from '../_shared/crewAdmin.ts';
 const name = z.string().max(100).transform((value, context) => {
   try { return normalizeCrewName(value); } catch { context.addIssue({code:z.ZodIssueCode.custom,message:'Enter a valid full name'}); return z.NEVER; }
 });
@@ -78,24 +78,10 @@ Deno.serve(async req => {
     if(request.action==='reset-password') {
       const {data:accounts,error:listError}=await admin.from('vessel_members').select('user_id').eq('vessel_id',membership.vessel_id);
       if(listError || !accounts?.length) return respond({error:'Unable to load vessel accounts'},500);
-      const changed:string[]=[];
-      const rollback=async () => {
-        const results=await Promise.all(changed.map(id=>admin.auth.admin.updateUserById(id,{password})));
-        return results.some(result=>result.error);
-      };
-      for(const account of accounts) {
-        const {error}=await admin.auth.admin.updateUserById(account.user_id,{password:request.newPassword});
-        if(error) {
-          const incomplete=await rollback();
-          return respond({error:incomplete?'Password reset incomplete. Contact support before signing out.':'Password was not changed. Please try again.'},500);
-        }
-        changed.push(account.user_id);
-      }
-      const {error:hashError}=await admin.rpc('reset_vessel_password',{vid:membership.vessel_id,new_password:request.newPassword});
-      if(hashError) {
-        const incomplete=await rollback();
-        return respond({error:incomplete?'Password reset incomplete. Contact support before signing out.':'Password was not changed. Please try again.'},500);
-      }
+      const result=await rotateCrewPasswords(accounts.map(account=>account.user_id),password,request.newPassword,
+        async (id,value)=>{const {error}=await admin.auth.admin.updateUserById(id,{password:value});return !error;},
+        async ()=>{const {error}=await admin.rpc('reset_vessel_password',{vid:membership.vessel_id,new_password:request.newPassword});return !error;});
+      if(result!=='ok') return respond({error:result==='incomplete'?'Password reset incomplete. Contact support before signing out.':'Password was not changed. Please try again.'},500);
       return respond({ok:true});
     }
     const {username}=request;

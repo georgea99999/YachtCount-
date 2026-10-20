@@ -8,7 +8,8 @@ export function useCrew() {
   const refresh = async () => {
     const {data:{user}} = await supabase.auth.getUser();
     if (!user) { setCrew(null);setMembers([]);setAccounts([]);setLoading(false); return; }
-    const {data:membership} = await supabase.from('vessel_members').select('vessel_id').eq('user_id',user.id).maybeSingle();
+    const {data:membership} = await supabase.from('vessel_members').select('vessel_id,active').eq('user_id',user.id).maybeSingle();
+    if(membership && !membership.active) {await supabase.auth.signOut();setCrew(null);setMembers([]);setAccounts([]);setLoading(false);return;}
     if (!membership) {setCrew(null);setMembers([]);setAccounts([]);setLoading(false);return;}
     const [{data:profile},{data:vessel},{data:role},{data:people},{data:roster}] = await Promise.all([
       supabase.from('profiles').select('username').eq('id',user.id).single(),

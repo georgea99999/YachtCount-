@@ -39,6 +39,14 @@ describe('deleted task folder', () => {
     expect(mock.calls).toContainEqual(['eq', 'id', 1]);
     expect(mock.calls).not.toContainEqual(['delete']);
   });
+  it('restores an archived task back to the active list', async () => {
+    const { result } = renderHook(() => useTasks());
+    await act(async () => { await result.current.restoreTask(2); });
+    expect(mock.calls).toContainEqual(['update', { deleted_at: null }]);
+    expect(mock.calls).toContainEqual(['eq', 'id', 2]);
+    expect(mock.calls).toContainEqual(['not', 'deleted_at', 'is', null]);
+    expect(mock.calls).not.toContainEqual(['delete']);
+  });
   it('clears only archived tasks and preserves active tasks', async () => {
     const { result } = renderHook(() => useTasks());
     await act(async () => { await result.current.clearDeletedTasks(); });

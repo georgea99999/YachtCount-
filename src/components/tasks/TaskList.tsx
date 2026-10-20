@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, Trash2, User, X } from 'lucide-react';
+import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, Trash2, User, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +16,7 @@ type DialogMode =
 
 const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
   const {members}=useCrew();
-  const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, deleteTask, clearDeletedTasks } = useTasks();
+  const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -140,7 +140,7 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
                   <Trash2 className="h-3.5 w-3.5" /> Clear deleted folder
                 </Button>
               </div>
-              {deletedTasks.map(task => <TaskRow key={task.id} task={task} archived onToggle={() => {}} onStar={() => {}} onOpen={() => {}} onDelete={() => {}} />)}
+              {deletedTasks.map(task => <TaskRow key={task.id} task={task} archived onToggle={() => {}} onStar={() => {}} onOpen={() => {}} onDelete={() => {}} onRestore={() => restoreTask(task.id)} />)}
             </> : <p className="px-3 py-4 text-sm text-primary-foreground/50">No deleted tasks.</p>}
           </div>}
         </section>
@@ -195,9 +195,10 @@ interface TaskRowProps {
   onStar: () => void;
   onOpen: () => void;
   onDelete: () => void;
+  onRestore?: () => void;
 }
 
-const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => {
+const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete, onRestore }: TaskRowProps) => {
   const assignees = task.assignees ?? [];
   const visible = assignees.slice(0, 2);
   const overflow = assignees.length - visible.length;
@@ -283,6 +284,15 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete }:
             </div>
           )}
         </div>
+
+        {archived && onRestore && <button
+          onClick={onRestore}
+          className="shrink-0 self-start mt-1 text-muted-foreground hover:text-accent transition-colors"
+          title="Restore task"
+          aria-label="Restore task"
+        >
+          <RotateCcw className="h-4 w-4" />
+        </button>}
 
         {!archived && <button
           onClick={onDelete}

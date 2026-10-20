@@ -24,6 +24,7 @@ export function useTasks() {
   const toggleTask=(id:number)=>{const t=tasks.find(t=>t.id===id);if(t) return updateTaskFields(id,{completed:!t.completed});};
   const toggleStar=(id:number)=>{const t=tasks.find(t=>t.id===id);if(t) return updateTaskFields(id,{starred:!t.starred});};
   const deleteTask=(id:number)=>save(supabase.from('tasks').update({deleted_at:new Date().toISOString()}).eq('id',id).is('deleted_at',null));
+  const restoreTask=(id:number)=>save(supabase.from('tasks').update({deleted_at:null}).eq('id',id).not('deleted_at','is',null));
   const clearDeletedTasks=()=>save(supabase.from('tasks').delete().not('deleted_at','is',null));
-  return {tasks:tasks.filter(t=>!t.deletedAt),deletedTasks:tasks.filter(t=>t.deletedAt).sort((a,b)=>(b.deletedAt??'').localeCompare(a.deletedAt??'')),addTask,toggleTask,toggleStar,updateTaskFields,deleteTask,clearDeletedTasks};
+  return {tasks:tasks.filter(t=>!t.deletedAt),deletedTasks:tasks.filter(t=>t.deletedAt).sort((a,b)=>(b.deletedAt??'').localeCompare(a.deletedAt??'')),addTask,toggleTask,toggleStar,updateTaskFields,deleteTask,restoreTask,clearDeletedTasks};
 }

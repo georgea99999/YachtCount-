@@ -544,11 +544,12 @@ const StockList = ({
                 onUpdateQuantity={onUpdateQuantity}
                 onUpdateQuantityDirect={onUpdateQuantityDirect}
                 onDelete={onDelete}
-                      canDelete={canDelete}
+                canDelete={canDelete}
                 onEditItem={onEditItem}
                 onSelect={handleSelectForOrder}
                 usageHistory={usageHistory}
                 allBoxNames={allBoxNames}
+                showBox
               />
             ))
           ) : (

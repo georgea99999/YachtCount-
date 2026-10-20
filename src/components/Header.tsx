@@ -45,7 +45,7 @@ const Header = ({
   };
   const unreadCount = notifications.length;
   return <header id="yc-app-header" className="bg-primary text-primary-foreground sticky top-0 z-50">
-      <div className="flex items-center justify-between px-4 py-3 md:min-h-[80px] md:gap-6 md:pt-0 md:pb-[10px] md:pl-3 md:pr-6">
+      <div className="flex items-center justify-between px-4 py-3 pb-[22px] md:min-h-[90px] md:gap-6 md:pt-0 md:pb-[20px] md:pl-3 md:pr-6">
         {/* Left: Menu, Logo & Vessel/Crew bubble */}
         <div className="flex min-w-0 items-center gap-3 md:flex-1 md:gap-5">
           <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
@@ -151,20 +151,6 @@ const Header = ({
         </div>
       </div>
 
-      {/* Mobile: vessel & crew pill sits directly under the title */}
-      {(vesselName || crewName) && <div className="md:hidden flex min-w-0 px-4 pb-2">
-          <div className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-primary-foreground/20 bg-navy-dark px-2 py-[3px]">
-            {vesselName && <span className="flex min-w-0 items-center gap-1">
-                <Ship className="h-2 w-2 shrink-0 text-primary-foreground/70" />
-                <span className="truncate text-[8px] font-medium leading-none">{vesselName}</span>
-              </span>}
-            {vesselName && crewName && <span className="h-2 w-px shrink-0 bg-primary-foreground/20" aria-hidden="true" />}
-            {crewName && <span className="flex min-w-0 items-center gap-1 text-primary-foreground/85">
-                <UserRound className="h-2 w-2 shrink-0" />
-                <span className="truncate text-[8px] leading-none">{crewName}</span>
-              </span>}
-          </div>
-        </div>}
 
     </header>;
 };

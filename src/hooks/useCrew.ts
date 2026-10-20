@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 export function useCrew() {
-  const [crew, setCrew] = useState<{username:string; vesselName:string; vesselId:string; owner:boolean} | null>(null);
+  const [crew, setCrew] = useState<{username:string; vesselName:string; vesselId:string; owner:boolean; canDeleteItems:boolean} | null>(null);
   const [members, setMembers] = useState<string[]>([]);
-  const [accounts, setAccounts] = useState<{id:string;username:string;active:boolean;admin:boolean}[]>([]);
+  const [accounts, setAccounts] = useState<{id:string;username:string;active:boolean;role:'owner'|'junior'|null}[]>([]);
   const [loading, setLoading] = useState(true);
   const refresh = async () => {
     const {data:{user}} = await supabase.auth.getUser();
@@ -20,9 +20,9 @@ export function useCrew() {
       supabase.from('profiles').select('id,username'),
       supabase.from('vessel_members').select('user_id,active').eq('vessel_id',membership.vessel_id),
     ]);
-    const {data:admins}=await supabase.from('user_roles').select('user_id').eq('vessel_id',membership.vessel_id).eq('role','owner');
-    if(profile && vessel) setCrew({username:profile.username,vesselName:vessel.name,vesselId:membership.vessel_id,owner:role?.role==='owner'});
-    const list=(people??[]).map(p=>({id:p.id,username:p.username,active:roster?.find(m=>m.user_id===p.id)?.active === true,admin:(admins??[]).some(a=>a.user_id===p.id)})).sort((a,b)=>a.username.localeCompare(b.username));
+    const {data:admins}=await supabase.from('user_roles').select('user_id,role').eq('vessel_id',membership.vessel_id);
+    if(profile && vessel) setCrew({username:profile.username,vesselName:vessel.name,vesselId:membership.vessel_id,owner:role?.role==='owner',canDeleteItems:role?.role==='owner'||role?.role==='junior'});
+    const list=(people??[]).map(p=>({id:p.id,username:p.username,active:roster?.find(m=>m.user_id===p.id)?.active === true,role:((admins??[]).find(a=>a.user_id===p.id)?.role ?? null) as 'owner'|'junior'|null})).sort((a,b)=>a.username.localeCompare(b.username));
     setAccounts(list);setMembers(list.filter(p=>p.active).map(p=>p.username)); setLoading(false);
   };
   useEffect(()=>{void refresh();},[]);

@@ -9,6 +9,7 @@ const name = z.string().max(100).transform((value, context) => {
 const passwordSchema = z.string().min(8).max(100);
 const input = z.discriminatedUnion('action', [
   z.object({action:z.literal('setup'),username:name,password:passwordSchema,vesselName:z.string().trim().min(1).max(100)}),
+  z.object({action:z.literal('provision'),username:name,password:passwordSchema,vesselName:z.string().trim().min(1).max(100)}),
   z.object({action:z.literal('add'),username:name,password:passwordSchema}),
   z.object({action:z.literal('rename'),userId:z.string().uuid(),username:name}),
   z.object({action:z.literal('deactivate'),userId:z.string().uuid()}),
@@ -31,6 +32,16 @@ Deno.serve(async req => {
     const {data:{user},error:authError}=await admin.auth.getUser(token);
     if(authError || !user) return respond({error:'Please sign in again'},401);
     const request=parsed.data;
+    if(request.action==='provision') {
+      // Only YachtCount platform owners may create new vessels; public sign-up stays closed.
+      const {data:platform}=await admin.from('platform_admins').select('user_id').eq('user_id',user.id).maybeSingle();
+      if(!platform) return respond({error:'Only the YachtCount platform owner can create vessels'},403);
+      const {data:created,error:createError}=await admin.auth.admin.createUser({email:await crewEmail(request.username),password:request.password,email_confirm:true});
+      if(createError || !created.user) return respond({error:'That admin name is already in use. Try adding a middle initial.'},400);
+      const {error:setupError}=await admin.rpc('setup_vessel',{owner_id:created.user.id,vessel_name:request.vesselName,crew_username:request.username,vessel_password:request.password});
+      if(setupError) { await admin.auth.admin.deleteUser(created.user.id); return respond({error:'Unable to create vessel'},500); }
+      return respond({ok:true});
+    }
     const {data:membership,error:membershipError}=await admin.from('vessel_members').select('user_id,vessel_id,active').eq('user_id',user.id).maybeSingle();
     if(membershipError) return respond({error:'Unable to check vessel access'},503);
     if(request.action==='setup') {

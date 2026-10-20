@@ -56,15 +56,15 @@ const Header = ({
             <img src={yachtcountLogo} alt="YachtCount Logo" className="w-10 h-10 object-contain rounded md:hidden" />
             <span className="font-bold text-2xl font-sans">YachtCount</span>
           </div>
-          {(vesselName || crewName) && <div className="hidden min-w-0 items-center gap-3 rounded-full border border-primary-foreground/20 bg-navy-dark px-6 py-2 md:flex">
-              {vesselName && <span className="flex min-w-0 items-center gap-2.5">
-                  <Ship className="h-5 w-5 shrink-0 text-primary-foreground/70" />
-                  <span className="truncate text-[22px] font-medium leading-tight">{vesselName}</span>
+          {(vesselName || crewName) && <div className="hidden min-w-0 items-center gap-2 rounded-full border border-primary-foreground/20 bg-navy-dark px-3 py-1 md:flex">
+              {vesselName && <span className="flex min-w-0 items-center gap-1.5">
+                  <Ship className="h-3.5 w-3.5 shrink-0 text-primary-foreground/70" />
+                  <span className="truncate text-xs font-medium leading-none">{vesselName}</span>
                 </span>}
-              {vesselName && crewName && <span className="h-6 w-px shrink-0 bg-primary-foreground/20" aria-hidden="true" />}
-              {crewName && <span className="flex min-w-0 items-center gap-2.5 text-primary-foreground/85">
-                  <UserRound className="h-5 w-5 shrink-0" />
-                  <span className="truncate text-[22px] leading-tight">{crewName}</span>
+              {vesselName && crewName && <span className="h-3.5 w-px shrink-0 bg-primary-foreground/20" aria-hidden="true" />}
+              {crewName && <span className="flex min-w-0 items-center gap-1.5 text-primary-foreground/85">
+                  <UserRound className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate text-xs leading-none">{crewName}</span>
                 </span>}
             </div>}
         </div>

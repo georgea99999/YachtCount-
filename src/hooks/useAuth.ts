@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Session } from '@supabase/supabase-js';
+import { crewEmail } from '@/lib/crew';
 
-const SHARED_EMAIL = 'crew@yachtcount.app';
-const SHARED_PASSWORD = 'YachtCount2026';
-const SHARED_USERNAME = 'crew';
 const KEEP_FLAG = 'yc_keep_logged_in';
 
 export function useAuth() {
@@ -36,41 +34,12 @@ export function useAuth() {
   }, []);
 
   const login = async (username: string, password: string, keepLoggedIn: boolean) => {
-    if (username !== SHARED_USERNAME || password !== SHARED_PASSWORD) {
-      return { error: 'Invalid username or password' };
-    }
-
-    if (keepLoggedIn) {
-      localStorage.setItem(KEEP_FLAG, 'true');
-    } else {
-      localStorage.removeItem(KEEP_FLAG);
-    }
-
-    // Try sign in first
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: SHARED_EMAIL,
-      password: SHARED_PASSWORD,
-    });
-
-    if (signInError) {
-      // If user doesn't exist, sign up
-      if (signInError.message.includes('Invalid login credentials')) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: SHARED_EMAIL,
-          password: SHARED_PASSWORD,
-        });
-        if (signUpError) return { error: signUpError.message };
-
-        // Sign in after signup
-        const { error: retryError } = await supabase.auth.signInWithPassword({
-          email: SHARED_EMAIL,
-          password: SHARED_PASSWORD,
-        });
-        if (retryError) return { error: retryError.message };
-      } else {
-        return { error: signInError.message };
-      }
-    }
+    let email: string;
+    try { email = crewEmail(username); } catch { return {error:'Enter your crew username'}; }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return {error:'Invalid username or vessel password'};
+    if (keepLoggedIn) localStorage.setItem(KEEP_FLAG, 'true');
+    else localStorage.removeItem(KEEP_FLAG);
 
     return { error: null };
   };

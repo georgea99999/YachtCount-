@@ -8,6 +8,7 @@ const getUserId = async () => {
 };
 
 export function useInventory() {
+  const [storageKey, setStorageKey] = useState('yachtCountNotifications:pending');
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [usageHistory, setUsageHistory] = useState<UsageEntry[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -21,6 +22,9 @@ export function useInventory() {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
+      const {data:member} = await supabase.from('vessel_members').select('vessel_id').maybeSingle();
+      const key = `yachtCountNotifications:${member?.vessel_id ?? 'legacy'}`;
+      setStorageKey(key);
       
       // Load stock items
       const { data: stockData, error: stockError } = await supabase
@@ -31,7 +35,7 @@ export function useInventory() {
       if (stockError) {
         console.error('Error loading stock items:', stockError);
         // Fallback to localStorage if DB fails
-        const savedStock = localStorage.getItem('yachtCountStock');
+        const savedStock = null;
         if (savedStock) {
           try {
             setStockItems(JSON.parse(savedStock));
@@ -65,6 +69,7 @@ export function useInventory() {
           itemName: entry.item_name,
           box: entry.box,
           quantity: entry.quantity,
+          actorUsername: entry.actor_username ?? undefined,
         })));
       }
 
@@ -78,7 +83,7 @@ export function useInventory() {
       }
 
       // Load notifications from localStorage (keeping local for now)
-      const savedNotifications = localStorage.getItem('yachtCountNotifications');
+      const savedNotifications = localStorage.getItem(key);
       if (savedNotifications) {
         try {
           setNotifications(JSON.parse(savedNotifications));
@@ -119,6 +124,8 @@ export function useInventory() {
           }
         }
       )
+      .on('postgres_changes', {event:'*',schema:'public',table:'custom_boxes'}, () => {void loadData();})
+      .on('postgres_changes', {event:'*',schema:'public',table:'usage_history'}, () => {void loadData();})
       .subscribe();
 
     return () => {
@@ -128,8 +135,8 @@ export function useInventory() {
 
   // Save notifications to localStorage
   const saveNotifications = useCallback((notifs: Notification[]) => {
-    localStorage.setItem('yachtCountNotifications', JSON.stringify(notifs));
-  }, []);
+    localStorage.setItem(storageKey, JSON.stringify(notifs));
+  }, [storageKey]);
 
   // Add custom box
   const addCustomBox = useCallback(async (boxName: string) => {
@@ -165,8 +172,8 @@ export function useInventory() {
   // Clear notifications
   const clearNotifications = useCallback(() => {
     setNotifications([]);
-    localStorage.removeItem('yachtCountNotifications');
-  }, []);
+    localStorage.removeItem(storageKey);
+  }, [storageKey]);
 
   // Add stock item
   const addStockItem = useCallback(async (name: string, quantity: number, box: string) => {
@@ -259,87 +266,15 @@ export function useInventory() {
     return false;
   }, [stockItems, addNotification]);
 
-  // Update stock quantity
-  const updateStockQuantity = useCallback(async (id: string, change: number) => {
-    const item = stockItems.find(i => i.id === id);
-    if (!item) return;
-
-    const newQty = Math.max(0, item.quantity + change);
-    const diff = item.quantity - newQty;
-
-    const { error } = await supabase
-      .from('stock_items')
-      .update({ quantity: newQty })
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error updating quantity:', error);
-      return;
-    }
-
-    // Record usage for any quantity change
-    if (diff !== 0) {
-      const userId = await getUserId();
-      await supabase.from('usage_history').insert({
-        item_name: item.name,
-        box: item.box,
-        quantity: diff,
-        user_id: userId,
-      });
-
-      setUsageHistory(prev => [{
-        date: new Date().toISOString(),
-        itemName: item.name,
-        box: item.box,
-        quantity: diff,
-      }, ...prev]);
-    }
-
-    setStockItems(prev =>
-      prev.map(i => (i.id === id ? { ...i, quantity: newQty } : i))
-    );
-  }, [stockItems]);
-
-  // Update stock quantity directly
-  const updateStockQuantityDirect = useCallback(async (id: string, value: number) => {
-    const item = stockItems.find(i => i.id === id);
-    if (!item) return;
-
-    const newQty = Math.max(0, value);
-    const diff = item.quantity - newQty;
-
-    const { error } = await supabase
-      .from('stock_items')
-      .update({ quantity: newQty })
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error updating quantity:', error);
-      return;
-    }
-
-    // Record usage for any quantity change
-    if (diff !== 0) {
-      const userId = await getUserId();
-      await supabase.from('usage_history').insert({
-        item_name: item.name,
-        box: item.box,
-        quantity: diff,
-        user_id: userId,
-      });
-
-      setUsageHistory(prev => [{
-        date: new Date().toISOString(),
-        itemName: item.name,
-        box: item.box,
-        quantity: diff,
-      }, ...prev]);
-    }
-
-    setStockItems(prev =>
-      prev.map(i => (i.id === id ? { ...i, quantity: newQty } : i))
-    );
-  }, [stockItems]);
+  const applyQuantity = useCallback(async (id: string, delta?: number, absolute?: number) => {
+    const { data, error } = await supabase.rpc('adjust_stock', { item_id: id, delta, absolute_quantity: absolute });
+    if (error) { console.error('Unable to save quantity:', error); return; }
+    setStockItems(prev => prev.map(i => i.id === id ? {...i, quantity: data} : i));
+    const {data:history} = await supabase.from('usage_history').select('*').order('recorded_at',{ascending:false});
+    if(history) setUsageHistory(history.map(e=>({date:e.recorded_at,itemName:e.item_name,box:e.box,quantity:e.quantity,actorUsername:e.actor_username??undefined})));
+  }, []);
+  const updateStockQuantity = useCallback((id: string, change: number) => applyQuantity(id, change), [applyQuantity]);
+  const updateStockQuantityDirect = useCallback((id: string, value: number) => applyQuantity(id, undefined, value), [applyQuantity]);
 
   // Edit stock item (name and box)
   const editStockItem = useCallback(async (id: string, updates: { name: string; box: string }) => {
@@ -495,7 +430,7 @@ export function useInventory() {
     // Update custom_boxes if it was a custom box
     const userId = await getUserId();
     if (customBoxes.includes(oldName)) {
-      await supabase.from('custom_boxes').delete().eq('name', oldName).eq('user_id', userId);
+      await supabase.from('custom_boxes').delete().eq('name', oldName);
       await supabase.from('custom_boxes').insert({ name: newName, user_id: userId });
       setCustomBoxes(prev => prev.map(b => b === oldName ? newName : b));
     }

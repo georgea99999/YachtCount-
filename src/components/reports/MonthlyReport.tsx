@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Download, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { UsageEntry } from '@/types/inventory';
 import {
   Select,
   SelectContent,
@@ -18,14 +19,19 @@ import {
 } from '@/components/ui/table';
 
 interface MonthlyReportProps {
+  usageHistory?: UsageEntry[];
   availableMonths: string[];
   getMonthlyUsage: (month: string) => { itemName: string; box: string; quantity: number }[];
 }
 
-const MonthlyReport = ({ availableMonths, getMonthlyUsage }: MonthlyReportProps) => {
+const MonthlyReport = ({ availableMonths, getMonthlyUsage, usageHistory = [] }: MonthlyReportProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string>('');
 
   const usageData = selectedMonth ? getMonthlyUsage(selectedMonth) : [];
+  const activity = usageHistory.filter(entry => {
+    const date = new Date(entry.date);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` === selectedMonth;
+  });
 
   const handleExport = () => {
     if (!selectedMonth || usageData.length === 0) {
@@ -190,6 +196,15 @@ const MonthlyReport = ({ availableMonths, getMonthlyUsage }: MonthlyReportProps)
             </Table>
           </div>
         )}
+        {selectedMonth && activity.length > 0 && <section className="mt-6">
+          <h3 className="mb-3 font-semibold">Crew activity</h3>
+          <ul className="divide-y divide-border">
+            {activity.map((entry,index) => <li key={`${entry.date}-${index}`} className="py-3 text-sm">
+              <div className="flex items-start justify-between gap-3"><span className="font-medium break-words min-w-0">{entry.itemName}</span><span className="shrink-0 tabular-nums">{entry.quantity > 0 ? `−${entry.quantity}` : `+${Math.abs(entry.quantity)}`}</span></div>
+              <p className="text-xs text-muted-foreground break-words">{entry.actorUsername ?? 'Earlier activity'} · {entry.box} · {new Date(entry.date).toLocaleString('en-GB')}</p>
+            </li>)}
+          </ul>
+        </section>}
       </div>
     </div>
   );

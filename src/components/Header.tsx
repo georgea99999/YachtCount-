@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Search, Bell, Menu, Trash2, LogOut, RotateCcw } from 'lucide-react';
 import yachtcountLogo from '@/assets/yachtcount-logo.png';
 import ThemeToggle from './ThemeToggle';
+import { CrewPanel } from './CrewPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Notification } from '@/types/inventory';
 interface HeaderProps {
+  crewName?: string;
+  vesselName?: string;
   searchTerm: string;
   onSearchChange: (value: string) => void;
   onMenuClick?: () => void;
@@ -17,6 +20,8 @@ interface HeaderProps {
   onLogout?: () => void;
 }
 const Header = ({
+  crewName,
+  vesselName,
   searchTerm,
   onSearchChange,
   onMenuClick,
@@ -52,6 +57,7 @@ const Header = ({
 
         {/* Right: Theme, Search & Notifications */}
         <div className="flex items-center gap-1">
+          <CrewPanel />
           {/* Theme Toggle */}
           <ThemeToggle />
           {/* Search Popover */}
@@ -125,6 +131,7 @@ const Header = ({
         </div>
       </div>
 
+      <div className="px-4 pb-2 md:px-6 text-xs text-primary-foreground/80 flex flex-wrap gap-x-3"><span>{vesselName}</span><span>{crewName}</span></div>
       {/* Slogan */}
       <div className="px-4 pb-3 md:px-6 md:ml-16">
         <p className="text-sm text-primary-foreground/80 italic">

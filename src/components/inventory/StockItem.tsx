@@ -234,6 +234,7 @@ const StockItemRow = ({
                   <div key={idx} className="flex justify-between text-xs">
                     <span className="text-muted-foreground">
                       {new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                      {entry.actorUsername && <span className="ml-2 font-medium">{entry.actorUsername}</span>}
                       {' '}
                       {new Date(entry.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                     </span>

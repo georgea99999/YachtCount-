@@ -11,12 +11,15 @@ import TaskList from '@/components/tasks/TaskList';
 import UndoNotification from '@/components/UndoNotification';
 import FloatingAddButton from '@/components/FloatingAddButton';
 import { toast } from 'sonner';
+import { useCrew } from '@/hooks/useCrew';
+import { CrewPanel } from '@/components/CrewPanel';
 
 interface IndexProps {
   onLogout?: () => void;
 }
 
 const Index = ({ onLogout }: IndexProps) => {
+  const {crew,loading:crewLoading,refresh:refreshCrew}=useCrew();
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
@@ -47,7 +50,7 @@ const Index = ({ onLogout }: IndexProps) => {
     reorderStockItems,
     renameBox,
     restoreFromNotification,
-  } = useInventory();
+  } = useInventory(crew?.vesselId);
 
   const {
     orderItems,
@@ -55,7 +58,7 @@ const Index = ({ onLogout }: IndexProps) => {
     updateOrderItem,
     deleteOrderItem,
     clearOrderItems,
-  } = useDeckOrder();
+  } = useDeckOrder(crew?.vesselId);
 
   const handleBoxChange = (value: string) => {
     setSelectedBox(value === 'all' ? '' : value);
@@ -65,6 +68,9 @@ const Index = ({ onLogout }: IndexProps) => {
     addOrderItem(item);
     toast.success(`"${item.productName}" added to Deck Order`);
   };
+
+  if(crewLoading) return <div className="p-6 text-muted-foreground">Loading crew…</div>;
+  if(!crew) return <div className="min-h-screen bg-background"><CrewPanel setup onReady={()=>{void refreshCrew();}} /></div>;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -77,6 +83,8 @@ const Index = ({ onLogout }: IndexProps) => {
         onClearNotifications={clearNotifications}
         onRestoreItem={restoreFromNotification}
         onLogout={onLogout}
+        crewName={crew.username}
+        vesselName={crew.vesselName}
       />
 
       <div className="flex flex-1 relative">
@@ -124,10 +132,11 @@ const Index = ({ onLogout }: IndexProps) => {
               />
             )}
 
-            {activeTab === 'tasks' && <TaskList />}
+            {activeTab === 'tasks' && <TaskList crewMembers={[]} />}
 
             {activeTab === 'reports' && (
               <MonthlyReport
+                usageHistory={usageHistory}
                 availableMonths={availableMonths}
                 getMonthlyUsage={getMonthlyUsage}
               />

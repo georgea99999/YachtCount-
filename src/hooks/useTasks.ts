@@ -1,107 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Task } from '@/types/inventory';
-
-const STORAGE_KEY = 'yachtCountTasks';
-
-function dedupeAssignees(list: string[] | undefined): string[] | undefined {
-  if (!list) return undefined;
-  const seen = new Map<string, string>();
-  list.forEach(raw => {
-    const v = raw.trim();
-    if (!v) return;
-    const key = v.toLowerCase();
-    if (!seen.has(key)) seen.set(key, v);
-  });
-  const out = Array.from(seen.values());
-  return out.length ? out : undefined;
-}
-
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-    try {
-      const parsed: Task[] = JSON.parse(saved);
-      // Migrate legacy single-assignee tasks
-      let mutated = false;
-      const migrated = parsed.map(t => {
-        if (t.assignee && (!t.assignees || t.assignees.length === 0)) {
-          mutated = true;
-          return { ...t, assignees: [t.assignee], assignee: undefined };
-        }
-        return t;
-      });
-      setTasks(migrated);
-      if (mutated) localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-    } catch {
-      setTasks([]);
-    }
-  }, []);
-
-  const save = useCallback((items: Task[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, []);
-
-  const addTask = useCallback((text: string, opts?: { notes?: string; starred?: boolean; assignees?: string[] }) => {
-    if (!text.trim()) return;
-    setTasks(prev => {
-      const updated = [...prev, {
-        id: Date.now(),
-        text: text.trim(),
-        completed: false,
-        starred: opts?.starred ?? false,
-        notes: opts?.notes?.trim() || undefined,
-        assignees: dedupeAssignees(opts?.assignees),
-      }];
-      save(updated);
-      return updated;
-    });
-  }, [save]);
-
-  const toggleTask = useCallback((id: number) => {
-    setTasks(prev => {
-      const updated = prev.map(t =>
-        t.id === id
-          ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : undefined }
-          : t
-      );
-      save(updated);
-      return updated;
-    });
-  }, [save]);
-
-  const toggleStar = useCallback((id: number) => {
-    setTasks(prev => {
-      const updated = prev.map(t => (t.id === id ? { ...t, starred: !t.starred } : t));
-      save(updated);
-      return updated;
-    });
-  }, [save]);
-
-  const updateTaskFields = useCallback((id: number, patch: Partial<Task>) => {
-    setTasks(prev => {
-      const updated = prev.map(t => {
-        if (t.id !== id) return t;
-        const merged: Task = { ...t, ...patch };
-        if (patch.text !== undefined) merged.text = patch.text.trim();
-        if (patch.notes !== undefined) merged.notes = patch.notes.trim() || undefined;
-        if (patch.assignees !== undefined) merged.assignees = dedupeAssignees(patch.assignees);
-        return merged;
-      });
-      save(updated);
-      return updated;
-    });
-  }, [save]);
-
-  const deleteTask = useCallback((id: number) => {
-    setTasks(prev => {
-      const updated = prev.filter(t => t.id !== id);
-      save(updated);
-      return updated;
-    });
-  }, [save]);
-
-  return { tasks, addTask, toggleTask, toggleStar, updateTaskFields, deleteTask };
+  const load = async () => {
+    const {data,error} = await supabase.from('tasks').select('*').order('created_at',{ascending:false});
+    if(error) {toast.error('Unable to load To Do');return;}
+    setTasks(data.map(t=>({id:t.id,text:t.text,completed:t.completed,starred:t.starred,notes:t.notes??undefined,assignees:t.assignees,completedAt:t.completed_at??undefined,createdBy:t.created_by_username??undefined,completedBy:t.completed_by_username??undefined})));
+  };
+  useEffect(()=>{
+    void load();
+    const channel=supabase.channel('crew-tasks').on('postgres_changes',{event:'*',schema:'public',table:'tasks'},()=>{void load();}).subscribe();
+    return ()=>{void supabase.removeChannel(channel);};
+  },[]);
+  const save = async (request: PromiseLike<{error:unknown}>) => {
+    const {error}=await request;
+    if(error) {toast.error('Task not saved. Please try again.');return false;}
+    await load();return true;
+  };
+  const addTask=(text:string,opts?:{notes?:string;starred?:boolean;assignees?:string[]})=>save(supabase.from('tasks').insert({text:text.trim(),notes:opts?.notes?.trim(),starred:opts?.starred,assignees:opts?.assignees}));
+  const updateTaskFields=(id:number,patch:Partial<Task>)=>save(supabase.from('tasks').update({text:patch.text?.trim(),notes:patch.notes?.trim(),starred:patch.starred,assignees:patch.assignees,completed:patch.completed}).eq('id',id));
+  const toggleTask=(id:number)=>{const t=tasks.find(t=>t.id===id);if(t) return updateTaskFields(id,{completed:!t.completed});};
+  const toggleStar=(id:number)=>{const t=tasks.find(t=>t.id===id);if(t) return updateTaskFields(id,{starred:!t.starred});};
+  const deleteTask=(id:number)=>save(supabase.from('tasks').delete().eq('id',id));
+  return {tasks,addTask,toggleTask,toggleStar,updateTaskFields,deleteTask};
 }

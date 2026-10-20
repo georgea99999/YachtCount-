@@ -1,76 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { DeckOrderItem } from '@/types/inventory';
-
-const STORAGE_KEY = 'yachtCountDeckOrder';
-
-export function useDeckOrder() {
-  const [orderItems, setOrderItems] = useState<DeckOrderItem[]>([]);
-
-  // Load from localStorage on mount; start empty for a fresh vessel
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.length > 0) {
-          setOrderItems(parsed);
-        }
-      } catch {
-        // ignore corrupt data, start empty
-      }
-    }
-  }, []);
-
-  // Save to localStorage
-  const saveOrderItems = useCallback((items: DeckOrderItem[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, []);
-
-  // Add item
-  const addOrderItem = useCallback((item: Omit<DeckOrderItem, 'id'>) => {
-    setOrderItems(prev => {
-      const newItem: DeckOrderItem = {
-        ...item,
-        id: Date.now(),
-        link: item.link || '',
-      };
-      const updated = [...prev, newItem];
-      saveOrderItems(updated);
-      return updated;
-    });
-  }, [saveOrderItems]);
-
-  // Update item
-  const updateOrderItem = useCallback((id: number, updates: Partial<Omit<DeckOrderItem, 'id'>>) => {
-    setOrderItems(prev => {
-      const updated = prev.map(item => 
-        item.id === id ? { ...item, ...updates } : item
-      );
-      saveOrderItems(updated);
-      return updated;
-    });
-  }, [saveOrderItems]);
-
-  // Delete item
-  const deleteOrderItem = useCallback((id: number) => {
-    setOrderItems(prev => {
-      const updated = prev.filter(item => item.id !== id);
-      saveOrderItems(updated);
-      return updated;
-    });
-  }, [saveOrderItems]);
-
-  // Clear all items
-  const clearOrderItems = useCallback(() => {
-    setOrderItems([]);
-    localStorage.removeItem(STORAGE_KEY);
-  }, []);
-
-  return {
-    orderItems,
-    addOrderItem,
-    updateOrderItem,
-    deleteOrderItem,
-    clearOrderItems,
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+export function useDeckOrder(vesselId?:string) {
+  const [orderItems,setOrderItems]=useState<DeckOrderItem[]>([]);
+  const load=async()=>{
+    const {data,error}=await supabase.from('deck_orders').select('*').order('id');
+    if(error) {toast.error('Unable to load Deck Order');return;}
+    setOrderItems(data.map(i=>({id:i.id,productName:i.product_name,quantity:i.quantity,colour:i.colour,size:i.size,link:i.link})));
   };
+  useEffect(()=>{void load();const c=supabase.channel('crew-orders').on('postgres_changes',{event:'*',schema:'public',table:'deck_orders'},()=>{void load();}).subscribe();return()=>{void supabase.removeChannel(c);};},[vesselId]);
+  const save=async(req:PromiseLike<{error:unknown}>)=>{const {error}=await req;if(error){toast.error('Order not saved');return;}await load();};
+  const addOrderItem=(i:Omit<DeckOrderItem,'id'>)=>save(supabase.from('deck_orders').insert({product_name:i.productName,quantity:i.quantity,colour:i.colour,size:i.size,link:i.link}));
+  const updateOrderItem=(id:number,i:Partial<Omit<DeckOrderItem,'id'>>)=>save(supabase.from('deck_orders').update({product_name:i.productName,quantity:i.quantity,colour:i.colour,size:i.size,link:i.link}).eq('id',id));
+  const deleteOrderItem=(id:number)=>save(supabase.from('deck_orders').delete().eq('id',id));
+  const clearOrderItems=()=>save(supabase.from('deck_orders').delete().gt('id',0));
+  return {orderItems,addOrderItem,updateOrderItem,deleteOrderItem,clearOrderItems};
 }

@@ -11,6 +11,8 @@ export interface Task {
   completed: boolean;
   starred?: boolean;
   completedAt?: string;
+  createdBy?: string;
+  completedBy?: string;
   notes?: string;
   assignees?: string[];
   /** @deprecated use assignees */
@@ -18,6 +20,7 @@ export interface Task {
 }
 
 export interface UsageEntry {
+  actorUsername?: string;
   date: string;
   itemName: string;
   box: string;

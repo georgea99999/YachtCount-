@@ -20,18 +20,82 @@ export type Database = {
           id: string
           name: string
           user_id: string | null
+          vessel_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
           user_id?: string | null
+          vessel_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
           user_id?: string | null
+          vessel_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_boxes_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deck_orders: {
+        Row: {
+          colour: string
+          id: number
+          link: string
+          product_name: string
+          quantity: string
+          size: string
+          vessel_id: string
+        }
+        Insert: {
+          colour?: string
+          id?: number
+          link?: string
+          product_name: string
+          quantity?: string
+          size?: string
+          vessel_id?: string
+        }
+        Update: {
+          colour?: string
+          id?: number
+          link?: string
+          product_name?: string
+          quantity?: string
+          size?: string
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deck_orders_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          id: string
+          username: string
+        }
+        Insert: {
+          id: string
+          username: string
+        }
+        Update: {
+          id?: string
+          username?: string
         }
         Relationships: []
       }
@@ -45,6 +109,7 @@ export type Database = {
           sort_order: number
           updated_at: string
           user_id: string | null
+          vessel_id: string | null
         }
         Insert: {
           box: string
@@ -55,6 +120,7 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           user_id?: string | null
+          vessel_id?: string | null
         }
         Update: {
           box?: string
@@ -65,33 +131,205 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           user_id?: string | null
+          vessel_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stock_items_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assignees: string[]
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          completed_by_username: string | null
+          created_at: string
+          created_by: string | null
+          created_by_username: string | null
+          id: number
+          notes: string | null
+          starred: boolean
+          text: string
+          vessel_id: string
+        }
+        Insert: {
+          assignees?: string[]
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_by_username?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_username?: string | null
+          id?: number
+          notes?: string | null
+          starred?: boolean
+          text: string
+          vessel_id?: string
+        }
+        Update: {
+          assignees?: string[]
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_by_username?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_username?: string | null
+          id?: number
+          notes?: string | null
+          starred?: boolean
+          text?: string
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usage_history: {
         Row: {
+          actor_username: string | null
           box: string
           id: string
           item_name: string
           quantity: number
           recorded_at: string
           user_id: string | null
+          vessel_id: string | null
         }
         Insert: {
+          actor_username?: string | null
           box: string
           id?: string
           item_name: string
           quantity: number
           recorded_at?: string
           user_id?: string | null
+          vessel_id?: string | null
         }
         Update: {
+          actor_username?: string | null
           box?: string
           id?: string
           item_name?: string
           quantity?: number
           recorded_at?: string
           user_id?: string | null
+          vessel_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_history_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          role: string
+          user_id: string
+          vessel_id: string
+        }
+        Insert: {
+          role?: string
+          user_id: string
+          vessel_id: string
+        }
+        Update: {
+          role?: string
+          user_id?: string
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vessel_credentials: {
+        Row: {
+          password_hash: string
+          vessel_id: string
+        }
+        Insert: {
+          password_hash: string
+          vessel_id: string
+        }
+        Update: {
+          password_hash?: string
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vessel_credentials_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: true
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vessel_members: {
+        Row: {
+          created_at: string
+          user_id: string
+          vessel_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+          vessel_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vessel_members_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vessels: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -100,7 +338,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      adjust_stock: {
+        Args: { absolute_quantity?: number; delta?: number; item_id: string }
+        Returns: number
+      }
+      current_vessel: { Args: never; Returns: string }
+      setup_vessel: {
+        Args: {
+          crew_username: string
+          owner_id: string
+          vessel_name: string
+          vessel_password: string
+        }
+        Returns: string
+      }
+      verify_vessel_password: {
+        Args: { candidate: string; vid: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

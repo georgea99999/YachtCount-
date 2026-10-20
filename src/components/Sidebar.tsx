@@ -2,7 +2,6 @@ import { type CSSProperties } from 'react';
 import { Home, BarChart3, ClipboardList, ListTodo, LogOut } from 'lucide-react';
 import { TabType } from '@/types/inventory';
 import { cn } from '@/lib/utils';
-import yachtcountLogo from '@/assets/yachtcount-logo.png';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -37,16 +36,10 @@ const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, hea
         style={{ "--header-h": `${headerHeight}px` } as CSSProperties}
         className={cn(
           "fixed left-0 top-[var(--header-h)] h-[calc(100dvh-var(--header-h))] w-16 bg-primary z-50 flex flex-col transition-transform duration-300",
-          "md:top-0 md:h-full",
           "md:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Logo at the top of the rail on larger screens */}
-        <div className="hidden md:flex items-center justify-center pt-3 pb-2">
-          <img src={yachtcountLogo} alt="YachtCount Logo" className="w-9 h-9 object-contain rounded" />
-        </div>
-
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;

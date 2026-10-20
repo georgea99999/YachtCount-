@@ -45,15 +45,15 @@ const Header = ({
   };
   const unreadCount = notifications.length;
   return <header id="yc-app-header" className="bg-primary text-primary-foreground sticky top-0 z-50">
-      <div className="flex items-center justify-between px-4 py-3 md:h-[70px] md:gap-6 md:py-0 md:pl-20 md:pr-6">
+      <div className="flex items-center justify-between px-4 py-3 md:h-[70px] md:gap-6 md:py-0 md:pl-3 md:pr-6">
         {/* Left: Menu, Logo & Vessel/Crew bubble */}
         <div className="flex min-w-0 items-center gap-3 md:flex-1 md:gap-5">
           <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2 md:gap-6">
             {/* Logo lives in the sidebar rail on larger screens; mobile keeps it here */}
-            <img src={yachtcountLogo} alt="YachtCount Logo" className="w-10 h-10 object-contain rounded md:hidden" />
+            <img src={yachtcountLogo} alt="YachtCount Logo" className="w-10 h-10 object-contain rounded" />
             <span className="font-bold text-2xl font-sans">YachtCount</span>
           </div>
           {(vesselName || crewName) && <div className="hidden min-w-0 items-center gap-2 rounded-full border border-primary-foreground/20 bg-navy-dark px-3 py-1 md:flex">

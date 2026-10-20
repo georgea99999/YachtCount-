@@ -35,6 +35,7 @@ const Index = ({ onLogout }: IndexProps) => {
     availableMonths,
     usageHistory,
     addStockItem,
+    addStockItems,
     updateStockQuantity,
     updateStockQuantityDirect,
     editStockItem,
@@ -137,7 +138,8 @@ const Index = ({ onLogout }: IndexProps) => {
       {/* Floating Add Button - only show on stock tab */}
       {activeTab === 'stock' && (
         <FloatingAddButton 
-          onAddItem={addStockItem} 
+          onAddItem={addStockItem}
+          onAddItems={addStockItems}
           customBoxes={customBoxes}
           existingBoxes={Array.from(new Set(stockItems.map(i => i.box)))}
           onAddCustomBox={addCustomBox}

@@ -27,6 +27,7 @@ interface StockItemProps {
   usageHistory?: UsageEntry[];
   isDragEnabled?: boolean;
   allBoxNames?: string[];
+  showBox?: boolean;
 }
 
 const StockItemRow = ({ 

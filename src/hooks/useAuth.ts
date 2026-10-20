@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Session } from '@supabase/supabase-js';
 
-const SHARED_EMAIL = 'oktodeck@yachtcount.app';
-const SHARED_PASSWORD = 'Okto26';
-const SHARED_USERNAME = 'Oktodeck';
+const SHARED_EMAIL = 'crew@yachtcount.app';
+const SHARED_PASSWORD = 'YachtCount2026';
+const SHARED_USERNAME = 'crew';
 const KEEP_FLAG = 'yc_keep_logged_in';
 
 export function useAuth() {

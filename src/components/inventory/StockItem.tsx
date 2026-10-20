@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Minus, Plus, Trash2, Package, ChevronDown, ChevronUp, Check, X, GripVertical } from 'lucide-react';
-import { StockItem as StockItemType, BOX_OPTIONS, UsageEntry } from '@/types/inventory';
+import { StockItem as StockItemType, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -94,7 +94,7 @@ const StockItemRow = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-h-60 bg-popover">
-              {Array.from(new Set([...BOX_OPTIONS, ...allBoxNames])).map(box => (
+              {allBoxNames.map(box => (
                 <SelectItem key={box} value={box}>{box}</SelectItem>
               ))}
             </SelectContent>

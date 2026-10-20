@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { ArrowUpDown, Download, Package, GripVertical, Pencil, Check, X } from 'lucide-react';
-import { StockItem, BOX_OPTIONS, DeckOrderItem, UsageEntry } from '@/types/inventory';
+import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -159,15 +159,8 @@ const StockList = ({
       return acc;
     }, {} as Record<string, StockItem[]>);
 
-    // Sort boxes by BOX_OPTIONS order
-    const sortedBoxes = Object.keys(groupedForPDF).sort((a, b) => {
-      const indexA = BOX_OPTIONS.indexOf(a);
-      const indexB = BOX_OPTIONS.indexOf(b);
-      if (indexA === -1 && indexB === -1) return a.localeCompare(b);
-      if (indexA === -1) return 1;
-      if (indexB === -1) return -1;
-      return indexA - indexB;
-    });
+    // Sort boxes alphabetically
+    const sortedBoxes = Object.keys(groupedForPDF).sort((a, b) => a.localeCompare(b));
 
     const tableRows = sortedBoxes.map(box => 
       groupedForPDF[box].map(item => 
@@ -392,13 +385,9 @@ const StockList = ({
           </SelectTrigger>
           <SelectContent className="max-h-60 bg-popover">
             <SelectItem value="all">All Boxes</SelectItem>
-            {(() => {
-              const allBoxNames = Array.from(new Set(allItems.map(i => i.box)));
-              const combined = Array.from(new Set([...BOX_OPTIONS, ...allBoxNames]));
-              return combined.map(box => (
-                <SelectItem key={box} value={box}>{box}</SelectItem>
-              ));
-            })()}
+            {allBoxNames.map(box => (
+              <SelectItem key={box} value={box}>{box}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

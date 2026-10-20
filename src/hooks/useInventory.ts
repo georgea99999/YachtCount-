@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { StockItem, UsageEntry, Notification } from '@/types/inventory';
 import { supabase } from '@/integrations/supabase/client';
-import { loadDefaultInventory } from '@/data/defaultInventory';
 
 const getUserId = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -32,15 +31,15 @@ export function useInventory() {
       if (stockError) {
         console.error('Error loading stock items:', stockError);
         // Fallback to localStorage if DB fails
-        const savedStock = localStorage.getItem('oktoDeckStock');
+        const savedStock = localStorage.getItem('yachtCountStock');
         if (savedStock) {
           try {
             setStockItems(JSON.parse(savedStock));
           } catch {
-            setStockItems(loadDefaultInventory());
+            setStockItems([]);
           }
         } else {
-          setStockItems(loadDefaultInventory());
+          setStockItems([]);
         }
       } else if (stockData && stockData.length > 0) {
         setStockItems(stockData.map(item => ({
@@ -50,8 +49,8 @@ export function useInventory() {
           box: item.box,
         })));
       } else {
-        // No data in DB, seed with default inventory
-        await seedDefaultInventory();
+        // No data in DB — start with a clean slate
+        setStockItems([]);
       }
 
       // Load usage history
@@ -79,7 +78,7 @@ export function useInventory() {
       }
 
       // Load notifications from localStorage (keeping local for now)
-      const savedNotifications = localStorage.getItem('oktoDeckNotifications');
+      const savedNotifications = localStorage.getItem('yachtCountNotifications');
       if (savedNotifications) {
         try {
           setNotifications(JSON.parse(savedNotifications));
@@ -127,39 +126,9 @@ export function useInventory() {
     };
   }, []);
 
-  // Seed default inventory to database
-  const seedDefaultInventory = async () => {
-    const defaultItems = loadDefaultInventory();
-    const userId = await getUserId();
-    const itemsToInsert = defaultItems.map((item, index) => ({
-      name: item.name,
-      quantity: item.quantity,
-      box: item.box,
-      sort_order: index,
-      user_id: userId,
-    }));
-
-    const { data, error } = await supabase
-      .from('stock_items')
-      .insert(itemsToInsert)
-      .select();
-
-    if (error) {
-      console.error('Error seeding inventory:', error);
-      setStockItems(defaultItems);
-    } else if (data) {
-      setStockItems(data.map(item => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        box: item.box,
-      })));
-    }
-  };
-
   // Save notifications to localStorage
   const saveNotifications = useCallback((notifs: Notification[]) => {
-    localStorage.setItem('oktoDeckNotifications', JSON.stringify(notifs));
+    localStorage.setItem('yachtCountNotifications', JSON.stringify(notifs));
   }, []);
 
   // Add custom box
@@ -196,7 +165,7 @@ export function useInventory() {
   // Clear notifications
   const clearNotifications = useCallback(() => {
     setNotifications([]);
-    localStorage.removeItem('oktoDeckNotifications');
+    localStorage.removeItem('yachtCountNotifications');
   }, []);
 
   // Add stock item

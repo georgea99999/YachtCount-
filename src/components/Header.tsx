@@ -151,6 +151,21 @@ const Header = ({
         </div>
       </div>
 
+      {/* Mobile: vessel & crew pill sits directly under the title */}
+      {(vesselName || crewName) && <div className="md:hidden flex min-w-0 px-4 pb-2">
+          <div className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-primary-foreground/20 bg-navy-dark px-2 py-[3px]">
+            {vesselName && <span className="flex min-w-0 items-center gap-1">
+                <Ship className="h-2 w-2 shrink-0 text-primary-foreground/70" />
+                <span className="truncate text-[8px] font-medium leading-none">{vesselName}</span>
+              </span>}
+            {vesselName && crewName && <span className="h-2 w-px shrink-0 bg-primary-foreground/20" aria-hidden="true" />}
+            {crewName && <span className="flex min-w-0 items-center gap-1 text-primary-foreground/85">
+                <UserRound className="h-2 w-2 shrink-0" />
+                <span className="truncate text-[8px] leading-none">{crewName}</span>
+              </span>}
+          </div>
+        </div>}
+
     </header>;
 };
 export default Header;

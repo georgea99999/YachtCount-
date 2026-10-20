@@ -35,7 +35,7 @@ export function useAuth() {
 
   const login = async (username: string, password: string, keepLoggedIn: boolean) => {
     let email: string;
-    try { email = crewEmail(username); } catch { return {error:'Enter your crew username'}; }
+    try { email = await crewEmail(username); } catch { return {error:'Enter your full name or existing crew username'}; }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return {error:'Invalid username or vessel password'};
     if (keepLoggedIn) localStorage.setItem(KEEP_FLAG, 'true');

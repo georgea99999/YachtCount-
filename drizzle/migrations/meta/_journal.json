@@ -43,6 +43,13 @@
       "when": 1792507443448,
       "tag": "0005_delete_empty_inventory_box",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792509809496,
+      "tag": "0006_crew_roles_visible_to_vessel",
+      "breakpoints": true
     }
   ]
 }

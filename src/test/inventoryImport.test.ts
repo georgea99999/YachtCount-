@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseInventoryCsv } from '@/lib/inventoryImport';
-import { sortInventoryItems } from '@/lib/inventorySort';
+import { sortInventoryItems, sortBoxNames } from '@/lib/inventorySort';
 
 describe('inventory CSV import', () => {
   it('reads Product, Box and Quantity with quoted names and zero stock', () => {
@@ -22,5 +22,23 @@ describe('alphabetical products within boxes', () => {
     const items = ['Zinc', 'brush', 'Anchor'].map((name, i) => ({ id: String(i), name, box: 'Test Locker', quantity: i }));
     expect(sortInventoryItems(items).map(i => i.name)).toEqual(['Anchor', 'brush', 'Zinc']);
     expect(items[0].name).toBe('Zinc');
+  });
+});
+
+
+
+describe('alphabetical boxes', () => {
+  it('lists box names A-Z regardless of the order items were added', () => {
+    expect(sortBoxNames(['stern Locker', 'Foredeck', 'bosun locker 1', 'Lazarette'])).toEqual([
+      'bosun locker 1',
+      'Foredeck',
+      'Lazarette',
+      'stern Locker',
+    ]);
+  });
+
+  it('keeps the crew order while dragging whole boxes', () => {
+    const boxes = ['Lazarette', 'Foredeck', 'Bosun locker 1'];
+    expect(sortBoxNames(boxes, true)).toEqual(boxes);
   });
 });

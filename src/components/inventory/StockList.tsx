@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Pencil, Check, X, Layers, Boxes, AlertTriangle } from 'lucide-react';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { InventoryImportItem } from '@/lib/inventoryImport';
-import { InventorySort, sortInventoryItems } from '@/lib/inventorySort';
+import { InventorySort, sortInventoryItems, sortBoxNames } from '@/lib/inventorySort';
 import ImportInventoryDialog from './ImportInventoryDialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -287,28 +287,27 @@ const StockList = ({
     return acc;
   }, {} as Record<string, StockItem[]>);
 
-  // Compute all box names for edit dropdown
-  const allBoxNames = useMemo(() => Array.from(new Set(allItems.map(i => i.box))), [allItems]);
-
-  // Sort boxes: preserve the order items appear in the array (respects drag reorder)
-  const sortedBoxEntries = useMemo(() => {
-    // Build box order from the allItems array to preserve custom ordering
-    const boxOrder: string[] = [];
+  // Box names in the order they appear in the data (used for manual drag reorder)
+  const boxNamesInDataOrder = useMemo(() => {
+    const order: string[] = [];
     allItems.forEach(item => {
-      if (!boxOrder.includes(item.box)) {
-        boxOrder.push(item.box);
+      if (!order.includes(item.box)) {
+        order.push(item.box);
       }
     });
+    return order;
+  }, [allItems]);
 
-    return Object.entries(groupedItems).sort(([boxA], [boxB]) => {
-      const indexA = boxOrder.indexOf(boxA);
-      const indexB = boxOrder.indexOf(boxB);
-      if (indexA === -1 && indexB === -1) return 0;
-      if (indexA === -1) return 1;
-      if (indexB === -1) return -1;
-      return indexA - indexB;
-    });
-  }, [groupedItems, allItems]);
+  // Box chips and the item edit dropdown list alphabetically
+  const allBoxNames = useMemo(() => sortBoxNames(boxNamesInDataOrder), [boxNamesInDataOrder]);
+
+  // Box sections list alphabetically; the crew's manual order only applies while dragging whole boxes
+  const sortedBoxEntries = useMemo(() => {
+    const byBox = new Map(Object.entries(groupedItems));
+    return sortBoxNames(boxNamesInDataOrder, isReorderMode && reorderBoxes)
+      .filter(box => byBox.has(box))
+      .map(box => [box, byBox.get(box)!] as [string, StockItem[]]);
+  }, [groupedItems, boxNamesInDataOrder, isReorderMode, reorderBoxes]);
 
   const outOfStock = allItems.filter(i => i.quantity <= 0).length;
   const stats = [
@@ -500,9 +499,10 @@ const StockList = ({
           ) : isReorderMode ? (
             // Item reorder mode within boxes
             sortedBoxEntries.map(([box, boxItems]) => (
-              <div key={box}>
-                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0 flex items-center gap-2">
-                  {box}
+              <div key={box} className="mt-4 first:mt-0">
+                <div className="sticky top-0 z-10 flex items-center gap-2 border-y border-border bg-secondary px-3 py-2.5">
+                  <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-accent" />
+                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-foreground">{box}</span>
                 </div>
                 <SortableContext items={boxItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
                   {boxItems.map(item => (
@@ -555,8 +555,8 @@ const StockList = ({
             ))
           ) : (
             sortedBoxEntries.map(([box, boxItems]) => (
-              <div key={box}>
-                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0 flex items-center gap-2">
+              <div key={box} className="mt-4 first:mt-0">
+                <div className="sticky top-0 z-10 flex items-center gap-2 border-y border-border bg-secondary px-3 py-2.5">
                   {editingBox === box ? (
                     <>
                       <input
@@ -582,7 +582,8 @@ const StockList = ({
                     </>
                   ) : (
                     <>
-                      {box}
+                      <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-accent" />
+                      <span className="text-xs font-bold uppercase tracking-[0.14em] text-foreground">{box}</span>
                       {onRenameBox && (
                         <Button variant="ghost" size="icon" title="Rename box" aria-label="Rename box"
                           onClick={() => { setEditBoxValue(box); setEditingBox(box); }}

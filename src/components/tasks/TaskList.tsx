@@ -195,9 +195,10 @@ interface TaskRowProps {
   onStar: () => void;
   onOpen: () => void;
   onDelete: () => void;
+  onRestore?: () => void;
 }
 
-const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => {
+const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete, onRestore }: TaskRowProps) => {
   const assignees = task.assignees ?? [];
   const visible = assignees.slice(0, 2);
   const overflow = assignees.length - visible.length;
@@ -283,6 +284,15 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete }:
             </div>
           )}
         </div>
+
+        {archived && onRestore && <button
+          onClick={onRestore}
+          className="shrink-0 self-start mt-1 text-muted-foreground hover:text-accent transition-colors"
+          title="Restore task"
+          aria-label="Restore task"
+        >
+          <RotateCcw className="h-4 w-4" />
+        </button>}
 
         {!archived && <button
           onClick={onDelete}

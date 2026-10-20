@@ -8,6 +8,13 @@
       "when": 1792493768000,
       "tag": "0000_vessel_crew_and_activity",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792493835117,
+      "tag": "0001_tighten_vessel_access",
+      "breakpoints": true
     }
   ]
 }

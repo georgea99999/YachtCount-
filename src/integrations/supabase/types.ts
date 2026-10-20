@@ -46,6 +46,44 @@ export type Database = {
           },
         ]
       }
+      deck_orders: {
+        Row: {
+          colour: string
+          id: number
+          link: string
+          product_name: string
+          quantity: string
+          size: string
+          vessel_id: string
+        }
+        Insert: {
+          colour?: string
+          id?: number
+          link?: string
+          product_name: string
+          quantity?: string
+          size?: string
+          vessel_id?: string
+        }
+        Update: {
+          colour?: string
+          id?: number
+          link?: string
+          product_name?: string
+          quantity?: string
+          size?: string
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deck_orders_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           id: string

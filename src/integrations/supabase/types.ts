@@ -350,6 +350,7 @@ export type Database = {
       }
       crew_access_enabled: { Args: never; Returns: boolean }
       current_vessel: { Args: never; Returns: string }
+      delete_empty_box: { Args: { box_name: string }; Returns: boolean }
       reset_vessel_password: {
         Args: { new_password: string; vid: string }
         Returns: undefined

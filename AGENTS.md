@@ -8,3 +8,4 @@
 - Share name normalization and synthetic-email mapping between sign-in and the crew-access function; this keeps full-name logins consistent while preserving legacy crew accounts.
 - Retain deleted tasks using deleted_at in the existing vessel-scoped tasks table; permanent deletion is restricted to archived rows so clearing the folder cannot remove active tasks.
 - Enforce vessel-owner-only stock deletion with a restrictive DELETE policy alongside crew access policies; hiding controls is not an authorization boundary.
+- Delete empty inventory boxes through an authenticated owner-validated database function that checks live stock under a write lock; this protects stock during concurrent crew changes.

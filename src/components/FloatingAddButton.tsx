@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, X, Table2 } from 'lucide-react';
+import { Plus, X, Table2, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -25,9 +26,11 @@ interface FloatingAddButtonProps {
   customBoxes: string[];
   existingBoxes: string[];
   onAddCustomBox: (boxName: string) => void;
+  canDeleteBoxes: boolean;
+  onDeleteBox: (boxName: string) => Promise<{ error: string | null }>;
 }
 
-const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, onAddCustomBox }: FloatingAddButtonProps) => {
+const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, onAddCustomBox, canDeleteBoxes, onDeleteBox }: FloatingAddButtonProps) => {
   const [showForm, setShowForm] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [newItemName, setNewItemName] = useState('');
@@ -35,8 +38,27 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
   const [newItemBox, setNewItemBox] = useState('');
   const [showCreateBoxDialog, setShowCreateBoxDialog] = useState(false);
   const [newBoxName, setNewBoxName] = useState('');
+  const [showManageBoxes, setShowManageBoxes] = useState(false);
+  const [boxToDelete, setBoxToDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const allBoxOptions = Array.from(new Set([...existingBoxes, ...customBoxes]));
+  const allBoxOptions = Array.from(new Set([...existingBoxes, ...customBoxes])).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+  const handleDeleteBox = async () => {
+    if (!boxToDelete || deleting) return;
+    setDeleting(true);
+    try {
+      const result = await onDeleteBox(boxToDelete);
+      if (result.error) { toast.error(result.error); return; }
+      if (newItemBox === boxToDelete) setNewItemBox('');
+      toast.success(`Deleted "${boxToDelete}"`);
+      setBoxToDelete(null);
+    } catch {
+      toast.error('Unable to delete this box. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleAddItem = () => {
     if (newItemName.trim() && newItemBox) {
@@ -128,6 +150,11 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
                   </SelectContent>
                 </Select>
               </div>
+              {canDeleteBoxes && (
+                <Button variant="ghost" size="sm" className="self-end text-muted-foreground" onClick={() => setShowManageBoxes(true)}>
+                  <Trash2 className="h-4 w-4 mr-1" /> Manage boxes
+                </Button>
+              )}
               <Button onClick={handleAddItem} disabled={!newItemBox} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
                 Add Item
               </Button>
@@ -146,6 +173,31 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
       </div>
 
       {/* Bulk Add Dialog */}
+      <Dialog open={showManageBoxes} onOpenChange={setShowManageBoxes}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Manage boxes</DialogTitle></DialogHeader>
+          <div className="max-h-80 overflow-y-auto divide-y">
+            {allBoxOptions.length === 0 && <p className="py-4 text-muted-foreground">No boxes</p>}
+            {allBoxOptions.map(box => {
+              const hasStock = existingBoxes.includes(box);
+              return <div key={box} className="flex items-center gap-3 py-3">
+                <div className="min-w-0 flex-1"><p className="break-words font-medium">{box}</p><p className="text-xs text-muted-foreground">{hasStock ? 'Move items to another box first' : 'Empty box'}</p></div>
+                <Button variant="ghost" size="icon" disabled={hasStock} title={hasStock ? 'Move items out before deleting' : `Delete ${box}`} aria-label={`Delete ${box}`} onClick={() => setBoxToDelete(box)} className="shrink-0 text-destructive"><Trash2 className="h-4 w-4" /></Button>
+              </div>;
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={boxToDelete !== null} onOpenChange={open => { if (!open && !deleting) setBoxToDelete(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Delete box?</DialogTitle></DialogHeader>
+          <p className="break-words text-sm text-muted-foreground">Delete “{boxToDelete}” from the box list? This cannot be undone.</p>
+          <DialogFooter>
+            <Button variant="outline" disabled={deleting} onClick={() => setBoxToDelete(null)}>Cancel</Button>
+            <Button variant="destructive" disabled={deleting} onClick={() => void handleDeleteBox()}>{deleting ? 'Deleting…' : 'Delete box'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <BulkAddDialog
         open={showBulkDialog}
         onOpenChange={setShowBulkDialog}

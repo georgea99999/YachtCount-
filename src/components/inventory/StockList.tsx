@@ -90,6 +90,7 @@ const StockList = ({
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [editingBox, setEditingBox] = useState<string | null>(null);
   const [editBoxValue, setEditBoxValue] = useState('');
+  const [outOfStockOnly, setOutOfStockOnly] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
@@ -265,8 +266,17 @@ const StockList = ({
     setSelectedItemForOrder(null);
   };
 
+  // Out-of-stock filter spans all boxes but still respects search
+  const visibleItems = outOfStockOnly
+    ? allItems.filter(i => {
+        if (i.quantity > 0) return false;
+        const words = searchTerm.toLowerCase().trim().split(/\s+/).filter(Boolean);
+        return words.every(w => i.name.toLowerCase().includes(w));
+      })
+    : items;
+
   // Sort items based on selected option
-  const sortedItems = sortInventoryItems(items, sortOption, isReorderMode);
+  const sortedItems = sortInventoryItems(visibleItems, sortOption, isReorderMode);
 
   // Group items by box
   const groupedItems = sortedItems.reduce((acc, item) => {

@@ -53,8 +53,8 @@ const Header = ({
           </Button>
           <div className="flex shrink-0 items-center gap-2 md:gap-6">
             {/* Logo lives in the sidebar rail on larger screens; mobile keeps it here */}
-            <img src={yachtcountLogo} alt="YachtCount Logo" className="w-10 h-10 object-contain rounded" />
-            <span className="font-bold text-2xl font-sans">YachtCount</span>
+            <img src={yachtcountLogo} alt="YachtCount Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain rounded" />
+            <span className="font-bold text-xl md:text-2xl font-sans">YachtCount</span>
           </div>
           {(vesselName || crewName) && <div className="hidden min-w-0 items-center gap-2 rounded-full border border-primary-foreground/20 bg-navy-dark px-3 py-1 md:flex">
               {vesselName && <span className="flex min-w-0 items-center gap-1.5">

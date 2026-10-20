@@ -1,0 +1,13 @@
+ALTER TABLE public.vessel_members ADD COLUMN active boolean NOT NULL DEFAULT true;
+CREATE OR REPLACE FUNCTION public.current_vessel() RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT vessel_id FROM public.vessel_members WHERE user_id=auth.uid() AND active $$;
+CREATE FUNCTION public.crew_access_enabled() RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT NOT EXISTS(SELECT 1 FROM public.vessel_members WHERE user_id=auth.uid() AND NOT active) $$;
+REVOKE ALL ON FUNCTION public.crew_access_enabled() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.crew_access_enabled() TO authenticated,service_role;
+CREATE POLICY active_crew_stock ON public.stock_items AS RESTRICTIVE FOR ALL TO authenticated USING(public.crew_access_enabled()) WITH CHECK(public.crew_access_enabled());
+CREATE POLICY active_crew_boxes ON public.custom_boxes AS RESTRICTIVE FOR ALL TO authenticated USING(public.crew_access_enabled()) WITH CHECK(public.crew_access_enabled());
+CREATE POLICY active_crew_history ON public.usage_history AS RESTRICTIVE FOR SELECT TO authenticated USING(public.crew_access_enabled());
+CREATE POLICY active_crew_profiles ON public.profiles AS RESTRICTIVE FOR SELECT TO authenticated USING(public.crew_access_enabled());
+CREATE POLICY active_crew_roles ON public.user_roles AS RESTRICTIVE FOR SELECT TO authenticated USING(public.crew_access_enabled());
+CREATE FUNCTION public.reset_vessel_password(vid uuid, new_password text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,extensions AS $$ BEGIN IF length(new_password)<8 OR length(new_password)>100 THEN RAISE EXCEPTION 'Password must be 8–100 characters'; END IF; UPDATE public.vessel_credentials SET password_hash=crypt(new_password,gen_salt('bf')) WHERE vessel_id=vid; IF NOT FOUND THEN RAISE EXCEPTION 'Vessel unavailable'; END IF; END $$;
+REVOKE ALL ON FUNCTION public.reset_vessel_password(uuid,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.reset_vessel_password(uuid,text) TO service_role;

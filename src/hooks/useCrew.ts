@@ -15,11 +15,12 @@ export function useCrew() {
     if (!membership) {setCrew(null);setMembers([]);setAccounts([]);setLoading(false);return;}
     const [{data:profile},{data:vessel},{data:role},{data:people},{data:roster}] = await Promise.all([
       supabase.from('profiles').select('username').eq('id',user.id).single(),
-      supabase.from('vessels').select('name').eq('id',membership.vessel_id).single(),
+      supabase.from('vessels').select('name,active').eq('id',membership.vessel_id).single(),
       supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle(),
       supabase.from('profiles').select('id,username'),
       supabase.from('vessel_members').select('user_id,active').eq('vessel_id',membership.vessel_id),
     ]);
+    if(vessel && vessel.active===false){await supabase.auth.signOut();setCrew(null);setMembers([]);setAccounts([]);setLoading(false);return;}
     const {data:admins}=await supabase.from('user_roles').select('user_id,role').eq('vessel_id',membership.vessel_id);
     if(profile && vessel) setCrew({username:profile.username,vesselName:vessel.name,vesselId:membership.vessel_id,owner:role?.role==='owner',canDeleteItems:role?.role==='owner'||role?.role==='junior'});
     const list=(people??[]).map(p=>({id:p.id,username:p.username,active:roster?.find(m=>m.user_id===p.id)?.active === true,role:((admins??[]).find(a=>a.user_id===p.id)?.role ?? null) as 'owner'|'junior'|null})).sort((a,b)=>a.username.localeCompare(b.username));

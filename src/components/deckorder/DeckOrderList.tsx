@@ -263,7 +263,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
           <Card key={label} className="relative overflow-hidden border-border shadow-sm">
             <div className="absolute inset-y-0 left-0 w-1 bg-accent" />
             <CardContent className="p-3 md:p-4 md:pl-5 flex items-center justify-between gap-2">
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-2xl font-bold leading-none text-foreground">{value}</p>
                 <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
               </div>

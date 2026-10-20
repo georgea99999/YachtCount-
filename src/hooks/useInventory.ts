@@ -141,6 +141,18 @@ export function useInventory(vesselId?: string) {
     }
   }, [customBoxes]);
 
+  const deleteBox = useCallback(async (boxName: string) => {
+    if (stockItems.some(item => item.box === boxName)) {
+      return { error: 'Move all items out of this box before deleting it.' };
+    }
+    const { data, error } = await supabase.rpc('delete_empty_box', { box_name: boxName });
+    if (error) return { error: error.message };
+    if (!data) return { error: 'This box no longer exists. Please refresh and try again.' };
+    setCustomBoxes(prev => prev.filter(box => box !== boxName));
+    setSelectedBox(prev => prev === boxName ? '' : prev);
+    return { error: null };
+  }, [stockItems]);
+
   // Add notification
   const addNotification = useCallback((type: Notification['type'], itemName: string, message: string, deletedItemData?: Notification['deletedItemData']) => {
     const newNotification: Notification = {
@@ -518,6 +530,7 @@ export function useInventory(vesselId?: string) {
     getMonthlyUsage,
     clearNotifications,
     addCustomBox,
+    deleteBox,
     reorderStockItems,
     renameBox,
     restoreFromNotification,

@@ -64,6 +64,7 @@ const Index = ({ onLogout }: IndexProps) => {
     addCustomBox,
     reorderStockItems,
     renameBox,
+    deleteBox,
     restoreFromNotification,
   } = useInventory(crew?.vesselId);
 
@@ -171,6 +172,8 @@ const Index = ({ onLogout }: IndexProps) => {
           customBoxes={customBoxes}
           existingBoxes={Array.from(new Set(stockItems.map(i => i.box)))}
           onAddCustomBox={addCustomBox}
+          canDeleteBoxes={crew.owner}
+          onDeleteBox={deleteBox}
         />
       )}
 

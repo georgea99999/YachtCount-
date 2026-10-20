@@ -50,7 +50,7 @@ const Index = ({ onLogout }: IndexProps) => {
     reorderStockItems,
     renameBox,
     restoreFromNotification,
-  } = useInventory();
+  } = useInventory(crew?.vesselId);
 
   const {
     orderItems,
@@ -58,7 +58,7 @@ const Index = ({ onLogout }: IndexProps) => {
     updateOrderItem,
     deleteOrderItem,
     clearOrderItems,
-  } = useDeckOrder();
+  } = useDeckOrder(crew?.vesselId);
 
   const handleBoxChange = (value: string) => {
     setSelectedBox(value === 'all' ? '' : value);

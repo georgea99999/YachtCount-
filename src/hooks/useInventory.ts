@@ -7,7 +7,7 @@ const getUserId = async () => {
   return user?.id ?? null;
 };
 
-export function useInventory() {
+export function useInventory(vesselId?: string) {
   const [storageKey, setStorageKey] = useState('yachtCountNotifications:pending');
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [usageHistory, setUsageHistory] = useState<UsageEntry[]>([]);
@@ -22,8 +22,7 @@ export function useInventory() {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      const {data:member} = await supabase.from('vessel_members').select('vessel_id').maybeSingle();
-      const key = `yachtCountNotifications:${member?.vessel_id ?? 'legacy'}`;
+      const key = `yachtCountNotifications:${vesselId ?? 'legacy'}`;
       setStorageKey(key);
       
       // Load stock items
@@ -34,17 +33,7 @@ export function useInventory() {
 
       if (stockError) {
         console.error('Error loading stock items:', stockError);
-        // Fallback to localStorage if DB fails
-        const savedStock = null;
-        if (savedStock) {
-          try {
-            setStockItems(JSON.parse(savedStock));
-          } catch {
-            setStockItems([]);
-          }
-        } else {
-          setStockItems([]);
-        }
+        setStockItems([]);
       } else if (stockData && stockData.length > 0) {
         setStockItems(stockData.map(item => ({
           id: item.id,
@@ -131,7 +120,7 @@ export function useInventory() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [vesselId]);
 
   // Save notifications to localStorage
   const saveNotifications = useCallback((notifs: Notification[]) => {

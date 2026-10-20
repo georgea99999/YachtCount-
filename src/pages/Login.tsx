@@ -59,13 +59,13 @@ const Login = ({ onLogin }: LoginProps) => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Full name / username</Label>
               <Input
                 id="username"
                 autoCapitalize="none"
                 autoComplete="username"
                 type="text"
-                placeholder="Enter username"
+                placeholder="e.g. George Atkinson"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required

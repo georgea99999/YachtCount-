@@ -186,7 +186,7 @@ const TaskRow = ({ task, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => 
           >
             {task.text}
           </div>
-          {(assignees.length > 0 || task.notes) && (
+          {assignees.length > 0 && (
             <div className="mt-1 flex flex-wrap items-center gap-1">
               {visible.map(a => (
                 <span
@@ -202,11 +202,11 @@ const TaskRow = ({ task, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => 
                   +{overflow}
                 </span>
               )}
-              {task.notes && (
-                <span className="text-[11px] text-muted-foreground truncate max-w-[160px]">
-                  · {task.notes}
-                </span>
-              )}
+            </div>
+          )}
+          {task.notes && (
+            <div className="mt-1.5 w-full text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap break-words line-clamp-4">
+              {task.notes}
             </div>
           )}
         </button>

@@ -12,6 +12,8 @@ const input = z.discriminatedUnion('action', [
   z.object({action:z.literal('add'),username:name,password:passwordSchema}),
   z.object({action:z.literal('rename'),userId:z.string().uuid(),username:name}),
   z.object({action:z.literal('deactivate'),userId:z.string().uuid()}),
+  z.object({action:z.literal('remove'),userId:z.string().uuid()}),
+  z.object({action:z.literal('set-admin'),userId:z.string().uuid(),admin:z.boolean()}),
   z.object({action:z.literal('reset-password'),password:passwordSchema,newPassword:passwordSchema}),
 ]);
 Deno.serve(async req => {
@@ -46,6 +48,31 @@ Deno.serve(async req => {
     const {data:role}=await admin.from('user_roles').select('role').eq('user_id',user.id).eq('vessel_id',membership.vessel_id).eq('role','owner').maybeSingle();
     const permissionError=crewAdminError(membership,Boolean(role));
     if(permissionError) return respond({error:permissionError},403);
+    if(request.action==='set-admin' || request.action==='remove') {
+      const {data:target}=await admin.from('vessel_members').select('user_id,vessel_id,active').eq('user_id',request.userId).maybeSingle();
+      const targetError=crewAdminError(membership,true,target,true);
+      if(targetError) return respond({error:targetError.replace('deactivate','change')},403);
+      if(request.action==='set-admin') {
+        if(!target!.active) return respond({error:'Reactivate is not available; only active crew can be admins'},400);
+        const {error}=request.admin
+          ? await admin.from('user_roles').upsert({user_id:request.userId,vessel_id:membership.vessel_id,role:'owner'},{onConflict:'user_id,vessel_id',ignoreDuplicates:true})
+          : await admin.from('user_roles').delete().eq('user_id',request.userId).eq('vessel_id',membership.vessel_id);
+        if(error) return respond({error:'Unable to update admin access'},500);
+        return respond({ok:true});
+      }
+      if(target!.active) return respond({error:'Deactivate this crew member before removing them'},400);
+      // Activity keeps the recorded name text; ownership links are cleared so the account can be deleted.
+      for(const table of ['stock_items','custom_boxes','usage_history']) {
+        const {error}=await admin.from(table).update({user_id:null}).eq('user_id',request.userId);
+        if(error) return respond({error:'Unable to remove crew member'},500);
+      }
+      await admin.from('user_roles').delete().eq('user_id',request.userId);
+      await admin.from('vessel_members').delete().eq('user_id',request.userId).eq('vessel_id',membership.vessel_id);
+      await admin.from('profiles').delete().eq('id',request.userId);
+      const {error:deleteError}=await admin.auth.admin.deleteUser(request.userId);
+      if(deleteError) return respond({error:'Crew member removed from vessel, but account cleanup failed'},500);
+      return respond({ok:true});
+    }
     if(request.action==='rename' || request.action==='deactivate') {
       const {data:target}=await admin.from('vessel_members').select('user_id,vessel_id,active').eq('user_id',request.userId).maybeSingle();
       const targetError=crewAdminError(membership,true,target,request.action==='deactivate');

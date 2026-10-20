@@ -219,6 +219,44 @@ export function useInventory() {
     }
   }, [stockItems, addNotification]);
 
+  // Add multiple stock items at once (bulk entry)
+  const addStockItems = useCallback(async (items: { name: string; quantity: number; box: string }[]) => {
+    const valid = items.filter(i => i.name.trim() && i.box);
+    if (valid.length === 0) return;
+
+    const userId = await getUserId();
+    const baseOrder = stockItems.length;
+    const { data, error } = await supabase
+      .from('stock_items')
+      .insert(valid.map((i, idx) => ({
+        name: i.name.trim(),
+        quantity: i.quantity,
+        box: i.box,
+        sort_order: baseOrder + idx,
+        user_id: userId,
+      })))
+      .select();
+
+    if (error) {
+      console.error('Error bulk adding stock items:', error);
+      return;
+    }
+
+    if (data) {
+      setStockItems(prev => [
+        ...prev,
+        ...data.map(item => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          box: item.box,
+        })),
+      ]);
+      setDeletedItems([]);
+      addNotification('added', valid[0].name.trim(), `Added ${valid.length} items to inventory`);
+    }
+  }, [stockItems, addNotification]);
+
   // Update stock quantity
   const updateStockQuantity = useCallback(async (id: string, change: number) => {
     const item = stockItems.find(i => i.id === id);
@@ -544,6 +582,7 @@ export function useInventory() {
     totalQuantity,
     availableMonths,
     addStockItem,
+    addStockItems,
     updateStockQuantity,
     updateStockQuantityDirect,
     editStockItem,

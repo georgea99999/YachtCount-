@@ -499,8 +499,8 @@ const StockList = ({
           ) : isReorderMode ? (
             // Item reorder mode within boxes
             sortedBoxEntries.map(([box, boxItems]) => (
-              <div key={box} className="mt-3 first:mt-0">
-                <div className="sticky top-0 z-10 flex items-center gap-2 border-y border-border bg-muted px-3 py-2.5">
+              <div key={box} className="mt-4 first:mt-0">
+                <div className="sticky top-0 z-10 flex items-center gap-2 border-y border-border bg-secondary px-3 py-2.5">
                   <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-accent" />
                   <span className="text-xs font-bold uppercase tracking-[0.14em] text-foreground">{box}</span>
                 </div>
@@ -555,8 +555,8 @@ const StockList = ({
             ))
           ) : (
             sortedBoxEntries.map(([box, boxItems]) => (
-              <div key={box} className="mt-3 first:mt-0">
-                <div className="sticky top-0 z-10 flex items-center gap-2 border-y border-border bg-muted px-3 py-2.5">
+              <div key={box} className="mt-4 first:mt-0">
+                <div className="sticky top-0 z-10 flex items-center gap-2 border-y border-border bg-secondary px-3 py-2.5">
                   {editingBox === box ? (
                     <>
                       <input

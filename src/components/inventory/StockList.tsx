@@ -254,7 +254,7 @@ const StockList = ({
   };
 
   const handleSelectForOrder = (id: string) => {
-    const item = items.find(i => i.id === id);
+    const item = allItems.find(i => i.id === id);
     if (item) {
       setSelectedItemForOrder(item);
       setDialogOpen(true);

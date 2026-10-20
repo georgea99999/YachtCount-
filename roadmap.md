@@ -1,6 +1,6 @@
-- [ ] Support full-name admin and crew usernames with admin-led vessel setup and shared-password crew creation.
+- [x] Support full-name admin and crew usernames with admin-led vessel setup and shared-password crew creation.
 - [x] Add vessel setup and personalized crew access with a shared vessel password.
 - [x] Share inventory, Deck Order and To Do across vessel members and record activity authors.
-- [ ] Verify full crew sign-in, add-crew and second-vessel isolation — waiting on the owner creating the first vessel.
+- [ ] Verify admin setup, full-name crew sign-in, add-crew and second-vessel isolation — waiting on a working preview session and initial vessel setup.
 - [x] Replace inventory CSV export with validated CSV import.
 - [x] Default products to alphabetical order within boxes and verify both changes.

@@ -29,6 +29,13 @@
       "when": 1792494665015,
       "tag": "0003_crew_admin_controls",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792495881259,
+      "tag": "0004_task_archive_and_admin_stock_delete",
+      "breakpoints": true
     }
   ]
 }

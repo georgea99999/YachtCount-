@@ -49,6 +49,7 @@ interface StockListProps {
   onUpdateQuantity: (id: string, change: number) => void;
   onUpdateQuantityDirect: (id: string, value: number) => void;
   onDelete: (id: string) => void;
+  canDelete?: boolean;
   onEditItem?: (id: string, updates: { name: string; box: string }) => void;
   totalItems: number;
   totalQuantity: number;
@@ -70,6 +71,7 @@ const StockList = ({
   onUpdateQuantity,
   onUpdateQuantityDirect,
   onDelete,
+  canDelete = false,
   onEditItem,
   totalItems,
   totalQuantity,
@@ -391,7 +393,7 @@ const StockList = ({
         <div className="w-8 flex-shrink-0" />
         <div className="flex-1 min-w-0">Name</div>
         <div className="w-24 text-center flex-shrink-0">Qty</div>
-        <div className="w-7 flex-shrink-0" />
+        {canDelete && <div className="w-7 flex-shrink-0" />}
       </div>
 
       {/* Items List */}
@@ -430,6 +432,7 @@ const StockList = ({
                       onUpdateQuantity={onUpdateQuantity}
                       onUpdateQuantityDirect={onUpdateQuantityDirect}
                       onDelete={onDelete}
+                      canDelete={canDelete}
                       onEditItem={onEditItem}
                       onSelect={handleSelectForOrder}
                       usageHistory={usageHistory}
@@ -448,6 +451,7 @@ const StockList = ({
                 onUpdateQuantity={onUpdateQuantity}
                 onUpdateQuantityDirect={onUpdateQuantityDirect}
                 onDelete={onDelete}
+                      canDelete={canDelete}
                 onEditItem={onEditItem}
                 onSelect={handleSelectForOrder}
                 usageHistory={usageHistory}
@@ -462,6 +466,7 @@ const StockList = ({
                 onUpdateQuantity={onUpdateQuantity}
                 onUpdateQuantityDirect={onUpdateQuantityDirect}
                 onDelete={onDelete}
+                      canDelete={canDelete}
                 onEditItem={onEditItem}
                 onSelect={handleSelectForOrder}
                 usageHistory={usageHistory}
@@ -488,23 +493,23 @@ const StockList = ({
                         className="h-6 px-2 text-sm bg-background border border-input rounded"
                         autoFocus
                       />
-                      <button onClick={() => {
+                      <Button variant="ghost" size="icon" title="Save box name" aria-label="Save box name" onClick={() => {
                         const trimmed = editBoxValue.trim();
                         if (trimmed && trimmed !== box) onRenameBox?.(box, trimmed);
                         setEditingBox(null);
-                      }} className="text-primary"><Check className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => setEditingBox(null)} className="text-muted-foreground"><X className="w-3.5 h-3.5" /></button>
+                      }} className="h-6 w-6 text-primary"><Check className="w-3.5 h-3.5" /></Button>
+                      <Button variant="ghost" size="icon" title="Cancel box rename" aria-label="Cancel box rename" onClick={() => setEditingBox(null)} className="h-6 w-6 text-muted-foreground"><X className="w-3.5 h-3.5" /></Button>
                     </>
                   ) : (
                     <>
                       {box}
                       {onRenameBox && (
-                        <button
+                        <Button variant="ghost" size="icon" title="Rename box" aria-label="Rename box"
                           onClick={() => { setEditBoxValue(box); setEditingBox(box); }}
-                          className="text-muted-foreground hover:text-foreground"
+                          className="h-6 w-6 text-muted-foreground hover:text-foreground"
                         >
                           <Pencil className="w-3 h-3" />
-                        </button>
+                        </Button>
                       )}
                     </>
                   )}
@@ -516,6 +521,7 @@ const StockList = ({
                     onUpdateQuantity={onUpdateQuantity}
                     onUpdateQuantityDirect={onUpdateQuantityDirect}
                     onDelete={onDelete}
+                      canDelete={canDelete}
                     onEditItem={onEditItem}
                     onSelect={handleSelectForOrder}
                     usageHistory={usageHistory}

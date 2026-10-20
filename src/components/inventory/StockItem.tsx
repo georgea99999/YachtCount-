@@ -20,6 +20,7 @@ interface StockItemProps {
   onUpdateQuantity: (id: string, change: number) => void;
   onUpdateQuantityDirect: (id: string, value: number) => void;
   onDelete: (id: string) => void;
+  canDelete?: boolean;
   onEditItem?: (id: string, updates: { name: string; box: string }) => void;
   isSelected?: boolean;
   onSelect?: (id: string) => void;
@@ -33,6 +34,7 @@ const StockItemRow = ({
   onUpdateQuantity, 
   onUpdateQuantityDirect, 
   onDelete,
+  canDelete = false,
   onEditItem,
   isSelected,
   onSelect,
@@ -148,17 +150,20 @@ const StockItemRow = ({
         <Checkbox 
           checked={isSelected}
           onCheckedChange={() => onSelect?.(item.id)}
+          title="Send to Deck Order"
+          aria-label={`Send ${item.name} to Deck Order`}
           className="border-muted-foreground/50 flex-shrink-0"
         />
         
         {/* Edit Icon */}
-        <button
+        <Button variant="ghost" size="icon"
+          aria-label={`Edit ${item.name}`}
           onClick={handleStartEdit}
           className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-muted-foreground/20 transition-colors"
           title="Edit item"
         >
           <Package className="w-4 h-4 text-muted-foreground" />
-        </button>
+        </Button>
         
         {/* Name & Box */}
         <div 
@@ -169,7 +174,7 @@ const StockItemRow = ({
             <p className="font-medium text-sm text-foreground break-words line-clamp-2">
               {item.name}
             </p>
-            <Button variant="ghost" size="icon" className="h-4 w-4 flex-shrink-0 p-0">
+            <Button title={isExpanded ? "Hide quantity changes" : "Show quantity changes"} aria-label={isExpanded ? "Hide quantity changes" : "Show quantity changes"} variant="ghost" size="icon" className="h-4 w-4 flex-shrink-0 p-0">
               {isExpanded ? (
                 <ChevronUp className="h-3 w-3 text-muted-foreground" />
               ) : (
@@ -185,6 +190,8 @@ const StockItemRow = ({
             variant="outline"
             size="icon"
             className="h-7 w-7 rounded-full"
+            title="Decrease quantity"
+            aria-label={`Decrease ${item.name} quantity`}
             onClick={() => onUpdateQuantity(item.id, -1)}
           >
             <Minus className="h-3 w-3" />
@@ -200,6 +207,8 @@ const StockItemRow = ({
             variant="outline"
             size="icon"
             className="h-7 w-7 rounded-full"
+            title="Increase quantity"
+            aria-label={`Increase ${item.name} quantity`}
             onClick={() => onUpdateQuantity(item.id, 1)}
           >
             <Plus className="h-3 w-3" />
@@ -207,14 +216,16 @@ const StockItemRow = ({
         </div>
 
         {/* Delete */}
-        <Button
+        {canDelete && <Button
+          title="Delete item"
+          aria-label={`Delete ${item.name}`}
           variant="ghost"
           size="icon"
           className="h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0"
           onClick={() => onDelete(item.id)}
         >
           <Trash2 className="h-4 w-4" />
-        </Button>
+        </Button>}
       </div>
       
       {/* Expanded details */}

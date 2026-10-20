@@ -4,6 +4,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface SortableBoxHeaderProps {
   id: string;
@@ -74,23 +75,23 @@ const SortableBoxHeader = ({ id, boxName, itemCount, onRenameBox }: SortableBoxH
             className="h-7 text-sm"
             autoFocus
           />
-          <button onClick={handleSave} className="text-primary hover:text-primary/80">
+          <Button variant="ghost" size="icon" title="Save box name" aria-label="Save box name" onClick={handleSave} className="text-primary hover:text-primary/80">
             <Check className="w-4 h-4" />
-          </button>
-          <button onClick={handleCancel} className="text-muted-foreground hover:text-foreground">
+          </Button>
+          <Button variant="ghost" size="icon" title="Cancel box rename" aria-label="Cancel box rename" onClick={handleCancel} className="text-muted-foreground hover:text-foreground">
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       ) : (
         <>
           <span className="font-semibold text-sm">{boxName}</span>
           {onRenameBox && (
-            <button
+            <Button variant="ghost" size="icon" title="Rename box" aria-label="Rename box"
               onClick={() => { setEditValue(boxName); setIsEditing(true); }}
               className="text-muted-foreground hover:text-foreground"
             >
               <Pencil className="w-3.5 h-3.5" />
-            </button>
+            </Button>
           )}
           <span className="text-xs text-muted-foreground ml-auto">{itemCount} items</span>
         </>

@@ -46,7 +46,7 @@ const Header = ({
       <div className="flex items-center justify-between px-4 py-3 md:px-6">
         {/* Left: Menu & Logo */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
+          <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
@@ -63,7 +63,7 @@ const Header = ({
           {/* Search Popover */}
           <Popover open={showSearch} onOpenChange={setShowSearch}>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent">
+              <Button title="Search products" aria-label="Search products" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent">
                 <Search className="h-5 w-5" />
               </Button>
             </PopoverTrigger>
@@ -84,7 +84,7 @@ const Header = ({
           {/* Notifications Popover */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent relative">
+              <Button title="Notifications" aria-label="Notifications" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent relative">
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive rounded-full text-xs flex items-center justify-center font-medium">
                     {unreadCount > 9 ? '9+' : unreadCount}

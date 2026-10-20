@@ -222,7 +222,7 @@ export function useInventory() {
   // Add multiple stock items at once (bulk entry)
   const addStockItems = useCallback(async (items: { name: string; quantity: number; box: string }[]) => {
     const valid = items.filter(i => i.name.trim() && i.box);
-    if (valid.length === 0) return;
+    if (valid.length === 0) return false;
 
     const userId = await getUserId();
     const baseOrder = stockItems.length;
@@ -239,7 +239,7 @@ export function useInventory() {
 
     if (error) {
       console.error('Error bulk adding stock items:', error);
-      return;
+      return false;
     }
 
     if (data) {
@@ -254,7 +254,9 @@ export function useInventory() {
       ]);
       setDeletedItems([]);
       addNotification('added', valid[0].name.trim(), `Added ${valid.length} items to inventory`);
+      return true;
     }
+    return false;
   }, [stockItems, addNotification]);
 
   // Update stock quantity

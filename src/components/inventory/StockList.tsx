@@ -459,7 +459,7 @@ const StockList = ({
       <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b">
         <div className="w-4 flex-shrink-0" />
         <div className="w-8 flex-shrink-0" />
-        <div className="flex-1 min-w-0">Name</div>
+        <div className="flex-1 min-w-0">PRODUCT</div>
         <div className="w-24 text-center flex-shrink-0">Qty</div>
         {canDelete && <div className="w-7 flex-shrink-0" />}
       </div>

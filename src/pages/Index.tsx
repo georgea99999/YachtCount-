@@ -110,6 +110,7 @@ const Index = ({ onLogout }: IndexProps) => {
                 usageHistory={usageHistory}
                 onReorderItems={reorderStockItems}
                 onRenameBox={renameBox}
+                onImportItems={addStockItems}
               />
             )}
 

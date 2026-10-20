@@ -1,0 +1,2 @@
+- [x] Replace inventory CSV export with validated CSV import.
+- [x] Default products to alphabetical order within boxes and verify both changes.

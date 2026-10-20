@@ -1,7 +1,9 @@
 import { useState, useMemo, useCallback } from 'react';
 import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Pencil, Check, X } from 'lucide-react';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
-import { exportInventoryToCsv } from '@/lib/csvExport';
+import { InventoryImportItem } from '@/lib/inventoryImport';
+import { InventorySort, sortInventoryItems } from '@/lib/inventorySort';
+import ImportInventoryDialog from './ImportInventoryDialog';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -54,9 +56,10 @@ interface StockListProps {
   usageHistory?: UsageEntry[];
   onReorderItems?: (items: StockItem[]) => void;
   onRenameBox?: (oldName: string, newName: string) => void;
+  onImportItems: (items: InventoryImportItem[]) => Promise<boolean>;
 }
 
-type SortOption = 'default' | 'name-asc' | 'name-desc' | 'qty-asc' | 'qty-desc';
+type SortOption = InventorySort;
 
 const StockList = ({
   items,
@@ -74,7 +77,9 @@ const StockList = ({
   usageHistory = [],
   onReorderItems,
   onRenameBox,
+  onImportItems,
 }: StockListProps) => {
+  const [importOpen, setImportOpen] = useState(false);
   const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('default');
@@ -164,7 +169,7 @@ const StockList = ({
     const sortedBoxes = Object.keys(groupedForPDF).sort((a, b) => a.localeCompare(b));
 
     const tableRows = sortedBoxes.map(box => 
-      groupedForPDF[box].map(item => 
+      sortInventoryItems(groupedForPDF[box]).map(item => 
         '<tr><td>' + item.name + '</td><td>' + item.box + '</td><td>' + item.quantity + '</td></tr>'
       ).join('')
     ).join('');
@@ -259,20 +264,7 @@ const StockList = ({
   };
 
   // Sort items based on selected option
-  const sortedItems = [...items].sort((a, b) => {
-    switch (sortOption) {
-      case 'name-asc':
-        return a.name.localeCompare(b.name);
-      case 'name-desc':
-        return b.name.localeCompare(a.name);
-      case 'qty-asc':
-        return a.quantity - b.quantity;
-      case 'qty-desc':
-        return b.quantity - a.quantity;
-      default:
-        return 0;
-    }
-  });
+  const sortedItems = sortInventoryItems(items, sortOption, isReorderMode);
 
   // Group items by box
   const groupedItems = sortedItems.reduce((acc, item) => {
@@ -335,7 +327,7 @@ const StockList = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="bg-popover">
             <DropdownMenuItem onClick={() => setSortOption('default')}>
-              Default Order
+              Default (A-Z)
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setSortOption('name-asc')}>
               Name (A-Z)
@@ -562,18 +554,14 @@ const StockList = ({
           variant="outline"
           size="sm"
           className="flex-1"
-          onClick={() => {
-            if (items.length === 0) {
-              alert('No items to export');
-              return;
-            }
-            exportInventoryToCsv(items);
-          }}
+          onClick={() => setImportOpen(true)}
         >
           <FileSpreadsheet className="h-4 w-4 mr-1" />
-          Export as CSV
+          Import from CSV
         </Button>
       </div>
+
+      {importOpen && <ImportInventoryDialog open={importOpen} onOpenChange={setImportOpen} onImport={onImportItems} />}
 
       {/* Send to Deck Order Dialog */}
       <SendToDeckOrderDialog

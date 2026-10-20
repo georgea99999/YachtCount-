@@ -473,18 +473,18 @@ const StockList = ({
           onDragEnd={handleDragEnd}
           modifiers={[restrictToVerticalAxis]}
         >
-          {items.length === 0 ? (
+          {visibleItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
               <div className="mb-4 rounded-full bg-secondary p-4 text-primary dark:text-primary-foreground">
                 <Package className="h-8 w-8" />
               </div>
               <p className="text-base font-semibold text-foreground">
-                {searchTerm || activeBox ? 'No matching items' : 'Your inventory is empty'}
+                {outOfStockOnly ? 'Nothing is out of stock' : searchTerm || activeBox ? 'No matching items' : 'Your inventory is empty'}
               </p>
               <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                {searchTerm || activeBox ? 'Try a different search or box.' : 'Add your first item with the + button, or import an existing spreadsheet.'}
+                {outOfStockOnly ? 'Every item has at least one unit on board.' : searchTerm || activeBox ? 'Try a different search or box.' : 'Add your first item with the + button, or import an existing spreadsheet.'}
               </p>
-              {!searchTerm && !activeBox && (
+              {!outOfStockOnly && !searchTerm && !activeBox && (
                 <Button size="sm" className="mt-5 gap-1" onClick={() => setImportOpen(true)}>
                   <FileSpreadsheet className="h-4 w-4" /> Import from CSV
                 </Button>

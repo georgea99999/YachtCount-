@@ -12,6 +12,7 @@ const input = z.discriminatedUnion('action', [
   z.object({action:z.literal('provision'),username:name,password:passwordSchema,vesselName:z.string().trim().min(1).max(100)}),
   z.object({action:z.literal('list-vessels')}),
   z.object({action:z.literal('set-vessel-active'),vesselId:z.string().uuid(),active:z.boolean()}),
+  z.object({action:z.literal('delete-vessel'),vesselId:z.string().uuid()}),
   z.object({action:z.literal('add'),username:name,password:passwordSchema}),
   z.object({action:z.literal('rename'),userId:z.string().uuid(),username:name}),
   z.object({action:z.literal('deactivate'),userId:z.string().uuid()}),
@@ -34,13 +35,13 @@ Deno.serve(async req => {
     const {data:{user},error:authError}=await admin.auth.getUser(token);
     if(authError || !user) return respond({error:'Please sign in again'},401);
     const request=parsed.data;
-    if(request.action==='provision' || request.action==='list-vessels' || request.action==='set-vessel-active') {
+    if(request.action==='provision' || request.action==='list-vessels' || request.action==='set-vessel-active' || request.action==='delete-vessel') {
       // Only YachtCount platform owners may create or manage vessels; public sign-up stays closed.
       const {data:platform}=await admin.from('platform_admins').select('user_id').eq('user_id',user.id).maybeSingle();
       if(!platform) return respond({error:'Only the YachtCount platform owner can manage vessels'},403);
       if(request.action==='list-vessels') {
         const [{data:vessels},{data:members},{data:roles},{data:profiles}]=await Promise.all([
-          admin.from('vessels').select('id,name,created_at,active').order('created_at',{ascending:false}),
+          admin.from('vessels').select('id,name,created_at,active,deactivated_at').order('created_at',{ascending:false}),
           admin.from('vessel_members').select('user_id,vessel_id,active'),
           admin.from('user_roles').select('user_id,vessel_id,role'),
           admin.from('profiles').select('id,username'),
@@ -54,10 +55,30 @@ Deno.serve(async req => {
         })});
       }
       if(request.action==='set-vessel-active') {
-        if(!request.active && membership?.vessel_id===request.vesselId) return respond({error:'You cannot deactivate your own vessel'},400);
+        const {data:own}=await admin.from('vessel_members').select('vessel_id').eq('user_id',user.id).maybeSingle();
+        if(!request.active && own?.vessel_id===request.vesselId) return respond({error:'You cannot deactivate your own vessel'},400);
         // Vessel-level switch is enforced in RLS via crew_access_enabled, so existing sessions lose access too.
-        const {error}=await admin.from('vessels').update({active:request.active}).eq('id',request.vesselId);
+        const {error}=await admin.from('vessels').update({active:request.active,deactivated_at:request.active?null:new Date().toISOString()}).eq('id',request.vesselId);
         if(error) return respond({error:'Unable to update vessel'},500);
+        return respond({ok:true});
+      }
+      if(request.action==='delete-vessel') {
+        const {data:own}=await admin.from('vessel_members').select('vessel_id').eq('user_id',user.id).maybeSingle();
+        if(own?.vessel_id===request.vesselId) return respond({error:'You cannot delete your own vessel'},400);
+        const {data:vessel}=await admin.from('vessels').select('active').eq('id',request.vesselId).maybeSingle();
+        if(!vessel) return respond({error:'Vessel not found'},404);
+        if(vessel.active) return respond({error:'Deactivate the vessel before deleting it'},400);
+        const {data:crew}=await admin.from('vessel_members').select('user_id').eq('vessel_id',request.vesselId);
+        const ids=(crew??[]).map(c=>c.user_id).filter(id=>id!==user.id);
+        const vid=request.vesselId;
+        for(const t of ['stock_items','custom_boxes','usage_history','tasks','deck_orders','user_roles','vessel_members','vessel_credentials']) {
+          const {error}=await admin.from(t).delete().eq('vessel_id',vid);
+          if(error) return respond({error:`Unable to delete vessel data (${t})`},500);
+        }
+        if(ids.length) await admin.from('profiles').delete().in('id',ids);
+        for(const id of ids) await admin.auth.admin.deleteUser(id);
+        const {error}=await admin.from('vessels').delete().eq('id',vid);
+        if(error) return respond({error:'Unable to delete vessel'},500);
         return respond({ok:true});
       }
       const {data:created,error:createError}=await admin.auth.admin.createUser({email:await crewEmail(request.username),password:request.password,email_confirm:true});

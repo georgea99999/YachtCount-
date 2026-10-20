@@ -5,5 +5,5 @@
 - [x] Share inventory, Deck Order and To Do across vessel members and record activity authors.
 - [ ] Verify full-name crew sign-in, add-crew and second-vessel isolation — waiting on disposable crew/vessel accounts; signed-in admin controls are verified.
 - [x] Replace inventory CSV export with validated CSV import.
-- [ ] Retain deleted To Do tasks with a clear-folder action, restrict stock deletion to admins, and label the annotated icons.
+- [x] Retain deleted To Do tasks with a clear-folder action, restrict stock deletion to admins, and label the annotated icons; archive flow verified signed in, restrictive deletion policy checked, regression tests added.
 - [x] Default products to alphabetical order within boxes and verify both changes.

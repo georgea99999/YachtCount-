@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  AlertTriangle,
   ArrowUpDown,
   ChevronDown,
   ChevronUp,
@@ -65,7 +64,6 @@ const qtyValue = (quantity: string) => {
 const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAll }: DeckOrderListProps) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('default');
-  const [missingLinkOnly, setMissingLinkOnly] = useState(false);
   const [dialog, setDialog] = useState<{ kind: 'closed' } | { kind: 'add' } | { kind: 'edit'; item: DeckOrderItem }>({ kind: 'closed' });
   const [form, setForm] = useState(emptyForm);
 
@@ -217,19 +215,16 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
   };
 
   const withLink = items.filter(i => i.link.trim()).length;
-  const missingLink = items.length - withLink;
   const totalQty = items.reduce((sum, i) => sum + qtyValue(i.quantity), 0);
 
   const stats = [
     { label: 'Items', value: items.length, icon: ListChecks },
     { label: 'Total qty', value: totalQty, icon: Layers },
     { label: 'With links', value: withLink, icon: Link2 },
-    { label: 'Missing link', value: missingLink, icon: AlertTriangle, alert: missingLink > 0 },
   ];
 
   const visibleItems = useMemo(() => {
-    const base = missingLinkOnly ? items.filter(i => !i.link.trim()) : items;
-    const sorted = [...base];
+    const sorted = [...items];
     switch (sortOption) {
       case 'name-asc':
         sorted.sort((a, b) => a.productName.localeCompare(b.productName));
@@ -247,7 +242,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
         break;
     }
     return sorted;
-  }, [items, missingLinkOnly, sortOption]);
+  }, [items, sortOption]);
 
   return (
     <div className="flex flex-col h-full w-full max-w-5xl mx-auto">
@@ -263,42 +258,22 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 pb-2">
-        {stats.map(({ label, value, icon: Icon, alert }) => {
-          const isMissing = label === 'Missing link';
-          const active = isMissing && missingLinkOnly;
-          return (
-            <Card
-              key={label}
-              role={isMissing ? 'button' : undefined}
-              tabIndex={isMissing ? 0 : undefined}
-              aria-pressed={isMissing ? active : undefined}
-              title={isMissing ? (active ? 'Show all items' : 'Show only items without a link') : undefined}
-              onClick={isMissing ? () => setMissingLinkOnly(v => !v) : undefined}
-              onKeyDown={isMissing ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMissingLinkOnly(v => !v); } } : undefined}
-              className={`relative overflow-hidden border-border shadow-sm ${isMissing ? 'cursor-pointer transition-shadow hover:shadow-md' : ''} ${active ? 'ring-2 ring-destructive' : ''}`}
-            >
-              <div className={`absolute inset-y-0 left-0 w-1 ${alert ? 'bg-destructive' : 'bg-accent'}`} />
-              <CardContent className="p-4 pl-5 flex items-center justify-between gap-2">
-                <div>
-                  <p className={`text-2xl font-bold leading-none ${alert ? 'text-destructive' : 'text-foreground'}`}>{value}</p>
-                  <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-                </div>
-                <div className={`rounded-full p-2 ${alert ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-primary dark:text-primary-foreground'}`}>
-                  <Icon className="h-4 w-4" />
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <div className="grid grid-cols-3 gap-3 p-4 pb-2">
+        {stats.map(({ label, value, icon: Icon }) => (
+          <Card key={label} className="relative overflow-hidden border-border shadow-sm">
+            <div className="absolute inset-y-0 left-0 w-1 bg-accent" />
+            <CardContent className="p-3 md:p-4 md:pl-5 flex items-center justify-center md:justify-between gap-2">
+              <div className="min-w-0 flex-1 text-center md:text-left">
+                <p className="text-2xl font-bold leading-none text-foreground">{value}</p>
+                <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+              </div>
+              <div className="hidden md:flex rounded-full p-2 bg-secondary text-primary dark:text-primary-foreground">
+                <Icon className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
-
-      {missingLinkOnly && (
-        <div className="mx-4 mb-1 flex items-center justify-between gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
-          <span className="flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" />Showing items with no supplier link</span>
-          <button type="button" onClick={() => setMissingLinkOnly(false)} className="underline">Clear filter</button>
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex items-center gap-2 px-4 py-2">
@@ -363,19 +338,13 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
               <div className="mb-4 rounded-full bg-secondary p-4 text-primary dark:text-primary-foreground">
                 <ListChecks className="h-8 w-8" />
               </div>
-              <p className="text-base font-semibold text-foreground">
-                {missingLinkOnly ? 'Every item has a link' : 'Your deck order is empty'}
-              </p>
+              <p className="text-base font-semibold text-foreground">Your deck order is empty</p>
               <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                {missingLinkOnly
-                  ? 'Nothing is waiting on a supplier link.'
-                  : 'Add items with the + button, or send stock straight from Stock Take.'}
+                Add items with the + button, or send stock straight from Stock Take.
               </p>
-              {!missingLinkOnly && (
-                <Button size="sm" className="mt-5 gap-1" onClick={openAdd}>
-                  <Plus className="h-4 w-4" /> Add item
-                </Button>
-              )}
+              <Button size="sm" className="mt-5 gap-1" onClick={openAdd}>
+                <Plus className="h-4 w-4" /> Add item
+              </Button>
             </div>
           ) : (
             <div className="divide-y">

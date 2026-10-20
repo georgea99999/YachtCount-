@@ -287,28 +287,27 @@ const StockList = ({
     return acc;
   }, {} as Record<string, StockItem[]>);
 
-  // Compute all box names for edit dropdown
-  const allBoxNames = useMemo(() => Array.from(new Set(allItems.map(i => i.box))), [allItems]);
-
-  // Sort boxes: preserve the order items appear in the array (respects drag reorder)
-  const sortedBoxEntries = useMemo(() => {
-    // Build box order from the allItems array to preserve custom ordering
-    const boxOrder: string[] = [];
+  // Box names in the order they appear in the data (used for manual drag reorder)
+  const boxNamesInDataOrder = useMemo(() => {
+    const order: string[] = [];
     allItems.forEach(item => {
-      if (!boxOrder.includes(item.box)) {
-        boxOrder.push(item.box);
+      if (!order.includes(item.box)) {
+        order.push(item.box);
       }
     });
+    return order;
+  }, [allItems]);
 
-    return Object.entries(groupedItems).sort(([boxA], [boxB]) => {
-      const indexA = boxOrder.indexOf(boxA);
-      const indexB = boxOrder.indexOf(boxB);
-      if (indexA === -1 && indexB === -1) return 0;
-      if (indexA === -1) return 1;
-      if (indexB === -1) return -1;
-      return indexA - indexB;
-    });
-  }, [groupedItems, allItems]);
+  // Box chips and the item edit dropdown list alphabetically
+  const allBoxNames = useMemo(() => sortBoxNames(boxNamesInDataOrder), [boxNamesInDataOrder]);
+
+  // Box sections list alphabetically; the crew's manual order only applies while dragging whole boxes
+  const sortedBoxEntries = useMemo(() => {
+    const byBox = new Map(Object.entries(groupedItems));
+    return sortBoxNames(boxNamesInDataOrder, isReorderMode && reorderBoxes)
+      .filter(box => byBox.has(box))
+      .map(box => [box, byBox.get(box)!] as [string, StockItem[]]);
+  }, [groupedItems, boxNamesInDataOrder, isReorderMode, reorderBoxes]);
 
   const outOfStock = allItems.filter(i => i.quantity <= 0).length;
   const stats = [

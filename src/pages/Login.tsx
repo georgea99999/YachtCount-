@@ -45,7 +45,10 @@ const Login = ({ onLogin }: LoginProps) => {
       <Card className="w-full max-w-sm relative z-10 border-border/30 bg-card/90 backdrop-blur-md shadow-2xl">
         <CardHeader className="text-center space-y-4 pb-2">
           <div className="flex justify-center">
-            <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-primary/20">
+            <div
+              className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg"
+              style={{ backgroundColor: '#192740' }}
+            >
               <img src={yachtcountLogo} alt="YachtCount Logo" className="w-full h-full object-contain" />
             </div>
           </div>

@@ -1,2 +1,5 @@
+- [ ] Add vessel setup and personalized crew access with a shared vessel password.
+- [ ] Share inventory and To Do across vessel members and record activity authors.
+- [ ] Verify crew workflows and vessel isolation.
 - [x] Replace inventory CSV export with validated CSV import.
 - [x] Default products to alphabetical order within boxes and verify both changes.

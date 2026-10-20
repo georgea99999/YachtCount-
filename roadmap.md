@@ -1,4 +1,4 @@
-- [ ] Add safe admin-only empty box removal in Add Item and verify the signed-in flow.
+- [x] Add safe admin-only empty box removal in Add Item; verified creation, confirmed deletion, and removal from box choices while signed in, with regression tests passing.
 - [x] Support full-name admin and crew usernames with admin-led vessel setup and shared-password crew creation.
 - [x] Add admin crew renaming, shared-password reset, and deactivation; verify name saving, incorrect-password rejection, and permission/password rollback tests.
 - [ ] Verify a successful password rotation and crew deactivation with disposable vessel accounts — blocked by no disposable vessel password/accounts; do not change the live admin password for testing.

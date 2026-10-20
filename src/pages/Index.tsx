@@ -1,3 +1,4 @@
+// @refresh reset
 import { useState } from 'react';
 import { TabType } from '@/types/inventory';
 import { useInventory } from '@/hooks/useInventory';

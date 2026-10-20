@@ -1,3 +1,5 @@
+// @refresh reset
+// Crew-state shape changes must remount consumers instead of reusing old hook queues.
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 export function useCrew() {

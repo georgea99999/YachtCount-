@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Pencil, Check, X } from 'lucide-react';
+import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Pencil, Check, X, Layers, Boxes, AlertTriangle } from 'lucide-react';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { InventoryImportItem } from '@/lib/inventoryImport';
 import { InventorySort, sortInventoryItems } from '@/lib/inventorySort';
@@ -300,23 +300,65 @@ const StockList = ({
     });
   }, [groupedItems, allItems]);
 
+  const outOfStock = allItems.filter(i => i.quantity <= 0).length;
+  const stats = [
+    { label: 'Items', value: totalItems, icon: Package },
+    { label: 'Units', value: totalQuantity, icon: Layers },
+    { label: 'Boxes', value: allBoxNames.length, icon: Boxes },
+    { label: 'Out of stock', value: outOfStock, icon: AlertTriangle, alert: outOfStock > 0 },
+  ];
+  const activeBox = selectedBox && selectedBox !== 'all' ? selectedBox : '';
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3 p-4 pb-2">
-        <Card className="stats-gradient text-primary-foreground">
-          <CardContent className="p-4">
-            <p className="text-3xl font-bold">{totalItems}</p>
-            <p className="text-sm opacity-80">Total Items</p>
-          </CardContent>
-        </Card>
-        <Card className="stats-gradient text-primary-foreground">
-          <CardContent className="p-4">
-            <p className="text-3xl font-bold">{totalQuantity}</p>
-            <p className="text-sm opacity-80">Total Units</p>
-          </CardContent>
-        </Card>
+    <div className="flex flex-col h-full w-full max-w-5xl mx-auto">
+      {/* Page title */}
+      <div className="px-4 pt-5 pb-1 hidden md:flex items-end justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Inventory</p>
+          <h1 className="text-2xl font-bold text-foreground">Stock Take</h1>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+        </p>
       </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 pb-2">
+        {stats.map(({ label, value, icon: Icon, alert }) => (
+          <Card key={label} className="relative overflow-hidden border-border shadow-sm">
+            <div className={`absolute inset-y-0 left-0 w-1 ${alert ? 'bg-destructive' : 'bg-accent'}`} />
+            <CardContent className="p-4 pl-5 flex items-center justify-between gap-2">
+              <div>
+                <p className={`text-2xl font-bold leading-none ${alert ? 'text-destructive' : 'text-foreground'}`}>{value}</p>
+                <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+              </div>
+              <div className={`rounded-full p-2 ${alert ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-primary dark:text-primary-foreground'}`}>
+                <Icon className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Box chips */}
+      {allBoxNames.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
+          {['', ...allBoxNames].map(box => {
+            const isActive = activeBox === box;
+            const count = box ? allItems.filter(i => i.box === box).length : allItems.length;
+            return (
+              <button
+                key={box || 'all'}
+                type="button"
+                onClick={() => onBoxChange(box || 'all')}
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-muted'}`}
+              >
+                {box || 'All boxes'} <span className="ml-1 opacity-60">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center gap-2 px-4 py-2">
@@ -373,22 +415,18 @@ const StockList = ({
             {reorderBoxes ? 'Items' : 'Boxes'}
           </Button>
         )}
-        
-        <Select value={selectedBox} onValueChange={onBoxChange}>
-          <SelectTrigger className="flex-1 h-9">
-            <SelectValue placeholder="All Boxes" />
-          </SelectTrigger>
-          <SelectContent className="max-h-60 bg-popover">
-            <SelectItem value="all">All Boxes</SelectItem>
-            {allBoxNames.map(box => (
-              <SelectItem key={box} value={box}>{box}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex-1" />
+        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={handleExportPDF} title="Export as PDF">
+          <Download className="h-4 w-4" /><span className="hidden sm:inline">PDF</span>
+        </Button>
+        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={() => setImportOpen(true)} title="Import from CSV">
+          <FileSpreadsheet className="h-4 w-4" /><span className="hidden sm:inline">Import</span>
+        </Button>
       </div>
 
+      <div className="mx-4 mb-4 flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       {/* Table Header */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 text-sm font-medium text-muted-foreground">
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b">
         <div className="w-4 flex-shrink-0" />
         <div className="w-8 flex-shrink-0" />
         <div className="flex-1 min-w-0">Name</div>
@@ -406,9 +444,21 @@ const StockList = ({
           modifiers={[restrictToVerticalAxis]}
         >
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Package className="h-12 w-12 mb-3 opacity-50" />
-              <p>No items found</p>
+            <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+              <div className="mb-4 rounded-full bg-secondary p-4 text-primary dark:text-primary-foreground">
+                <Package className="h-8 w-8" />
+              </div>
+              <p className="text-base font-semibold text-foreground">
+                {searchTerm || activeBox ? 'No matching items' : 'Your inventory is empty'}
+              </p>
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                {searchTerm || activeBox ? 'Try a different search or box.' : 'Add your first item with the + button, or import an existing spreadsheet.'}
+              </p>
+              {!searchTerm && !activeBox && (
+                <Button size="sm" className="mt-5 gap-1" onClick={() => setImportOpen(true)}>
+                  <FileSpreadsheet className="h-4 w-4" /> Import from CSV
+                </Button>
+              )}
             </div>
           ) : isReorderMode && reorderBoxes ? (
             // Box reorder mode
@@ -549,22 +599,6 @@ const StockList = ({
           </DragOverlay>
         </DndContext>
       </div>
-
-      {/* Bottom Actions */}
-      <div className="p-4 bg-card border-t flex gap-2">
-        <Button variant="outline" size="sm" className="flex-1" onClick={handleExportPDF}>
-          <Download className="h-4 w-4 mr-1" />
-          Export as PDF
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={() => setImportOpen(true)}
-        >
-          <FileSpreadsheet className="h-4 w-4 mr-1" />
-          Import from CSV
-        </Button>
       </div>
 
       {importOpen && <ImportInventoryDialog open={importOpen} onOpenChange={setImportOpen} onImport={onImportItems} />}

@@ -71,13 +71,18 @@ const Header = ({
 
 
         {/* Right: Theme, Search & Notifications */}
+        <div className="hidden md:flex md:max-w-sm md:flex-1 items-center gap-2 rounded-full border border-primary-foreground/15 bg-navy-dark px-4 h-10 focus-within:border-primary-foreground/40">
+          <Search className="h-4 w-4 shrink-0 text-primary-foreground/60" />
+          <input type="search" aria-label="Search products" placeholder="Search products…" value={searchTerm} onChange={e => onSearchChange(e.target.value)} className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-primary-foreground/50 outline-none" />
+        </div>
+
         <div className="flex items-center gap-1 md:shrink-0">
           <CrewPanel />
           {/* Theme Toggle */}
           <ThemeToggle />
           {/* Search Popover */}
           <Popover open={showSearch} onOpenChange={setShowSearch}>
-            <PopoverTrigger asChild>
+            <PopoverTrigger asChild className="md:hidden">
               <Button title="Search products" aria-label="Search products" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent">
                 <Search className="h-5 w-5" />
               </Button>

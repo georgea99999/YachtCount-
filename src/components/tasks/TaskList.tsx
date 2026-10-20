@@ -211,7 +211,6 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete, o
   const visible = assignees.slice(0, 2);
   const overflow = assignees.length - visible.length;
   const [expanded, setExpanded] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
   const [isLong, setIsLong] = useState(false);
   const notesRef = useRef<HTMLDivElement>(null);
 
@@ -265,33 +264,14 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete, o
             )}
           </button>
 
-          <div className="mt-1 flex items-center gap-2">
-            {task.completedBy && task.completedAt && (
-              <p className="text-[11px] text-muted-foreground">
-                <span title={`Completed ${new Date(task.completedAt).toLocaleString('en-GB')}`}>
-                  Completed by {task.completedBy} · {new Date(task.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} {new Date(task.completedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); setDetailsOpen(v => !v); }}
-              aria-expanded={detailsOpen}
-              className="ml-auto shrink-0 inline-flex items-center gap-1 rounded px-1 py-0.5 -mr-1 text-[11px] font-semibold text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
-            >
-              {detailsOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              Details
-            </button>
-          </div>
-          {detailsOpen && (
-            <div className="mt-1.5 rounded-lg bg-muted/60 px-3 py-2 text-[11px] text-muted-foreground space-y-0.5">
-              <p><span className="font-semibold text-foreground">Added by</span> {task.createdBy || 'Not recorded'}</p>
-              {task.completedBy && task.completedAt && (
-                <p><span className="font-semibold text-foreground">Completed by</span> {task.completedBy} · {new Date(task.completedAt).toLocaleString('en-GB')}</p>
-              )}
-              {task.deletedAt && <p><span className="font-semibold text-foreground">Deleted</span> {new Date(task.deletedAt).toLocaleString('en-GB')}</p>}
-            </div>
+          {task.completedBy && task.completedAt && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              <span title={`Completed ${new Date(task.completedAt).toLocaleString('en-GB')}`}>
+                Completed by {task.completedBy} · {new Date(task.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} {new Date(task.completedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </p>
           )}
+
 
 
           {task.notes && (
@@ -546,6 +526,12 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
               </Button>
             </div>
           </div>
+
+          {editing && (
+            <p className="text-center text-[11px] text-muted-foreground">
+              Added by {editing.createdBy || 'Not recorded'}
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

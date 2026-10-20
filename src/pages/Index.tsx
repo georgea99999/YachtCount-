@@ -114,7 +114,7 @@ const Index = ({ onLogout }: IndexProps) => {
         />
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 md:ml-16 flex flex-col overflow-hidden">
           {/* Tab Content */}
           <div className="flex-1 overflow-hidden">
             {activeTab === 'stock' && (

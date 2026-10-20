@@ -64,7 +64,6 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
           {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
         </p>
       </div>
-      </div>
 
       <div className="px-4 pb-3 overflow-x-auto">
         <div className="flex gap-2 min-w-fit">

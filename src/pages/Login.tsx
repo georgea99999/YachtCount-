@@ -49,7 +49,7 @@ const Login = ({ onLogin }: LoginProps) => {
               className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg"
               style={{ backgroundColor: '#192740' }}
             >
-              <img src={yachtcountLogo} alt="YachtCount Logo" className="w-full h-full object-contain" />
+              <img src={yachtcountLogo} alt="YachtCount Logo" className="w-full h-full object-contain p-4" />
             </div>
           </div>
           <div>

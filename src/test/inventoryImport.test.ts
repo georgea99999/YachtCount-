@@ -22,7 +22,10 @@ describe('alphabetical products within boxes', () => {
     const items = ['Zinc', 'brush', 'Anchor'].map((name, i) => ({ id: String(i), name, box: 'Test Locker', quantity: i }));
     expect(sortInventoryItems(items).map(i => i.name)).toEqual(['Anchor', 'brush', 'Zinc']);
     expect(items[0].name).toBe('Zinc');
+  });
 });
+
+
 
 describe('alphabetical boxes', () => {
   it('lists box names A-Z regardless of the order items were added', () => {

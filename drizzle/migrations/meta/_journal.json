@@ -71,6 +71,13 @@
       "when": 1792511680497,
       "tag": "0009_vessel_active",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792512104529,
+      "tag": "0010_vessel_deactivated_at",
+      "breakpoints": true
     }
   ]
 }

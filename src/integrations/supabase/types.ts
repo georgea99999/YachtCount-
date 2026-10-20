@@ -340,18 +340,21 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          deactivated_at: string | null
           id: string
           name: string
         }
         Insert: {
           active?: boolean
           created_at?: string
+          deactivated_at?: string | null
           id?: string
           name: string
         }
         Update: {
           active?: boolean
           created_at?: string
+          deactivated_at?: string | null
           id?: string
           name?: string
         }

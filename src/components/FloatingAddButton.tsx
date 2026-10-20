@@ -17,26 +17,25 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { BOX_OPTIONS } from '@/types/inventory';
-
 interface FloatingAddButtonProps {
   onAddItem: (name: string, quantity: number, box: string) => void;
   customBoxes: string[];
+  existingBoxes: string[];
   onAddCustomBox: (boxName: string) => void;
 }
 
-const FloatingAddButton = ({ onAddItem, customBoxes, onAddCustomBox }: FloatingAddButtonProps) => {
+const FloatingAddButton = ({ onAddItem, customBoxes, existingBoxes, onAddCustomBox }: FloatingAddButtonProps) => {
   const [showForm, setShowForm] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState(1);
-  const [newItemBox, setNewItemBox] = useState(BOX_OPTIONS[0]);
+  const [newItemBox, setNewItemBox] = useState('');
   const [showCreateBoxDialog, setShowCreateBoxDialog] = useState(false);
   const [newBoxName, setNewBoxName] = useState('');
 
-  const allBoxOptions = [...BOX_OPTIONS, ...customBoxes];
+  const allBoxOptions = Array.from(new Set([...existingBoxes, ...customBoxes]));
 
   const handleAddItem = () => {
-    if (newItemName.trim()) {
+    if (newItemName.trim() && newItemBox) {
       onAddItem(newItemName, newItemQty, newItemBox);
       setNewItemName('');
       setNewItemQty(1);
@@ -112,7 +111,7 @@ const FloatingAddButton = ({ onAddItem, customBoxes, onAddCustomBox }: FloatingA
                 />
                 <Select value={newItemBox} onValueChange={handleBoxChange}>
                   <SelectTrigger className="flex-1">
-                    <SelectValue />
+                    <SelectValue placeholder="Box / location..." />
                   </SelectTrigger>
                   <SelectContent className="max-h-60 bg-popover">
                     {allBoxOptions.map(box => (
@@ -125,7 +124,7 @@ const FloatingAddButton = ({ onAddItem, customBoxes, onAddCustomBox }: FloatingA
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleAddItem} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Button onClick={handleAddItem} disabled={!newItemBox} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
                 Add Item
               </Button>
             </div>

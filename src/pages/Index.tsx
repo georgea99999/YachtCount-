@@ -139,6 +139,7 @@ const Index = ({ onLogout }: IndexProps) => {
         <FloatingAddButton 
           onAddItem={addStockItem} 
           customBoxes={customBoxes}
+          existingBoxes={Array.from(new Set(stockItems.map(i => i.box)))}
           onAddCustomBox={addCustomBox}
         />
       )}

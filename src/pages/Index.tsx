@@ -91,6 +91,7 @@ const Index = ({ onLogout }: IndexProps) => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <Header
+        activeTab={activeTab}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onMenuClick={() => setSidebarOpen(true)}

@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, Trash2, User, X } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, Trash2, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

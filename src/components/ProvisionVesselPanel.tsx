@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { normalizeCrewName } from '@/lib/crew';
+import { VesselManagement } from './VesselManagement';
 
 /** Platform-owner-only tool for creating a new paying vessel and its first Admin. */
 export function ProvisionVesselPanel() {
@@ -16,6 +17,7 @@ export function ProvisionVesselPanel() {
   const [adminName, setAdminName] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<'create'|'vessels'>('vessels');
   const [handover, setHandover] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,10 +48,12 @@ export function ProvisionVesselPanel() {
   };
 
   return <>
-    <Button variant="ghost" size="icon" aria-label="Create new vessel" title="Create new vessel" className="text-primary-foreground" onClick={() => { reset(); setOpen(true); }}><Ship /></Button>
+    <Button variant="ghost" size="icon" aria-label="Manage vessels" title="Manage vessels" className="text-primary-foreground" onClick={() => { reset(); setOpen(true); }}><Ship /></Button>
     <Dialog open={open} onOpenChange={v => { if (!busy) setOpen(v); }}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Create new vessel</DialogTitle></DialogHeader>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>Vessels</DialogTitle></DialogHeader>
+        <div className="flex gap-2">{(['vessels','create'] as const).map(t=><Button key={t} size="sm" variant={tab===t?'default':'outline'} onClick={()=>setTab(t)}>{t==='vessels'?'All vessels':'Create new'}</Button>)}</div>
+        {tab==='vessels' ? <VesselManagement /> : <>
         {handover ? <div className="space-y-4">
           <p className="text-sm text-muted-foreground">Send these details to the vessel's Admin:</p>
           <pre className="whitespace-pre-wrap rounded-md border border-border bg-muted p-3 text-sm">{handover}</pre>
@@ -63,7 +67,7 @@ export function ProvisionVesselPanel() {
           <div className="space-y-2"><Label htmlFor="pv-pass">Vessel password</Label><Input id="pv-pass" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} maxLength={100} autoComplete="off" /></div>
           <p className="text-xs text-muted-foreground">This creates a separate, empty vessel. Its crew can never see your vessel's data.</p>
           <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Creating…' : 'Create vessel'}</Button>
-        </form>}
+        </form>}</>}
       </DialogContent>
     </Dialog>
   </>;

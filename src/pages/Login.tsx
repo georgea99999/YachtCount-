@@ -62,6 +62,8 @@ const Login = ({ onLogin }: LoginProps) => {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
+                autoCapitalize="none"
+                autoComplete="username"
                 type="text"
                 placeholder="Enter username"
                 value={username}
@@ -70,11 +72,11 @@ const Login = ({ onLogin }: LoginProps) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Vessel password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter password"
+                placeholder="Enter vessel password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

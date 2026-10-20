@@ -7,13 +7,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useTasks } from '@/hooks/useTasks';
 import { Task } from '@/types/inventory';
 import { cn } from '@/lib/utils';
+import { useCrew } from '@/hooks/useCrew';
 
 type DialogMode =
   | { kind: 'closed' }
   | { kind: 'add' }
   | { kind: 'edit'; task: Task };
 
-const TaskList = () => {
+const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
+  const {members}=useCrew();
   const { tasks, addTask, toggleTask, toggleStar, updateTaskFields, deleteTask } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);
   const [assignFilter, setAssignFilter] = useState<string>('all');
@@ -134,19 +136,16 @@ const TaskList = () => {
 
       <TaskDialog
         mode={dialog}
-        suggestions={assignees}
+        suggestions={Array.from(new Set([...members,...crewMembers,...assignees]))}
         onClose={() => setDialog({ kind: 'closed' })}
-        onAdd={(payload) => {
-          addTask(payload.text, { notes: payload.notes, starred: payload.starred, assignees: payload.assignees });
-          setDialog({ kind: 'closed' });
+        onAdd={async (payload) => {
+          if(await addTask(payload.text, { notes: payload.notes, starred: payload.starred, assignees: payload.assignees })) setDialog({ kind: 'closed' });
         }}
-        onSave={(id, payload) => {
-          updateTaskFields(id, payload);
-          setDialog({ kind: 'closed' });
+        onSave={async (id, payload) => {
+          if(await updateTaskFields(id, payload)) setDialog({ kind: 'closed' });
         }}
-        onDelete={(id) => {
-          deleteTask(id);
-          setDialog({ kind: 'closed' });
+        onDelete={async (id) => {
+          if(await deleteTask(id)) setDialog({ kind: 'closed' });
         }}
       />
     </div>
@@ -218,6 +217,8 @@ const TaskRow = ({ task, onToggle, onStar, onOpen, onDelete }: TaskRowProps) => 
               </div>
             )}
           </button>
+
+          <p className="mt-1 text-[11px] text-muted-foreground">{task.createdBy ? `Added by ${task.createdBy}` : 'Earlier task'}{task.completedBy && ` · Completed by ${task.completedBy}`}</p>
 
           {task.notes && (
             <div onClick={onOpen} className="mt-1.5 w-full cursor-pointer">

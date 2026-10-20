@@ -1,5 +1,5 @@
 import { type CSSProperties } from 'react';
-import { Home, BarChart3, ClipboardList, ListTodo, LogOut } from 'lucide-react';
+import { Home, BarChart3, ClipboardList, ListTodo, LogOut, Ship, UserRound } from 'lucide-react';
 import { TabType } from '@/types/inventory';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +11,8 @@ interface SidebarProps {
   onLogout?: () => void;
   /** Height of the sticky header in px — the rail starts below it on all screen sizes */
   headerHeight?: number;
+  vesselName?: string;
+  crewName?: string;
 }
 
 const tabs = [
@@ -20,7 +22,7 @@ const tabs = [
   { id: 'reports' as TabType, label: 'Monthly Report', icon: BarChart3 },
 ];
 
-const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, headerHeight = 0 }: SidebarProps) => {
+const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, headerHeight = 0, vesselName, crewName }: SidebarProps) => {
   return (
     <>
       {/* Mobile overlay */}
@@ -40,6 +42,12 @@ const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, hea
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
+        {(vesselName || crewName) && (
+          <div className="md:hidden flex flex-col items-center gap-2 border-b border-primary-foreground/15 py-3 text-primary-foreground/85">
+            {vesselName && <span className="flex flex-col items-center gap-1"><Ship className="h-4 w-4 text-primary-foreground/70" /><span className="vertical-text text-[11px] font-semibold tracking-wide">{vesselName}</span></span>}
+            {crewName && <span className="flex flex-col items-center gap-1"><UserRound className="h-4 w-4 text-primary-foreground/70" /><span className="vertical-text text-[11px] tracking-wide">{crewName}</span></span>}
+          </div>
+        )}
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;

@@ -112,6 +112,8 @@ const Index = ({ onLogout }: IndexProps) => {
           onClose={() => setSidebarOpen(false)}
           onLogout={onLogout}
           headerHeight={headerHeight}
+          vesselName={crew.vesselName}
+          crewName={crew.username}
         />
 
         {/* Main Content */}

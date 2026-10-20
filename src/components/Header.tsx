@@ -151,19 +151,6 @@ const Header = ({
         </div>
       </div>
 
-      {(vesselName || crewName) && <div className="px-4 pb-3 md:hidden">
-          <div className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-full border border-primary-foreground/20 bg-navy-dark px-3 py-1.5">
-            {vesselName && <span className="flex min-w-0 items-center gap-1.5">
-                <Ship className="h-3.5 w-3.5 shrink-0 text-primary-foreground/70" />
-                <span className="truncate text-xs font-medium leading-none">{vesselName}</span>
-              </span>}
-            {vesselName && crewName && <span className="h-3.5 w-px shrink-0 bg-primary-foreground/20" aria-hidden="true" />}
-            {crewName && <span className="flex min-w-0 items-center gap-1.5 text-primary-foreground/85">
-                <UserRound className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate text-xs leading-none">{crewName}</span>
-              </span>}
-          </div>
-        </div>}
     </header>;
 };
 export default Header;

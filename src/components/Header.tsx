@@ -44,20 +44,31 @@ const Header = ({
     });
   };
   const unreadCount = notifications.length;
-  const sectionName = { stock: 'Stock Take', deckOrder: 'Deck Order', tasks: 'To Do', reports: 'Monthly Report' }[activeTab];
   return <header id="yc-app-header" className="bg-primary text-primary-foreground sticky top-0 z-50">
-      <div className="flex items-center justify-between px-4 py-3 md:h-14 md:gap-4 md:py-0 md:pl-20 md:pr-6">
-        {/* Left: Menu & Logo */}
-        <div className="flex items-center gap-3 md:min-w-0 md:flex-1 md:gap-5">
+      <div className="flex items-center justify-between px-4 py-3 md:h-[70px] md:gap-6 md:py-0 md:pl-20 md:pr-6">
+        {/* Left: Menu, Logo & Vessel/Crew bubble */}
+        <div className="flex min-w-0 items-center gap-3 md:flex-1 md:gap-5">
           <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-2 md:shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             {/* Logo lives in the sidebar rail on larger screens; mobile keeps it here */}
             <img src={yachtcountLogo} alt="YachtCount Logo" className="w-10 h-10 object-contain rounded md:hidden" />
             <span className="font-bold text-2xl font-sans">YachtCount</span>
           </div>
+          {(vesselName || crewName) && <div className="hidden min-w-0 items-center gap-3 rounded-full border border-primary-foreground/20 bg-navy-dark px-6 py-2 md:flex">
+              {vesselName && <span className="flex min-w-0 items-center gap-2.5">
+                  <Ship className="h-5 w-5 shrink-0 text-primary-foreground/70" />
+                  <span className="truncate text-[22px] font-medium leading-tight">{vesselName}</span>
+                </span>}
+              {vesselName && crewName && <span className="h-6 w-px shrink-0 bg-primary-foreground/20" aria-hidden="true" />}
+              {crewName && <span className="flex min-w-0 items-center gap-2.5 text-primary-foreground/85">
+                  <UserRound className="h-5 w-5 shrink-0" />
+                  <span className="truncate text-[22px] leading-tight">{crewName}</span>
+                </span>}
+            </div>}
         </div>
+
 
         {/* Right: Theme, Search & Notifications */}
         <div className="flex items-center gap-1 md:shrink-0">
@@ -135,20 +146,6 @@ const Header = ({
         </div>
       </div>
 
-      <div className="hidden min-h-9 items-center justify-between gap-4 border-t border-primary-foreground/10 bg-navy-dark py-1.5 pl-20 pr-6 md:flex">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-          {vesselName && <span className="flex min-w-0 items-center gap-2">
-            <Ship className="h-3.5 w-3.5 shrink-0 text-primary-foreground/60" />
-            <span className="break-words font-medium">{vesselName}</span>
-          </span>}
-          {vesselName && crewName && <span className="h-3 border-l border-primary-foreground/20" aria-hidden="true" />}
-          {crewName && <span className="flex min-w-0 items-center gap-2 text-primary-foreground/75">
-            <UserRound className="h-3.5 w-3.5 shrink-0" />
-            <span className="break-words">{crewName}</span>
-          </span>}
-        </div>
-        <span className="shrink-0 rounded border border-primary-foreground/15 px-2 py-0.5 text-xs font-medium text-primary-foreground/90">{sectionName}</span>
-      </div>
       <div className="px-4 pb-2 text-xs text-primary-foreground/80 flex flex-wrap gap-x-3 md:hidden"><span>{vesselName}</span><span>{crewName}</span></div>
       {/* Slogan */}
       <div className="px-4 pb-3 md:hidden">

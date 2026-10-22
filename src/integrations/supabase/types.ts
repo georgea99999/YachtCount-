@@ -158,6 +158,44 @@ export type Database = {
           },
         ]
       }
+      stock_takes: {
+        Row: {
+          counted_by: string | null
+          counted_by_username: string | null
+          finished_at: string
+          id: string
+          lines: Json
+          started_at: string
+          vessel_id: string
+        }
+        Insert: {
+          counted_by?: string | null
+          counted_by_username?: string | null
+          finished_at?: string
+          id?: string
+          lines?: Json
+          started_at?: string
+          vessel_id?: string
+        }
+        Update: {
+          counted_by?: string | null
+          counted_by_username?: string | null
+          finished_at?: string
+          id?: string
+          lines?: Json
+          started_at?: string
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_takes_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assignees: string[]

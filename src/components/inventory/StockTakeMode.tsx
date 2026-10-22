@@ -115,8 +115,8 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
                       className="w-16 h-10 text-center" value={drafts[item.id] ?? ''}
                       onChange={e => setDrafts(d => ({ ...d, [item.id]: e.target.value }))}
                       onBlur={() => commitDraft(item)} onKeyDown={e => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} />
-                    <Button variant={isDone && counted[item.id] === exp ? 'default' : 'outline'} size="icon" className="h-10 w-10 flex-shrink-0"
-                      title="Matches expected" aria-label={`${item.name} matches expected`} onClick={() => record(item, exp)}>
+                    <Button variant={isDone ? 'default' : 'outline'} size="icon" className="h-10 w-10 flex-shrink-0"
+                      title="Confirm count (blank = expected)" aria-label={`Confirm ${item.name} count`} onClick={() => { const raw = drafts[item.id]; const n = Number(raw); record(item, raw !== undefined && raw.trim() !== '' && Number.isFinite(n) ? n : exp); }}>
                       <Check className="h-4 w-4" />
                     </Button>
                   </div>

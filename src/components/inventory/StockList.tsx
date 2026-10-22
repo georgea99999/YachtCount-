@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Layers, Boxes, AlertTriangle } from 'lucide-react';
+import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Layers, Boxes, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import StockTakeMode from './StockTakeMode';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { InventoryImportItem } from '@/lib/inventoryImport';
 import { InventorySort, sortInventoryItems, sortBoxNames } from '@/lib/inventorySort';
@@ -82,6 +83,7 @@ const StockList = ({
   onImportItems,
 }: StockListProps) => {
   const [importOpen, setImportOpen] = useState(false);
+  const [stockTakeOpen, setStockTakeOpen] = useState(false);
   const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('default');
@@ -443,6 +445,9 @@ const StockList = ({
           </Button>
         )}
         <div className="flex-1" />
+        <Button size="sm" className="gap-1" onClick={() => setStockTakeOpen(true)} title="Start a guided stock take">
+          <ClipboardCheck className="h-4 w-4" /><span>Count</span>
+        </Button>
         <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={handleExportPDF} title="Export as PDF">
           <Download className="h-4 w-4" /><span className="hidden sm:inline">PDF</span>
         </Button>
@@ -597,6 +602,7 @@ const StockList = ({
       </div>
 
       {importOpen && <ImportInventoryDialog open={importOpen} onOpenChange={setImportOpen} onImport={onImportItems} />}
+      <StockTakeMode open={stockTakeOpen} onOpenChange={setStockTakeOpen} items={allItems} onSetQuantity={onUpdateQuantityDirect} />
 
       {/* Send to Deck Order Dialog */}
       <SendToDeckOrderDialog

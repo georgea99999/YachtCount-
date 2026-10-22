@@ -489,6 +489,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                 />
               </div>
             </div>
+            {dialog.kind === 'edit' ? <Attachments parentType="deck_order" parentId={dialog.item.id} /> : <p className="text-xs text-muted-foreground">Add the item first, then tap it to attach photos or documents.</p>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancel</Button>

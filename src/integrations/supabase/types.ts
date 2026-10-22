@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string
+          parent_id: string
+          parent_type: string
+          path: string
+          uploaded_by: string | null
+          uploaded_by_username: string | null
+          vessel_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type?: string
+          parent_id: string
+          parent_type: string
+          path: string
+          uploaded_by?: string | null
+          uploaded_by_username?: string | null
+          vessel_id?: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string
+          parent_id?: string
+          parent_type?: string
+          path?: string
+          uploaded_by?: string | null
+          uploaded_by_username?: string | null
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attachments_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_boxes: {
         Row: {
           created_at: string

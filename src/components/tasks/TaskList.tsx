@@ -502,6 +502,8 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
             {starred ? 'Starred' : 'Mark as starred'}
           </button>
 
+          {editing ? <Attachments parentType="task" parentId={editing.id} /> : <p className="text-xs text-muted-foreground">Save the task first to add photos or documents.</p>}
+
           <div className="flex items-center justify-between gap-2 pt-2">
             <div>
               {editing && (

@@ -28,12 +28,13 @@ export default function Attachments({ parentType, parentId }: { parentType: 'tas
 
   useEffect(() => { void load(); }, [load]);
 
-  const upload = async (files: FileList | null) => {
-    if (!files?.length) return;
+  const upload = async (list: FileList | null) => {
+    const files = list ? Array.from(list) : [];
+    if (!files.length) return;
     setBusy(true);
     const { data: vid } = await supabase.rpc('current_vessel');
     if (!vid) { toast.error('Not signed in to a vessel'); setBusy(false); return; }
-    for (const file of Array.from(files)) {
+    for (const file of files) {
       if (file.size > MAX) { toast.error(`${file.name} is over 20 MB`); continue; }
       const safe = file.name.replace(/[^\w.-]+/g, '_');
       const path = `${vid}/${parentType}/${pid}/${crypto.randomUUID()}-${safe}`;

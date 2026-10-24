@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import Attachments from '@/components/Attachments';
 import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, Trash2, User, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

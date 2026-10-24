@@ -42,7 +42,7 @@ export interface Notification {
   };
 }
 
-export type TabType = 'stock' | 'deckOrder' | 'tasks' | 'reports';
+export type TabType = 'stock' | 'deckOrder' | 'tasks' | 'damage' | 'reports';
 
 export interface DeckOrderItem {
   id: number;

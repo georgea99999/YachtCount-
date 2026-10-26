@@ -9,7 +9,6 @@ import StockList from '@/components/inventory/StockList';
 import MonthlyReport from '@/components/reports/MonthlyReport';
 import DeckOrderList from '@/components/deckorder/DeckOrderList';
 import TaskList from '@/components/tasks/TaskList';
-import DamageReports from '@/components/damage/DamageReports';
 import UndoNotification from '@/components/UndoNotification';
 import FloatingAddButton from '@/components/FloatingAddButton';
 import { toast } from 'sonner';
@@ -153,7 +152,6 @@ const Index = ({ onLogout }: IndexProps) => {
             )}
 
             {activeTab === 'tasks' && <TaskList crewMembers={[]} />}
-            {activeTab === 'damage' && <DamageReports vesselName={crew.vesselName} />}
 
             {activeTab === 'reports' && (
               <MonthlyReport

@@ -10,5 +10,3 @@
 - Enforce vessel-owner-only stock deletion with a restrictive DELETE policy alongside crew access policies; hiding controls is not an authorization boundary.
 - Delete empty inventory boxes through an authenticated owner-validated database function that checks live stock under a write lock; this protects stock during concurrent crew changes.- Vessels may have multiple owner-role admins; admin grants and permanent removal of inactive crew go through the owner-validated crew-access function, and removal nulls user links while keeping actor name text so history survives account deletion.
 - Only platform owners (public.platform_admins) may create new vessels, via the crew-access 'provision' action; there is no public vessel sign-up.
-- Photos/documents live in the private `attachments` bucket under `<vessel_id>/...` with storage policies keyed on the first folder; this keeps files vessel-scoped without public URLs.
-- AI damage-report drafting runs in the `damage-report` edge function, signing photo URLs with the caller's own session; prompts and the AI key stay server-side and crew can't read other vessels' photos.

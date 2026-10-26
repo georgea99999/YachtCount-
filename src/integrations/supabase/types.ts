@@ -93,59 +93,6 @@ export type Database = {
           },
         ]
       }
-      damage_reports: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          created_by_username: string | null
-          id: string
-          location: string
-          notes: string
-          photo_paths: string[]
-          report: string
-          resolved: boolean
-          title: string
-          urgency: string
-          vessel_id: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          created_by_username?: string | null
-          id?: string
-          location?: string
-          notes?: string
-          photo_paths?: string[]
-          report?: string
-          resolved?: boolean
-          title: string
-          urgency?: string
-          vessel_id?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          created_by_username?: string | null
-          id?: string
-          location?: string
-          notes?: string
-          photo_paths?: string[]
-          report?: string
-          resolved?: boolean
-          title?: string
-          urgency?: string
-          vessel_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "damage_reports_vessel_id_fkey"
-            columns: ["vessel_id"]
-            isOneToOne: false
-            referencedRelation: "vessels"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       deck_orders: {
         Row: {
           colour: string

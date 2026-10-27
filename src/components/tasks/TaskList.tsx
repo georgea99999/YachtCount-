@@ -121,46 +121,57 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-32">
-        <div className="space-y-2.5">
-          {active.map(task => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              onToggle={() => toggleTask(task.id)}
-              onStar={() => toggleStar(task.id)}
-              onOpen={() => setDialog({ kind: 'edit', task })}
-              onDelete={() => deleteTask(task.id)}
-            />
-          ))}
-          {active.length === 0 && (
-            <p className="text-center text-muted-foreground py-8 text-sm">No tasks here.</p>
-          )}
-        </div>
+        {view === 'board' ? (
+          <BoardView
+            tasks={filteredTasks}
+            onOpen={(task) => setDialog({ kind: 'edit', task })}
+            onStar={(id) => toggleStar(id)}
+            onMove={(id, status) => setTaskStatus(id, status)}
+          />
+        ) : (
+          <>
+            <div className="space-y-2.5">
+              {active.map(task => (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  onToggle={() => toggleTask(task.id)}
+                  onStar={() => toggleStar(task.id)}
+                  onOpen={() => setDialog({ kind: 'edit', task })}
+                  onDelete={() => deleteTask(task.id)}
+                />
+              ))}
+              {active.length === 0 && (
+                <p className="text-center text-muted-foreground py-8 text-sm">No tasks here.</p>
+              )}
+            </div>
 
-        {completed.length > 0 && (
-          <div className="mt-6">
-            <button
-              onClick={() => setShowCompleted(s => !s)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold text-foreground hover:bg-muted transition-colors"
-            >
-              {showCompleted ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              Completed ({completed.length})
-            </button>
-            {showCompleted && (
-              <div className="space-y-2.5 mt-2">
-                {completed.map(task => (
-                  <TaskRow
-                    key={task.id}
-                    task={task}
-                    onToggle={() => toggleTask(task.id)}
-                    onStar={() => toggleStar(task.id)}
-                    onOpen={() => setDialog({ kind: 'edit', task })}
-                    onDelete={() => deleteTask(task.id)}
-                  />
-                ))}
+            {completed.length > 0 && (
+              <div className="mt-6">
+                <button
+                  onClick={() => setShowCompleted(s => !s)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+                >
+                  {showCompleted ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  Completed ({completed.length})
+                </button>
+                {showCompleted && (
+                  <div className="space-y-2.5 mt-2">
+                    {completed.map(task => (
+                      <TaskRow
+                        key={task.id}
+                        task={task}
+                        onToggle={() => toggleTask(task.id)}
+                        onStar={() => toggleStar(task.id)}
+                        onOpen={() => setDialog({ kind: 'edit', task })}
+                        onDelete={() => deleteTask(task.id)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
         )}
 
         <section className="mt-6 border-t border-border pt-3">

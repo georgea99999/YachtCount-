@@ -310,6 +310,7 @@ export type Database = {
           id: number
           notes: string | null
           starred: boolean
+          status: string
           text: string
           vessel_id: string
         }
@@ -326,6 +327,7 @@ export type Database = {
           id?: number
           notes?: string | null
           starred?: boolean
+          status?: string
           text: string
           vessel_id?: string
         }
@@ -342,6 +344,7 @@ export type Database = {
           id?: number
           notes?: string | null
           starred?: boolean
+          status?: string
           text?: string
           vessel_id?: string
         }

@@ -320,69 +320,136 @@ interface BoardCardProps {
   onStar: () => void;
 }
 
+const SWIPE_THRESHOLD = 64;
+
 const BoardCard = ({ task, canMoveBack, canMoveForward, onMoveBack, onMoveForward, onOpen, onStar }: BoardCardProps) => {
   const assignees = task.assignees ?? [];
+  const [dragX, setDragX] = useState(0);
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const swipedRef = useRef(false);
+  const horizontalRef = useRef<boolean | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse') return; // desktop uses HTML5 drag-and-drop
+    startRef.current = { x: e.clientX, y: e.clientY };
+    horizontalRef.current = null;
+    swipedRef.current = false;
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = startRef.current;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (horizontalRef.current === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      horizontalRef.current = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!horizontalRef.current) return;
+    // Clamp into a direction the card can actually move.
+    const clamped = dx > 0 ? (canMoveForward ? dx : 0) : (canMoveBack ? dx : 0);
+    setDragX(clamped);
+    if (Math.abs(clamped) > 12) swipedRef.current = true;
+  };
+
+  const endSwipe = () => {
+    const dx = dragX;
+    startRef.current = null;
+    horizontalRef.current = null;
+    setDragX(0);
+    if (dx >= SWIPE_THRESHOLD && canMoveForward) onMoveForward();
+    else if (dx <= -SWIPE_THRESHOLD && canMoveBack) onMoveBack();
+  };
+
+  const handleOpen = () => {
+    if (swipedRef.current) { swipedRef.current = false; return; }
+    onOpen();
+  };
+
+  const swipeHint = dragX >= 24 ? 'forward' : dragX <= -24 ? 'back' : null;
+
   return (
-    <div
-      draggable
-      onDragStart={(e) => { e.dataTransfer.setData('text/plain', String(task.id)); e.dataTransfer.effectAllowed = 'move'; }}
-      className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-3 cursor-grab active:cursor-grabbing"
-    >
-      <div className="flex items-start gap-2">
-        <button onClick={onOpen} className="flex-1 min-w-0 text-left">
-          <p className={cn("text-sm font-medium break-words", task.completed && "line-through text-muted-foreground")}>
-            {task.text}
-          </p>
-          {assignees.length > 0 && (
-            <div className="mt-1 flex flex-wrap items-center gap-1">
-              {assignees.slice(0, 2).map(a => (
-                <span key={a} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
-                  <User className="h-2.5 w-2.5" />
-                  {a}
-                </span>
-              ))}
-              {assignees.length > 2 && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
-                  +{assignees.length - 2}
-                </span>
-              )}
-            </div>
+    <div className="relative rounded-lg overflow-hidden">
+      {swipeHint && (
+        <div
+          className={cn(
+            "absolute inset-0 flex items-center rounded-lg bg-accent/15 text-accent",
+            swipeHint === 'forward' ? "justify-end pr-4" : "justify-start pl-4"
           )}
-          {task.completedBy && task.completedAt && (
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Completed by {task.completedBy} · {new Date(task.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-            </p>
-          )}
-        </button>
-        <button onClick={onStar} className="shrink-0" aria-label="Star task">
-          <Star className={cn("h-4 w-4 transition-colors", task.starred ? "fill-accent text-accent" : "text-muted-foreground/50 hover:text-accent")} />
-        </button>
-      </div>
-      <div className="mt-2 flex items-center justify-between">
-        <div className="flex items-center gap-1 text-muted-foreground/70">
-          {task.notes && <StickyNote className="h-3.5 w-3.5" aria-label="Has notes" />}
+          aria-hidden
+        >
+          {swipeHint === 'forward' ? <ChevronRight className="h-6 w-6" /> : <ChevronLeft className="h-6 w-6" />}
         </div>
-        <div className="flex items-center gap-1">
-          {canMoveBack && (
-            <button
-              onClick={onMoveBack}
-              title="Move back"
-              aria-label="Move back"
-              className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-          )}
-          {canMoveForward && (
-            <button
-              onClick={onMoveForward}
-              title="Move forward"
-              aria-label="Move forward"
-              className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          )}
+      )}
+      <div
+        draggable
+        onDragStart={(e) => { e.dataTransfer.setData('text/plain', String(task.id)); e.dataTransfer.effectAllowed = 'move'; }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endSwipe}
+        onPointerCancel={endSwipe}
+        style={dragX ? { transform: `translateX(${dragX}px)` } : undefined}
+        className={cn(
+          "relative bg-card text-card-foreground rounded-lg border border-border shadow-sm p-4 md:p-3 cursor-grab active:cursor-grabbing touch-pan-y select-none",
+          dragX === 0 && "transition-transform"
+        )}
+      >
+        <div className="flex items-start gap-2">
+          <button onClick={handleOpen} className="flex-1 min-w-0 text-left">
+            <p className={cn("text-base md:text-sm font-medium break-words", task.completed && "line-through text-muted-foreground")}>
+              {task.text}
+            </p>
+            {assignees.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                {assignees.slice(0, 2).map(a => (
+                  <span key={a} className="inline-flex items-center gap-1 px-2 py-1 md:px-1.5 md:py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
+                    <User className="h-3 w-3 md:h-2.5 md:w-2.5" />
+                    {a}
+                  </span>
+                ))}
+                {assignees.length > 2 && (
+                  <span className="inline-flex items-center px-2 py-1 md:px-1.5 md:py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
+                    +{assignees.length - 2}
+                  </span>
+                )}
+              </div>
+            )}
+            {task.completedBy && task.completedAt && (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Completed by {task.completedBy} · {new Date(task.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              </p>
+            )}
+          </button>
+          <button onClick={onStar} className="shrink-0 p-1.5 md:p-0" aria-label="Star task">
+            <Star className={cn("h-5 w-5 md:h-4 md:w-4 transition-colors", task.starred ? "fill-accent text-accent" : "text-muted-foreground/50 hover:text-accent")} />
+          </button>
+        </div>
+        <div className="mt-2.5 md:mt-2 flex items-center justify-between">
+          <div className="flex items-center gap-1 text-muted-foreground/70">
+            {task.notes && <StickyNote className="h-4 w-4 md:h-3.5 md:w-3.5" aria-label="Has notes" />}
+          </div>
+          <div className="flex items-center gap-1.5 md:gap-1">
+            {canMoveBack && (
+              <button
+                onClick={onMoveBack}
+                title="Move back"
+                aria-label="Move back"
+                className="p-2.5 md:p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5 md:h-4 md:w-4" />
+              </button>
+            )}
+            {canMoveForward && (
+              <button
+                onClick={onMoveForward}
+                title="Move forward"
+                aria-label="Move forward"
+                className="p-2.5 md:p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <ChevronRight className="h-5 w-5 md:h-4 md:w-4" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

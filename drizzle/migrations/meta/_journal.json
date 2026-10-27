@@ -92,6 +92,20 @@
       "when": 1792663882143,
       "tag": "0012_attachments",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793094944475,
+      "tag": "0013_task_status_board",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793094977639,
+      "tag": "0014_task_status_stamps_completer",
+      "breakpoints": true
     }
   ]
 }

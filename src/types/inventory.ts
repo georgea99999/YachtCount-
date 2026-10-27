@@ -5,10 +5,13 @@ export interface StockItem {
   box: string;
 }
 
+export type TaskStatus = 'todo' | 'in_progress' | 'completed';
+
 export interface Task {
   id: number;
   text: string;
   completed: boolean;
+  status?: TaskStatus;
   starred?: boolean;
   completedAt?: string;
   createdBy?: string;

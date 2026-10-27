@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Attachments from '@/components/Attachments';
-import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, Trash2, User, X, RotateCcw } from 'lucide-react';
+import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, ChevronLeft, Trash2, User, X, RotateCcw, List, LayoutGrid, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useTasks } from '@/hooks/useTasks';
-import { Task } from '@/types/inventory';
+import { Task, TaskStatus } from '@/types/inventory';
 import { cn } from '@/lib/utils';
 import { useCrew } from '@/hooks/useCrew';
 
@@ -17,13 +17,17 @@ type DialogMode =
 
 const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
   const {members}=useCrew();
-  const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
+  const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, setTaskStatus, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [assignFilter, setAssignFilter] = useState<string>('all');
   const [dialog, setDialog] = useState<DialogMode>({ kind: 'closed' });
+  const [view, setView] = useState<'list' | 'board'>(() =>
+    localStorage.getItem('yc_tasks_view') === 'board' ? 'board' : 'list'
+  );
+  useEffect(() => { localStorage.setItem('yc_tasks_view', view); }, [view]);
 
   const assignees = useMemo(() => {
     const set = new Set<string>();
@@ -68,73 +72,106 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
         </p>
       </div>
 
-      <div className="px-4 pb-3 overflow-x-auto">
-        <div className="flex gap-2 min-w-fit">
-          {filterTabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setAssignFilter(tab.id)}
-              className={cn(
-                "shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border",
-                assignFilter === tab.id
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-foreground hover:bg-muted"
-              )}
-            >
-              {tab.id !== 'all' && tab.id !== 'unassigned' && <User className="h-3 w-3" />}
-              {tab.label}
-              <span className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                assignFilter === tab.id ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground"
-              )}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
+      <div className="px-4 pb-3 flex items-center gap-2">
+        <div className="flex-1 overflow-x-auto">
+          <div className="flex gap-2 min-w-fit">
+            {filterTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setAssignFilter(tab.id)}
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border",
+                  assignFilter === tab.id
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-foreground hover:bg-muted"
+                )}
+              >
+                {tab.id !== 'all' && tab.id !== 'unassigned' && <User className="h-3 w-3" />}
+                {tab.label}
+                <span className={cn(
+                  "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                  assignFilter === tab.id ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground"
+                )}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="shrink-0 flex rounded-lg border border-border bg-card overflow-hidden" role="group" aria-label="View">
+          <button
+            onClick={() => setView('list')}
+            title="List view"
+            aria-label="List view"
+            aria-pressed={view === 'list'}
+            className={cn("p-2 transition-colors", view === 'list' ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted")}
+          >
+            <List className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setView('board')}
+            title="Board view"
+            aria-label="Board view"
+            aria-pressed={view === 'board'}
+            className={cn("p-2 transition-colors", view === 'board' ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted")}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-32">
-        <div className="space-y-2.5">
-          {active.map(task => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              onToggle={() => toggleTask(task.id)}
-              onStar={() => toggleStar(task.id)}
-              onOpen={() => setDialog({ kind: 'edit', task })}
-              onDelete={() => deleteTask(task.id)}
-            />
-          ))}
-          {active.length === 0 && (
-            <p className="text-center text-muted-foreground py-8 text-sm">No tasks here.</p>
-          )}
-        </div>
+        {view === 'board' ? (
+          <BoardView
+            tasks={filteredTasks}
+            onOpen={(task) => setDialog({ kind: 'edit', task })}
+            onStar={(id) => toggleStar(id)}
+            onMove={(id, status) => setTaskStatus(id, status)}
+          />
+        ) : (
+          <>
+            <div className="space-y-2.5">
+              {active.map(task => (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  onToggle={() => toggleTask(task.id)}
+                  onStar={() => toggleStar(task.id)}
+                  onOpen={() => setDialog({ kind: 'edit', task })}
+                  onDelete={() => deleteTask(task.id)}
+                />
+              ))}
+              {active.length === 0 && (
+                <p className="text-center text-muted-foreground py-8 text-sm">No tasks here.</p>
+              )}
+            </div>
 
-        {completed.length > 0 && (
-          <div className="mt-6">
-            <button
-              onClick={() => setShowCompleted(s => !s)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold text-foreground hover:bg-muted transition-colors"
-            >
-              {showCompleted ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              Completed ({completed.length})
-            </button>
-            {showCompleted && (
-              <div className="space-y-2.5 mt-2">
-                {completed.map(task => (
-                  <TaskRow
-                    key={task.id}
-                    task={task}
-                    onToggle={() => toggleTask(task.id)}
-                    onStar={() => toggleStar(task.id)}
-                    onOpen={() => setDialog({ kind: 'edit', task })}
-                    onDelete={() => deleteTask(task.id)}
-                  />
-                ))}
+            {completed.length > 0 && (
+              <div className="mt-6">
+                <button
+                  onClick={() => setShowCompleted(s => !s)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+                >
+                  {showCompleted ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  Completed ({completed.length})
+                </button>
+                {showCompleted && (
+                  <div className="space-y-2.5 mt-2">
+                    {completed.map(task => (
+                      <TaskRow
+                        key={task.id}
+                        task={task}
+                        onToggle={() => toggleTask(task.id)}
+                        onStar={() => toggleStar(task.id)}
+                        onOpen={() => setDialog({ kind: 'edit', task })}
+                        onDelete={() => deleteTask(task.id)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
         )}
 
         <section className="mt-6 border-t border-border pt-3">
@@ -193,6 +230,161 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
           if(await deleteTask(id)) setDialog({ kind: 'closed' });
         }}
       />
+    </div>
+  );
+};
+
+const BOARD_COLUMNS: { status: TaskStatus; label: string }[] = [
+  { status: 'todo', label: 'To Do' },
+  { status: 'in_progress', label: 'In Progress' },
+  { status: 'completed', label: 'Completed' },
+];
+
+interface BoardViewProps {
+  tasks: Task[];
+  onOpen: (task: Task) => void;
+  onStar: (id: number) => void;
+  onMove: (id: number, status: TaskStatus) => void;
+}
+
+const BoardView = ({ tasks, onOpen, onStar, onMove }: BoardViewProps) => {
+  const [dragOver, setDragOver] = useState<TaskStatus | null>(null);
+
+  const byStatus = useMemo(() => {
+    const sort = (list: Task[]) => [...list].sort((a, b) => {
+      if (a.starred !== b.starred) return a.starred ? -1 : 1;
+      return b.id - a.id;
+    });
+    return {
+      todo: sort(tasks.filter(t => (t.status ?? (t.completed ? 'completed' : 'todo')) === 'todo')),
+      in_progress: sort(tasks.filter(t => t.status === 'in_progress')),
+      completed: sort(tasks.filter(t => (t.status ?? (t.completed ? 'completed' : 'todo')) === 'completed')),
+    } as Record<TaskStatus, Task[]>;
+  }, [tasks]);
+
+  return (
+    <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory md:snap-none items-start">
+      {BOARD_COLUMNS.map((col, colIndex) => (
+        <section
+          key={col.status}
+          aria-label={col.label}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(col.status); }}
+          onDragLeave={() => setDragOver(d => (d === col.status ? null : d))}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver(null);
+            const id = Number(e.dataTransfer.getData('text/plain'));
+            if (id) onMove(id, col.status);
+          }}
+          className={cn(
+            "shrink-0 w-[85vw] sm:w-[320px] md:w-auto md:flex-1 md:min-w-0 snap-center rounded-xl border bg-muted/40 p-2.5 transition-colors",
+            dragOver === col.status ? "border-accent bg-accent/5" : "border-border"
+          )}
+        >
+          <header className="flex items-center justify-between px-1.5 pb-2">
+            <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">{col.label}</h2>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground">
+              {byStatus[col.status].length}
+            </span>
+          </header>
+          <div className="space-y-2 min-h-[40px]">
+            {byStatus[col.status].map(task => (
+              <BoardCard
+                key={task.id}
+                task={task}
+                canMoveBack={colIndex > 0}
+                canMoveForward={colIndex < BOARD_COLUMNS.length - 1}
+                onMoveBack={() => onMove(task.id, BOARD_COLUMNS[colIndex - 1].status)}
+                onMoveForward={() => onMove(task.id, BOARD_COLUMNS[colIndex + 1].status)}
+                onOpen={() => onOpen(task)}
+                onStar={() => onStar(task.id)}
+              />
+            ))}
+            {byStatus[col.status].length === 0 && (
+              <p className="px-1.5 py-3 text-center text-[11px] text-muted-foreground/70">No tasks</p>
+            )}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+};
+
+interface BoardCardProps {
+  task: Task;
+  canMoveBack: boolean;
+  canMoveForward: boolean;
+  onMoveBack: () => void;
+  onMoveForward: () => void;
+  onOpen: () => void;
+  onStar: () => void;
+}
+
+const BoardCard = ({ task, canMoveBack, canMoveForward, onMoveBack, onMoveForward, onOpen, onStar }: BoardCardProps) => {
+  const assignees = task.assignees ?? [];
+  return (
+    <div
+      draggable
+      onDragStart={(e) => { e.dataTransfer.setData('text/plain', String(task.id)); e.dataTransfer.effectAllowed = 'move'; }}
+      className="bg-card text-card-foreground rounded-lg border border-border shadow-sm p-3 cursor-grab active:cursor-grabbing"
+    >
+      <div className="flex items-start gap-2">
+        <button onClick={onOpen} className="flex-1 min-w-0 text-left">
+          <p className={cn("text-sm font-medium break-words", task.completed && "line-through text-muted-foreground")}>
+            {task.text}
+          </p>
+          {assignees.length > 0 && (
+            <div className="mt-1 flex flex-wrap items-center gap-1">
+              {assignees.slice(0, 2).map(a => (
+                <span key={a} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
+                  <User className="h-2.5 w-2.5" />
+                  {a}
+                </span>
+              ))}
+              {assignees.length > 2 && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
+                  +{assignees.length - 2}
+                </span>
+              )}
+            </div>
+          )}
+          {task.completedBy && task.completedAt && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Completed by {task.completedBy} · {new Date(task.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            </p>
+          )}
+        </button>
+        <button onClick={onStar} className="shrink-0" aria-label="Star task">
+          <Star className={cn("h-4 w-4 transition-colors", task.starred ? "fill-accent text-accent" : "text-muted-foreground/50 hover:text-accent")} />
+        </button>
+      </div>
+      <div className="mt-2 flex items-center justify-between">
+        <div className="flex items-center gap-1 text-muted-foreground/70">
+          {task.notes && <StickyNote className="h-3.5 w-3.5" aria-label="Has notes" />}
+        </div>
+        <div className="flex items-center gap-1">
+          {canMoveBack && (
+            <button
+              onClick={onMoveBack}
+              title="Move back"
+              aria-label="Move back"
+              className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+          {canMoveForward && (
+            <button
+              onClick={onMoveForward}
+              title="Move forward"
+              aria-label="Move forward"
+              className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

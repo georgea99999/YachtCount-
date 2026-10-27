@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Attachments from '@/components/Attachments';
-import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, Trash2, User, X, RotateCcw } from 'lucide-react';
+import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, ChevronLeft, Trash2, User, X, RotateCcw, List, LayoutGrid, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useTasks } from '@/hooks/useTasks';
-import { Task } from '@/types/inventory';
+import { Task, TaskStatus } from '@/types/inventory';
 import { cn } from '@/lib/utils';
 import { useCrew } from '@/hooks/useCrew';
 
@@ -17,13 +17,17 @@ type DialogMode =
 
 const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
   const {members}=useCrew();
-  const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
+  const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, setTaskStatus, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [assignFilter, setAssignFilter] = useState<string>('all');
   const [dialog, setDialog] = useState<DialogMode>({ kind: 'closed' });
+  const [view, setView] = useState<'list' | 'board'>(() =>
+    localStorage.getItem('yc_tasks_view') === 'board' ? 'board' : 'list'
+  );
+  useEffect(() => { localStorage.setItem('yc_tasks_view', view); }, [view]);
 
   const assignees = useMemo(() => {
     const set = new Set<string>();

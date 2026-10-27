@@ -72,29 +72,51 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
         </p>
       </div>
 
-      <div className="px-4 pb-3 overflow-x-auto">
-        <div className="flex gap-2 min-w-fit">
-          {filterTabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setAssignFilter(tab.id)}
-              className={cn(
-                "shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border",
-                assignFilter === tab.id
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-foreground hover:bg-muted"
-              )}
-            >
-              {tab.id !== 'all' && tab.id !== 'unassigned' && <User className="h-3 w-3" />}
-              {tab.label}
-              <span className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                assignFilter === tab.id ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground"
-              )}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
+      <div className="px-4 pb-3 flex items-center gap-2">
+        <div className="flex-1 overflow-x-auto">
+          <div className="flex gap-2 min-w-fit">
+            {filterTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setAssignFilter(tab.id)}
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border",
+                  assignFilter === tab.id
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-foreground hover:bg-muted"
+                )}
+              >
+                {tab.id !== 'all' && tab.id !== 'unassigned' && <User className="h-3 w-3" />}
+                {tab.label}
+                <span className={cn(
+                  "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                  assignFilter === tab.id ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground"
+                )}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="shrink-0 flex rounded-lg border border-border bg-card overflow-hidden" role="group" aria-label="View">
+          <button
+            onClick={() => setView('list')}
+            title="List view"
+            aria-label="List view"
+            aria-pressed={view === 'list'}
+            className={cn("p-2 transition-colors", view === 'list' ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted")}
+          >
+            <List className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setView('board')}
+            title="Board view"
+            aria-label="Board view"
+            aria-pressed={view === 'board'}
+            className={cn("p-2 transition-colors", view === 'board' ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted")}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
         </div>
       </div>
 

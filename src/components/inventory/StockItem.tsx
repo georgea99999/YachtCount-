@@ -12,6 +12,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { isLowStock } from '@/lib/lowStock';
+import { toast } from 'sonner';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -49,6 +52,18 @@ const StockItemRow = ({
   const [editName, setEditName] = useState(item.name);
   const [editBox, setEditBox] = useState(item.box);
   const isLongName = item.name.length > 20;
+  const [minOverride, setMinOverride] = useState<number | undefined | null>(null);
+  const minQuantity = minOverride === null ? item.minQuantity : minOverride;
+  const [minDraft, setMinDraft] = useState('');
+  const low = isLowStock({ quantity: item.quantity, minQuantity });
+  const saveMin = async () => {
+    const trimmed = minDraft.trim();
+    const value = trimmed === '' ? undefined : Math.max(0, parseInt(trimmed) || 0);
+    if (value === minQuantity) return;
+    const { error } = await supabase.from('stock_items').update({ min_quantity: value ?? null }).eq('id', item.id);
+    if (error) { toast.error('Could not save minimum stock'); return; }
+    setMinOverride(value);
+  };
 
   const {
     attributes,
@@ -207,7 +222,8 @@ const StockItemRow = ({
             type="number"
             value={item.quantity}
             onChange={(e) => onUpdateQuantityDirect(item.id, parseInt(e.target.value) || 0)}
-            className="w-12 h-7 text-center px-1 text-sm"
+            title={low ? `At or below minimum stock (${minQuantity})` : undefined}
+            className={cn("w-12 h-7 text-center px-1 text-sm", low && "border-warning bg-warning/10 font-semibold text-warning")}
             min={0}
           />
           <Button
@@ -244,6 +260,22 @@ const StockItemRow = ({
               {item.name}
             </div>
           )}
+          <div className="bg-muted/50 rounded-md p-2 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+            <label htmlFor={`min-${item.id}`} className="text-xs font-medium text-muted-foreground">Minimum stock alert</label>
+            <Input
+              id={`min-${item.id}`}
+              type="number"
+              min={0}
+              placeholder="Off"
+              value={minDraft}
+              onFocus={() => setMinDraft(minQuantity != null ? String(minQuantity) : '')}
+              onChange={(e) => setMinDraft(e.target.value)}
+              onBlur={saveMin}
+              onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+              className="w-16 h-7 text-center px-1 text-sm"
+              title="Alert when quantity is at or below this number (leave blank for no alert)"
+            />
+          </div>
           <div className="bg-muted/50 rounded-md p-2">
             <p className="text-xs font-medium text-muted-foreground mb-1">Quantity Changes</p>
             {itemHistory.length > 0 ? (

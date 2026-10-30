@@ -40,6 +40,7 @@ export function useInventory(vesselId?: string) {
           name: item.name,
           quantity: item.quantity,
           box: item.box,
+          minQuantity: item.min_quantity ?? undefined,
         })));
       } else {
         // No data in DB — start with a clean slate
@@ -109,6 +110,7 @@ export function useInventory(vesselId?: string) {
               name: item.name,
               quantity: item.quantity,
               box: item.box,
+              minQuantity: item.min_quantity ?? undefined,
             })));
           }
         }

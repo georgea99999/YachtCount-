@@ -3,6 +3,8 @@ export interface StockItem {
   name: string;
   quantity: number;
   box: string;
+  /** Minimum stock alert threshold; undefined = no alert */
+  minQuantity?: number;
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'completed';

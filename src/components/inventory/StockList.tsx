@@ -1,5 +1,6 @@
+import { isLowStock } from '@/lib/lowStock';
 import { useState, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Layers, Boxes, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Layers, BellRing, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import StockTakeMode from './StockTakeMode';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { InventoryImportItem } from '@/lib/inventoryImport';
@@ -91,6 +92,7 @@ const StockList = ({
   const [reorderBoxes, setReorderBoxes] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [outOfStockOnly, setOutOfStockOnly] = useState(false);
+  const [lowStockOnly, setLowStockOnly] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
@@ -267,9 +269,9 @@ const StockList = ({
   };
 
   // Out-of-stock filter spans all boxes but still respects search
-  const visibleItems = outOfStockOnly
+  const visibleItems = (outOfStockOnly || lowStockOnly)
     ? allItems.filter(i => {
-        if (i.quantity > 0) return false;
+        if (outOfStockOnly ? i.quantity > 0 : !isLowStock(i)) return false;
         const words = searchTerm.toLowerCase().trim().split(/\s+/).filter(Boolean);
         return words.every(w => i.name.toLowerCase().includes(w));
       })
@@ -310,10 +312,11 @@ const StockList = ({
   }, [groupedItems, boxNamesInDataOrder, isReorderMode, reorderBoxes]);
 
   const outOfStock = allItems.filter(i => i.quantity <= 0).length;
+  const lowStock = allItems.filter(isLowStock).length;
   const stats = [
     { label: 'Items', value: totalItems, icon: Package },
     { label: 'Units', value: totalQuantity, icon: Layers },
-    { label: 'Boxes', value: allBoxNames.length, icon: Boxes },
+    { label: 'Min stock alert', value: lowStock, icon: BellRing, warn: lowStock > 0 },
     { label: 'Out of stock', value: outOfStock, icon: AlertTriangle, alert: outOfStock > 0 },
   ];
   const activeBox = selectedBox && selectedBox !== 'all' ? selectedBox : '';
@@ -333,27 +336,34 @@ const StockList = ({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 pb-2">
-        {stats.map(({ label, value, icon: Icon, alert }) => {
+        {stats.map(({ label, value, icon: Icon, alert, warn }) => {
           const isOos = label === 'Out of stock';
-          const active = isOos && outOfStockOnly;
+          const isLow = label === 'Min stock alert';
+          const clickable = isOos || isLow;
+          const active = (isOos && outOfStockOnly) || (isLow && lowStockOnly);
+          const toggle = () => {
+            if (isOos) { setLowStockOnly(false); setOutOfStockOnly(v => !v); }
+            if (isLow) { setOutOfStockOnly(false); setLowStockOnly(v => !v); }
+          };
+          const bar = alert ? 'bg-destructive' : warn ? 'bg-warning' : isLow ? 'bg-warning/50' : 'bg-accent';
           return (
           <Card
             key={label}
-            role={isOos ? 'button' : undefined}
-            tabIndex={isOos ? 0 : undefined}
-            aria-pressed={isOos ? active : undefined}
-            title={isOos ? (active ? 'Show all items' : 'Show only out of stock items') : undefined}
-            onClick={isOos ? () => setOutOfStockOnly(v => !v) : undefined}
-            onKeyDown={isOos ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOutOfStockOnly(v => !v); } } : undefined}
-            className={`relative overflow-hidden border-border shadow-sm ${isOos ? 'cursor-pointer transition-shadow hover:shadow-md' : ''} ${active ? 'ring-2 ring-destructive' : ''}`}
+            role={clickable ? 'button' : undefined}
+            tabIndex={clickable ? 0 : undefined}
+            aria-pressed={clickable ? active : undefined}
+            title={isOos ? (active ? 'Show all items' : 'Show only out of stock items') : isLow ? (active ? 'Show all items' : 'Show items at or below their minimum stock') : undefined}
+            onClick={clickable ? toggle : undefined}
+            onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } } : undefined}
+            className={`relative overflow-hidden border-border shadow-sm ${clickable ? 'cursor-pointer transition-shadow hover:shadow-md' : ''} ${active ? (isLow ? 'ring-2 ring-warning' : 'ring-2 ring-destructive') : ''}`}
           >
-            <div className={`absolute inset-y-0 left-0 w-1 ${alert ? 'bg-destructive' : 'bg-accent'}`} />
+            <div className={`absolute inset-y-0 left-0 w-1 ${bar}`} />
             <CardContent className="p-4 pl-5 flex items-center justify-between gap-2">
               <div>
-                <p className={`text-2xl font-bold leading-none ${alert ? 'text-destructive' : 'text-foreground'}`}>{value}</p>
+                <p className={`text-2xl font-bold leading-none ${alert ? 'text-destructive' : warn ? 'text-warning' : 'text-foreground'}`}>{value}</p>
                 <p className="mt-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
               </div>
-              <div className={`rounded-full p-2 ${alert ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-primary dark:text-primary-foreground'}`}>
+              <div className={`rounded-full p-2 ${alert ? 'bg-destructive/10 text-destructive' : isLow ? 'bg-warning/15 text-warning' : 'bg-secondary text-primary dark:text-primary-foreground'}`}>
                 <Icon className="h-4 w-4" />
               </div>
             </CardContent>
@@ -366,13 +376,13 @@ const StockList = ({
       {allBoxNames.length > 0 && (
         <div className="flex gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
           {['', ...allBoxNames].map(box => {
-            const isActive = !outOfStockOnly && activeBox === box;
+            const isActive = !outOfStockOnly && !lowStockOnly && activeBox === box;
             const count = box ? allItems.filter(i => i.box === box).length : allItems.length;
             return (
               <button
                 key={box || 'all'}
                 type="button"
-                onClick={() => { setOutOfStockOnly(false); onBoxChange(box || 'all'); }}
+                onClick={() => { setOutOfStockOnly(false); setLowStockOnly(false); onBoxChange(box || 'all'); }}
                 className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-muted'}`}
               >
                 {box || 'All boxes'}
@@ -386,6 +396,13 @@ const StockList = ({
         <div className="mx-4 mb-1 flex items-center justify-between gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
           <span className="flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" />Showing out of stock items across all boxes</span>
           <button type="button" onClick={() => setOutOfStockOnly(false)} className="underline">Clear filter</button>
+        </div>
+      )}
+
+      {lowStockOnly && (
+        <div className="mx-4 mb-1 flex items-center justify-between gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs font-medium text-warning">
+          <span className="flex items-center gap-1.5"><BellRing className="h-3.5 w-3.5" />Showing items at or below their minimum stock</span>
+          <button type="button" onClick={() => setLowStockOnly(false)} className="underline">Clear filter</button>
         </div>
       )}
 
@@ -481,12 +498,12 @@ const StockList = ({
                 <Package className="h-8 w-8" />
               </div>
               <p className="text-base font-semibold text-foreground">
-                {outOfStockOnly ? 'Nothing is out of stock' : searchTerm || activeBox ? 'No matching items' : 'Your inventory is empty'}
+                {outOfStockOnly ? 'Nothing is out of stock' : lowStockOnly ? 'No minimum stock alerts' : searchTerm || activeBox ? 'No matching items' : 'Your inventory is empty'}
               </p>
               <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                {outOfStockOnly ? 'Every item has at least one unit on board.' : searchTerm || activeBox ? 'Try a different search or box.' : 'Add your first item with the + button, or import an existing spreadsheet.'}
+                {outOfStockOnly ? 'Every item has at least one unit on board.' : lowStockOnly ? 'Set a minimum for a product in its drop-down to get alerts.' : searchTerm || activeBox ? 'Try a different search or box.' : 'Add your first item with the + button, or import an existing spreadsheet.'}
               </p>
-              {!outOfStockOnly && !searchTerm && !activeBox && (
+              {!outOfStockOnly && !lowStockOnly && !searchTerm && !activeBox && (
                 <Button size="sm" className="mt-5 gap-1" onClick={() => setImportOpen(true)}>
                   <FileSpreadsheet className="h-4 w-4" /> Import from CSV
                 </Button>

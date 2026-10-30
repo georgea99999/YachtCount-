@@ -219,6 +219,7 @@ export type Database = {
           box: string
           created_at: string
           id: string
+          min_quantity: number | null
           name: string
           quantity: number
           sort_order: number
@@ -230,6 +231,7 @@ export type Database = {
           box: string
           created_at?: string
           id?: string
+          min_quantity?: number | null
           name: string
           quantity?: number
           sort_order?: number
@@ -241,6 +243,7 @@ export type Database = {
           box?: string
           created_at?: string
           id?: string
+          min_quantity?: number | null
           name?: string
           quantity?: number
           sort_order?: number

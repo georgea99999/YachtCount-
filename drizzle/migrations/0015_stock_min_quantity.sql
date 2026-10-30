@@ -1,0 +1,1 @@
+ALTER TABLE public.stock_items ADD COLUMN min_quantity integer CHECK (min_quantity IS NULL OR min_quantity >= 0);

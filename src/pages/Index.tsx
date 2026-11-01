@@ -102,6 +102,7 @@ const Index = ({ onLogout }: IndexProps) => {
         onLogout={onLogout}
         crewName={crew.username}
         vesselName={crew.vesselName}
+        crewRole={crew.owner ? 'Admin' : crew.canDeleteItems ? 'Junior admin' : 'Crew member'}
       />
 
       <div className="flex flex-1 relative">

@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCrew } from '@/hooks/useCrew';
 import { normalizeCrewName } from '@/lib/crew';
-export function CrewPanel({ setup = false, onReady }: {setup?:boolean;onReady?:()=>void}) {
+export function CrewPanel({ setup = false, onReady, menuTrigger = false }: {setup?:boolean;onReady?:()=>void;menuTrigger?:boolean}) {
   const {crew,accounts,refresh}=useCrew();
   const [open,setOpen]=useState(setup);
   const [vesselName,setVesselName]=useState('');
@@ -48,7 +48,7 @@ export function CrewPanel({ setup = false, onReady }: {setup?:boolean;onReady?:(
     if(setup) onReady?.();
   };
   return <>
-    {!setup && <Button variant="ghost" size="icon" aria-label="Crew" title="Crew" className="text-primary-foreground" onClick={()=>setOpen(true)}><Users /></Button>}
+    {!setup && <Button variant="ghost" size={menuTrigger ? 'default' : 'icon'} aria-label={menuTrigger ? 'Crew & access' : 'Crew'} title={menuTrigger ? 'Crew & access' : 'Crew'} className={menuTrigger ? 'h-12 w-full justify-start gap-3 px-3' : 'text-primary-foreground'} onClick={()=>setOpen(true)}><Users className="h-5 w-5" />{menuTrigger && 'Crew & access'}</Button>}
     <Dialog open={open} onOpenChange={value=>{if(!setup && !busy){setOpen(value);cancelAction();setPassword('');} if(value)void refresh();}}>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{setup?'Admin vessel setup':crew?.vesselName || 'Crew'}</DialogTitle></DialogHeader>

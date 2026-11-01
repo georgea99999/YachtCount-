@@ -54,15 +54,17 @@ const StockItemRow = ({
   const isLongName = item.name.length > 20;
   const [minOverride, setMinOverride] = useState<number | undefined | null>(null);
   const minQuantity = minOverride === null ? item.minQuantity : minOverride;
-  const [minDraft, setMinDraft] = useState('');
+  const [minDraft, setMinDraft] = useState<string | null>(null);
   const low = isLowStock({ quantity: item.quantity, minQuantity });
   const saveMin = async () => {
+    if (minDraft === null) return;
     const trimmed = minDraft.trim();
     const value = trimmed === '' ? undefined : Math.max(0, parseInt(trimmed) || 0);
-    if (value === minQuantity) return;
+    if (value === minQuantity) { setMinDraft(null); return; }
     const { error } = await supabase.from('stock_items').update({ min_quantity: value ?? null }).eq('id', item.id);
-    if (error) { toast.error('Could not save minimum stock'); return; }
+    if (error) { setMinDraft(null); toast.error('Could not save minimum stock'); return; }
     setMinOverride(value);
+    setMinDraft(null);
   };
 
   const {
@@ -267,7 +269,7 @@ const StockItemRow = ({
               type="number"
               min={0}
               placeholder="Off"
-              value={minDraft}
+              value={minDraft ?? (minQuantity != null ? String(minQuantity) : '')}
               onFocus={() => setMinDraft(minQuantity != null ? String(minQuantity) : '')}
               onChange={(e) => setMinDraft(e.target.value)}
               onBlur={saveMin}

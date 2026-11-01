@@ -4,6 +4,7 @@ import yachtcountLogo from '@/assets/yachtcount-logo.png';
 import ThemeToggle from './ThemeToggle';
 import { CrewPanel } from './CrewPanel';
 import { ProvisionVesselPanel } from './ProvisionVesselPanel';
+import { MobileProfileMenu } from './MobileProfileMenu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -13,6 +14,7 @@ interface HeaderProps {
   activeTab: TabType;
   crewName?: string;
   vesselName?: string;
+  crewRole?: string;
   searchTerm: string;
   onSearchChange: (value: string) => void;
   onMenuClick?: () => void;
@@ -25,6 +27,7 @@ const Header = ({
   activeTab,
   crewName,
   vesselName,
+  crewRole,
   searchTerm,
   onSearchChange,
   onMenuClick,
@@ -48,14 +51,14 @@ const Header = ({
   return <header id="yc-app-header" className="bg-primary text-primary-foreground sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 py-3 pb-[22px] md:min-h-[80px] md:gap-6 md:pt-0 md:pb-[10px] md:pl-3 md:pr-6">
         {/* Left: Menu, Logo & Vessel/Crew bubble */}
-        <div className="flex min-w-0 items-center gap-3 md:flex-1 md:gap-5">
-          <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
+         <div className="flex min-w-0 items-center gap-1 md:flex-1 md:gap-5">
+           <Button title="Open menu" aria-label="Open menu" variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex shrink-0 items-center gap-2 md:gap-6">
             {/* Logo lives in the sidebar rail on larger screens; mobile keeps it here */}
             <img src={yachtcountLogo} alt="YachtCount Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain rounded" />
-            <span className="font-bold text-xl md:text-2xl font-sans">YachtCount</span>
+             <span className="font-bold text-lg md:text-2xl font-sans">YachtCount</span>
           </div>
           {(vesselName || crewName) && <div className="hidden min-w-0 items-center gap-2 rounded-full border border-primary-foreground/20 bg-navy-dark px-3 py-1 md:flex">
               {vesselName && <span className="flex min-w-0 items-center gap-1.5">
@@ -77,15 +80,17 @@ const Header = ({
           <input type="search" aria-label="Search products" placeholder="Search products…" value={searchTerm} onChange={e => onSearchChange(e.target.value)} className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-primary-foreground/50 outline-none" />
         </div>
 
-        <div className="flex items-center gap-1 md:shrink-0">
+         <div className="flex shrink-0 items-center gap-0 md:gap-1">
+           <div className="hidden items-center gap-1 md:flex">
           <ProvisionVesselPanel />
           <CrewPanel />
           {/* Theme Toggle */}
           <ThemeToggle />
+           </div>
           {/* Search Popover */}
           <Popover open={showSearch} onOpenChange={setShowSearch}>
             <PopoverTrigger asChild className="md:hidden">
-              <Button title="Search products" aria-label="Search products" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent">
+               <Button title="Search products" aria-label="Search products" variant="ghost" size="icon" className="h-9 w-9 text-primary-foreground hover:bg-sidebar-accent">
                 <Search className="h-5 w-5" />
               </Button>
             </PopoverTrigger>
@@ -106,7 +111,7 @@ const Header = ({
           {/* Notifications Popover */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button title="Notifications" aria-label="Notifications" variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent relative">
+               <Button title="Notifications" aria-label="Notifications" variant="ghost" size="icon" className="h-9 w-9 md:h-10 md:w-10 text-primary-foreground hover:bg-sidebar-accent relative">
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive rounded-full text-xs flex items-center justify-center font-medium">
                     {unreadCount > 9 ? '9+' : unreadCount}
@@ -149,6 +154,7 @@ const Header = ({
               </ScrollArea>
             </PopoverContent>
           </Popover>
+           <MobileProfileMenu vesselName={vesselName} crewName={crewName} crewRole={crewRole} />
 
         </div>
       </div>

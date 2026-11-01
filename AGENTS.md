@@ -1,4 +1,5 @@
 # Project rules
+- Reuse the crew and vessel dialogs with menu-style triggers in the mobile profile popover; desktop icon triggers stay separate so permissions and management actions remain consistent.
 - Parse inventory CSV files with Papa Parse and validate all rows before saving through the existing inventory hook; this handles quoted fields without partial invalid imports.
 - Keep inventory sorting in a shared pure utility used by the inventory view; this makes the default alphabetical order testable while preserving manual reorder mode.
 - Authenticate each crew username as a separate account and derive vessel access and actor attribution on the server; client-selected identities must never grant access or overwrite audit authors.

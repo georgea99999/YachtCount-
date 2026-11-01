@@ -1,3 +1,4 @@
+- [ ] Group mobile account controls under Profile and verify crew, vessel and theme access without changing desktop or sidebar.
 - [x] Add safe admin-only empty box removal in Add Item; verified creation, confirmed deletion, and removal from box choices while signed in, with regression tests passing.
 - [x] Support full-name admin and crew usernames with admin-led vessel setup and shared-password crew creation.
 - [x] Add admin crew renaming, shared-password reset, and deactivation; verify name saving, incorrect-password rejection, and permission/password rollback tests.

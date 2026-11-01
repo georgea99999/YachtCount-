@@ -10,7 +10,7 @@ import { normalizeCrewName } from '@/lib/crew';
 import { VesselManagement } from './VesselManagement';
 
 /** Platform-owner-only tool for creating a new paying vessel and its first Admin. */
-export function ProvisionVesselPanel() {
+export function ProvisionVesselPanel({ menuTrigger = false }: { menuTrigger?: boolean }) {
   const [allowed, setAllowed] = useState(false);
   const [open, setOpen] = useState(false);
   const [vesselName, setVesselName] = useState('');
@@ -48,7 +48,7 @@ export function ProvisionVesselPanel() {
   };
 
   return <>
-    <Button variant="ghost" size="icon" aria-label="Manage vessels" title="Manage vessels" className="text-primary-foreground" onClick={() => { reset(); setOpen(true); }}><Ship /></Button>
+    <Button variant="ghost" size={menuTrigger ? 'default' : 'icon'} aria-label="Manage vessels" title="Manage vessels" className={menuTrigger ? 'h-12 w-full justify-start gap-3 px-3' : 'text-primary-foreground'} onClick={() => { reset(); setOpen(true); }}><Ship className="h-5 w-5" />{menuTrigger && 'Manage vessels'}</Button>
     <Dialog open={open} onOpenChange={v => { if (!busy) setOpen(v); }}>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Vessels</DialogTitle></DialogHeader>

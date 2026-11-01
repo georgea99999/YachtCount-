@@ -225,7 +225,7 @@ const StockItemRow = ({
             value={item.quantity}
             onChange={(e) => onUpdateQuantityDirect(item.id, parseInt(e.target.value) || 0)}
             title={low ? `At or below minimum stock (${minQuantity})` : undefined}
-            className={cn("w-12 h-7 text-center px-1 text-sm", low && "border-warning bg-warning/10 font-semibold text-warning")}
+            className="w-12 h-7 text-center px-1 text-sm"
             min={0}
           />
           <Button

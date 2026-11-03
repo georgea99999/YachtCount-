@@ -195,6 +195,14 @@ const StockItemRow = ({
             <p className="font-medium text-sm text-foreground break-words line-clamp-2">
               {item.name}
             </p>
+            {item.quantity === 0 && (
+              <span
+                title="Out of stock"
+                className="flex-shrink-0 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold leading-none text-destructive-foreground"
+              >
+                OUT
+              </span>
+            )}
             {showBox && item.box && (
               <span className="flex-shrink-0 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {item.box}

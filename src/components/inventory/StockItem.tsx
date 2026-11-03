@@ -148,13 +148,13 @@ const StockItemRow = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "inventory-row border-b border-border border-l-2 last:border-b-0 bg-card",
-        low ? "border-l-warning" : "border-l-transparent",
+        "inventory-row relative border-b border-border border-l-2 border-l-transparent last:border-b-0 bg-card",
+        low && "before:absolute before:-left-0.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-warning before:pointer-events-none before:content-['']",
         item.quantity === 0 && !isDragging && "opacity-50",
         isDragging && "shadow-xl ring-2 ring-primary/30 rounded-md"
       )}
     >
-      <div className="flex items-center gap-2 px-3 py-4">
+      <div className="flex items-center gap-2 px-3 py-3">
         {/* Drag Handle */}
         {isDragEnabled && (
           <button

@@ -149,7 +149,8 @@ const StockItemRow = ({
       style={style}
       className={cn(
         "inventory-row relative border-b border-border border-l-2 border-l-transparent last:border-b-0 bg-card",
-        low && "before:absolute before:-left-0.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-warning before:pointer-events-none before:content-['']",
+        (low || item.quantity === 0) && "before:absolute before:-left-0.5 before:top-2 before:bottom-2 before:w-0.5 before:pointer-events-none before:content-['']",
+        item.quantity === 0 ? "before:bg-destructive" : low && "before:bg-warning",
         item.quantity === 0 && !isDragging && "opacity-50",
         isDragging && "shadow-xl ring-2 ring-primary/30 rounded-md"
       )}

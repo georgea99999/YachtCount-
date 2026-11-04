@@ -19,15 +19,15 @@ function openItem(minQuantity?: number) {
     item={{ id: 'stock-1', name: 'Deck brush', box: 'Locker', quantity: 5, minQuantity }}
     onUpdateQuantity={vi.fn()} onUpdateQuantityDirect={vi.fn()} onDelete={vi.fn()}
   />);
-  fireEvent.click(screen.getByText('Deck brush'));
+  fireEvent.click(screen.getByRole('button', { name: 'History for Deck brush' }));
   return screen.getByLabelText('Minimum stock alert');
 }
 
 describe('minimum stock input', () => {
   it('loads the saved threshold before focus and after reopening details', () => {
     expect(openItem(3)).toHaveValue(3);
-    fireEvent.click(screen.getByText('Deck brush'));
-    fireEvent.click(screen.getByText('Deck brush'));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    fireEvent.click(screen.getByRole('button', { name: 'History for Deck brush' }));
     expect(screen.getByLabelText('Minimum stock alert')).toHaveValue(3);
     expect(update).not.toHaveBeenCalled();
   });

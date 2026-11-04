@@ -17,6 +17,7 @@ import { isLowStock } from '@/lib/lowStock';
 import { toast } from 'sonner';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import MobileSwipeActions from './MobileSwipeActions';
 
 interface StockItemProps {
   item: StockItemType;
@@ -147,14 +148,22 @@ const StockItemRow = ({
     <div 
       ref={setNodeRef}
       style={style}
-      className={cn(
-        "inventory-row relative border-b border-border border-l-2 border-l-transparent last:border-b-0 bg-card",
+      className="border-b border-border last:border-b-0"
+    >
+      <MobileSwipeActions
+        itemName={item.name}
+        canDelete={canDelete}
+        disabled={isDragEnabled}
+        onEdit={handleStartEdit}
+        onDelete={() => onDelete(item.id)}
+        className={cn(
+        "inventory-row relative border-l-2 border-l-transparent bg-card",
         (low || item.quantity === 0) && "before:absolute before:-left-0.5 before:top-2 before:bottom-2 before:w-0.5 before:pointer-events-none before:content-['']",
         item.quantity === 0 ? "before:bg-destructive" : low && "before:bg-warning",
         item.quantity === 0 && !isDragging && "opacity-50",
         isDragging && "shadow-xl ring-2 ring-primary/30 rounded-md"
       )}
-    >
+      >
       <div className="flex items-center gap-2 px-3 py-3">
         {/* Drag Handle */}
         {isDragEnabled && (
@@ -180,7 +189,7 @@ const StockItemRow = ({
         <Button variant="ghost" size="icon"
           aria-label={`Edit ${item.name}`}
           onClick={handleStartEdit}
-          className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-muted-foreground/20 transition-colors"
+           className="hidden md:flex w-8 h-8 bg-muted rounded-lg items-center justify-center flex-shrink-0 hover:bg-muted-foreground/20 transition-colors"
           title="Edit item"
         >
           <Package className="w-4 h-4 text-muted-foreground" />
@@ -256,7 +265,7 @@ const StockItemRow = ({
           aria-label={`Delete ${item.name}`}
           variant="ghost"
           size="icon"
-          className="h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0"
+          className="hidden md:flex h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0"
           onClick={() => onDelete(item.id)}
         >
           <Trash2 className="h-4 w-4" />
@@ -315,6 +324,7 @@ const StockItemRow = ({
           </div>
         </div>
       )}
+      </MobileSwipeActions>
     </div>
   );
 };

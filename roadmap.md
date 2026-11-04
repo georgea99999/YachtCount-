@@ -1,3 +1,4 @@
+- [x] Add mobile inventory swipe-to-reveal Edit/Delete; verified touch gestures, edit/cancel, vertical scrolling and unchanged desktop controls.
 - [x] Group mobile account controls under Profile; verified signed-in crew and vessel dialogs, theme switching, 320px phone fit and unchanged desktop controls.
 - [x] Add safe admin-only empty box removal in Add Item; verified creation, confirmed deletion, and removal from box choices while signed in, with regression tests passing.
 - [x] Support full-name admin and crew usernames with admin-led vessel setup and shared-password crew creation.

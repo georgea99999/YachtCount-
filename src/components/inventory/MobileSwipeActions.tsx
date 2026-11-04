@@ -89,8 +89,10 @@ export default function MobileSwipeActions({ children, className, itemName, disa
         style={enabled ? { transform: `translateX(${offset}px)` } : undefined}
         onPointerDown={start} onPointerMove={move} onPointerUp={(event) => finish(event)} onPointerCancel={(event) => finish(event, true)}
         onClickCapture={(event) => {
-          if (moved.current || offset !== 0) {
-            event.preventDefault(); event.stopPropagation(); moved.current = false; close();
+          if (moved.current) {
+            event.preventDefault(); event.stopPropagation(); moved.current = false;
+          } else if (offset !== 0) {
+            event.preventDefault(); event.stopPropagation(); close();
           }
         }}>
         {children}

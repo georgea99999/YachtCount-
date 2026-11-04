@@ -15,7 +15,8 @@ function setup(canDelete = true) {
   const edit = vi.fn();
   const remove = vi.fn();
   const open = vi.fn();
-  render(<MobileSwipeActions itemName="Deck brush" canDelete={canDelete} onEdit={edit} onDelete={remove}>
+  const history = vi.fn();
+  render(<MobileSwipeActions itemName="Deck brush" canDelete={canDelete} onEdit={edit} onHistory={history} onDelete={remove}>
     <div onClick={open}>Deck brush</div>
   </MobileSwipeActions>);
   const title = screen.getByText('Deck brush');
@@ -28,7 +29,7 @@ function setup(canDelete = true) {
     fireEvent.pointerMove(surface, { clientX: 200 + x, clientY: 50 + y });
     fireEvent.pointerUp(surface);
   };
-  return { title, edit, remove, open, swipe };
+  return { title, edit, remove, open, history, swipe };
 }
 
 describe('mobile stock swipe actions', () => {
@@ -58,5 +59,15 @@ describe('mobile stock swipe actions', () => {
     const { swipe } = setup();
     swipe(-10, 80);
     expect(screen.queryByRole('button', { name: 'Edit Deck brush' })).not.toBeInTheDocument();
+  });
+
+  it('opens history through its callback and closes the swipe actions', () => {
+    const { swipe, history, edit, remove } = setup();
+    swipe(-150);
+    fireEvent.click(screen.getByRole('button', { name: 'History for Deck brush' }));
+    expect(history).toHaveBeenCalledTimes(1);
+    expect(edit).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'History for Deck brush' })).not.toBeInTheDocument();
   });
 });

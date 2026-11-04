@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { History, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -11,13 +11,14 @@ interface MobileSwipeActionsProps {
   disabled?: boolean;
   canDelete: boolean;
   onEdit: () => void;
+  onHistory: () => void;
   onDelete: () => void;
 }
 
-export default function MobileSwipeActions({ children, className, itemName, disabled, canDelete, onEdit, onDelete }: MobileSwipeActionsProps) {
+export default function MobileSwipeActions({ children, className, itemName, disabled, canDelete, onEdit, onHistory, onDelete }: MobileSwipeActionsProps) {
   const mobile = useIsMobile();
   const enabled = mobile && !disabled;
-  const width = canDelete ? 144 : 72;
+  const width = canDelete ? 192 : 128;
   const root = useRef<HTMLDivElement>(null);
   const gesture = useRef<{ x: number; y: number; offset: number; horizontal: boolean | null } | null>(null);
   const moved = useRef(false);
@@ -74,12 +75,17 @@ export default function MobileSwipeActions({ children, className, itemName, disa
       {enabled && (
         <div className={cn('absolute inset-y-0 right-0 flex', offset === 0 && 'invisible')} aria-hidden={offset === 0}>
           <Button variant="ghost" tabIndex={offset === 0 ? -1 : 0} aria-label={`Edit ${itemName}`} title="Edit item"
-            className="h-full w-[72px] flex-col gap-1 rounded-none bg-muted text-foreground hover:bg-muted/80"
+            className="h-full w-16 flex-col gap-1 rounded-none bg-muted text-foreground hover:bg-muted/80"
             onClick={() => { close(); onEdit(); }}>
             <Pencil className="h-5 w-5" /><span className="text-xs">Edit</span>
           </Button>
+          <Button tabIndex={offset === 0 ? -1 : 0} aria-label={`History for ${itemName}`} title="Stock history and minimum alert"
+            className="h-full w-16 flex-col gap-1 rounded-none"
+            onClick={() => { close(); onHistory(); }}>
+            <History className="h-5 w-5" /><span className="text-xs">History</span>
+          </Button>
           {canDelete && <Button variant="destructive" tabIndex={offset === 0 ? -1 : 0} aria-label={`Delete ${itemName}`} title="Delete item"
-            className="h-full w-[72px] flex-col gap-1 rounded-none"
+            className="h-full w-16 flex-col gap-1 rounded-none"
             onClick={() => { close(); onDelete(); }}>
             <Trash2 className="h-5 w-5" /><span className="text-xs">Delete</span>
           </Button>}

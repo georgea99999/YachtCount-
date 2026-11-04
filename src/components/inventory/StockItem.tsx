@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Minus, Plus, Trash2, Package, ChevronDown, ChevronUp, Check, X, GripVertical } from 'lucide-react';
+import { Minus, Plus, Trash2, Package, History, Check, X, GripVertical } from 'lucide-react';
 import { StockItem as StockItemType, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import MobileSwipeActions from './MobileSwipeActions';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 interface StockItemProps {
   item: StockItemType;
@@ -48,11 +49,10 @@ const StockItemRow = ({
   allBoxNames = [],
   showBox = false,
 }: StockItemProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
   const [editBox, setEditBox] = useState(item.box);
-  const isLongName = item.name.length > 20;
   const [minOverride, setMinOverride] = useState<number | undefined | null>(null);
   const minQuantity = minOverride === null ? item.minQuantity : minOverride;
   const [minDraft, setMinDraft] = useState<string | null>(null);
@@ -155,6 +155,7 @@ const StockItemRow = ({
         canDelete={canDelete}
         disabled={isDragEnabled}
         onEdit={handleStartEdit}
+        onHistory={() => setHistoryOpen(true)}
         onDelete={() => onDelete(item.id)}
         className={cn(
         "inventory-row relative border-l-2 border-l-transparent bg-card",
@@ -197,8 +198,7 @@ const StockItemRow = ({
         
         {/* Name & Box */}
         <div 
-          className="flex-1 min-w-0 cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1"
-          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex-1 min-w-0 px-1 -mx-1"
         >
           <div className="flex items-center gap-1 flex-wrap">
             <p className="font-medium text-sm text-foreground break-words line-clamp-2">
@@ -217,13 +217,6 @@ const StockItemRow = ({
                 {item.box}
               </span>
             )}
-            <Button title={isExpanded ? "Hide quantity changes" : "Show quantity changes"} aria-label={isExpanded ? "Hide quantity changes" : "Show quantity changes"} variant="ghost" size="icon" className="h-4 w-4 flex-shrink-0 p-0">
-              {isExpanded ? (
-                <ChevronUp className="h-3 w-3 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-3 w-3 text-muted-foreground" />
-              )}
-            </Button>
           </div>
         </div>
         
@@ -259,6 +252,11 @@ const StockItemRow = ({
           </Button>
         </div>
 
+        <Button title="Stock history and minimum alert" aria-label={`History for ${item.name}`} variant="ghost" size="icon"
+          className="hidden md:flex h-7 w-7 text-muted-foreground flex-shrink-0" onClick={() => setHistoryOpen(true)}>
+          <History className="h-4 w-4" />
+        </Button>
+
         {/* Delete */}
         {canDelete && <Button
           title="Delete item"
@@ -272,16 +270,14 @@ const StockItemRow = ({
         </Button>}
       </div>
       
-      {/* Expanded details */}
-      {isExpanded && (
-        <div className="px-3 pb-3 pt-0 space-y-2">
-          {isLongName && (
-            <div className="bg-muted/50 rounded-md p-2 text-sm">
-              <span className="text-muted-foreground text-xs">Full name: </span>
-              {item.name}
-            </div>
-          )}
-          <div className="bg-muted/50 rounded-md p-2 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+      </MobileSwipeActions>
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent side="bottom" className="mx-auto max-h-[85dvh] max-w-2xl overflow-y-auto rounded-t-lg px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] motion-reduce:transition-none">
+          <SheetHeader className="pr-6 text-left">
+            <SheetTitle className="break-words">{item.name}</SheetTitle>
+            <SheetDescription className="break-words">{item.box} · Stock history</SheetDescription>
+          </SheetHeader>
+          <div className="mt-5 border-y border-border py-4 flex items-center justify-between gap-3">
             <label htmlFor={`min-${item.id}`} className="text-xs font-medium text-muted-foreground">Minimum stock alert</label>
             <Input
               id={`min-${item.id}`}
@@ -297,21 +293,21 @@ const StockItemRow = ({
               title="Alert when quantity is at or below this number (leave blank for no alert)"
             />
           </div>
-          <div className="bg-muted/50 rounded-md p-2">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Quantity Changes</p>
+          <div className="pt-5">
+            <p className="text-sm font-semibold text-foreground mb-3">Quantity Changes</p>
             {itemHistory.length > 0 ? (
-              <div className="space-y-1 max-h-32 overflow-auto">
-                {itemHistory.slice(0, 10).map((entry, idx) => (
-                  <div key={idx} className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">
+              <div className="divide-y divide-border">
+                {itemHistory.map((entry, idx) => (
+                  <div key={idx} className="flex items-start justify-between gap-4 py-3 text-sm">
+                    <span className="min-w-0 break-words text-muted-foreground">
                       {new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                       {entry.actorUsername && <span className="ml-2 font-medium">{entry.actorUsername}</span>}
                       {' '}
                       {new Date(entry.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <span className={cn(
-                      "font-medium",
-                      entry.quantity > 0 ? "text-destructive" : "text-green-600 dark:text-green-400"
+                      "flex-shrink-0 font-semibold",
+                      entry.quantity > 0 ? "text-destructive" : "text-success"
                     )}>
                       {entry.quantity > 0 ? `-${entry.quantity}` : `+${Math.abs(entry.quantity)}`}
                     </span>
@@ -322,9 +318,8 @@ const StockItemRow = ({
               <p className="text-xs text-muted-foreground italic">No changes recorded</p>
             )}
           </div>
-        </div>
-      )}
-      </MobileSwipeActions>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

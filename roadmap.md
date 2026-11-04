@@ -1,4 +1,5 @@
-- [x] Add mobile inventory swipe-to-reveal Edit/Delete; verified touch gestures, edit/cancel, vertical scrolling and unchanged desktop controls.
+- [x] Add 64px Edit/History/Delete stock swipe tiles and a bottom history drawer; remove the product chevron; swipe and minimum-stock tests pass.
+- [ ] Verify the stock History drawer on phone and desktop while signed in — blocked by the preview session returning to Sign In and no automatically mintable account.
 - [x] Group mobile account controls under Profile; verified signed-in crew and vessel dialogs, theme switching, 320px phone fit and unchanged desktop controls.
 - [x] Add safe admin-only empty box removal in Add Item; verified creation, confirmed deletion, and removal from box choices while signed in, with regression tests passing.
 - [x] Support full-name admin and crew usernames with admin-led vessel setup and shared-password crew creation.

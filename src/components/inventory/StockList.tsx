@@ -1,12 +1,14 @@
 import { isLowStock } from '@/lib/lowStock';
-import { useState, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Download, FileSpreadsheet, Package, GripVertical, Layers, BellRing, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ArrowUpDown, Download, FileSpreadsheet, Package, Layers, BellRing, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import StockTakeMode from './StockTakeMode';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { InventoryImportItem } from '@/lib/inventoryImport';
 import { InventorySort, sortInventoryItems, sortBoxNames } from '@/lib/inventorySort';
 import ImportInventoryDialog from './ImportInventoryDialog';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
 import {
   Select,
   SelectContent,
@@ -23,24 +25,6 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import StockItemRow from './StockItem';
 import SendToDeckOrderDialog from './SendToDeckOrderDialog';
-import SortableBoxHeader from './SortableBoxHeader';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 
 interface StockListProps {
   items: StockItem[];

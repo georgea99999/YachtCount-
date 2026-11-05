@@ -41,8 +41,6 @@ interface StockListProps {
   totalQuantity: number;
   onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
   usageHistory?: UsageEntry[];
-  onReorderItems?: (items: StockItem[]) => void;
-  onRenameBox?: (oldName: string, newName: string) => void;
   onImportItems: (items: InventoryImportItem[]) => Promise<boolean>;
 }
 
@@ -63,8 +61,6 @@ const StockList = ({
   totalQuantity,
   onSendToDeckOrder,
   usageHistory = [],
-  onReorderItems,
-  onRenameBox,
   onImportItems,
 }: StockListProps) => {
   const [importOpen, setImportOpen] = useState(false);
@@ -72,8 +68,6 @@ const StockList = ({
   const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('default');
-  const [isReorderMode, setIsReorderMode] = useState(false);
-  const [reorderBoxes, setReorderBoxes] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [outOfStockOnly, setOutOfStockOnly] = useState(false);
   const [lowStockOnly, setLowStockOnly] = useState(false);

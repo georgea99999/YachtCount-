@@ -8,8 +8,6 @@ import { InventorySort, sortInventoryItems, sortBoxNames } from '@/lib/inventory
 import ImportInventoryDialog from './ImportInventoryDialog';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-import {
   Select,
   SelectContent,
   SelectItem,

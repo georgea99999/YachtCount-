@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X, Table2, Trash2 } from 'lucide-react';
+import { Plus, X, Table2, Trash2, Pencil, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,9 +28,10 @@ interface FloatingAddButtonProps {
   onAddCustomBox: (boxName: string) => void;
   canDeleteBoxes: boolean;
   onDeleteBox: (boxName: string) => Promise<{ error: string | null }>;
+  onRenameBox?: (oldName: string, newName: string) => void;
 }
 
-const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, onAddCustomBox, canDeleteBoxes, onDeleteBox }: FloatingAddButtonProps) => {
+const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, onAddCustomBox, canDeleteBoxes, onDeleteBox, onRenameBox }: FloatingAddButtonProps) => {
   const [showForm, setShowForm] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [newItemName, setNewItemName] = useState('');
@@ -41,6 +42,8 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
   const [showManageBoxes, setShowManageBoxes] = useState(false);
   const [boxToDelete, setBoxToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [boxToRename, setBoxToRename] = useState<string | null>(null);
+  const [boxRenameValue, setBoxRenameValue] = useState('');
 
   const allBoxOptions = Array.from(new Set([...existingBoxes, ...customBoxes])).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
@@ -58,6 +61,17 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleRenameBox = () => {
+    const oldName = boxToRename;
+    const next = boxRenameValue.trim();
+    if (oldName && next && next !== oldName && onRenameBox) {
+      onRenameBox(oldName, next);
+      if (newItemBox === oldName) setNewItemBox(next);
+      toast.success(`Renamed "${oldName}" to "${next}"`);
+    }
+    setBoxToRename(null);
   };
 
   const handleAddItem = () => {
@@ -180,9 +194,32 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
             {allBoxOptions.length === 0 && <p className="py-4 text-muted-foreground">No boxes</p>}
             {allBoxOptions.map(box => {
               const hasStock = existingBoxes.includes(box);
+              const isRenaming = boxToRename === box;
               return <div key={box} className="flex items-center gap-3 py-3">
-                <div className="min-w-0 flex-1"><p className="break-words font-medium">{box}</p><p className="text-xs text-muted-foreground">{hasStock ? 'Move items to another box first' : 'Empty box'}</p></div>
-                <Button variant="ghost" size="icon" disabled={hasStock} title={hasStock ? 'Move items out before deleting' : `Delete ${box}`} aria-label={`Delete ${box}`} onClick={() => setBoxToDelete(box)} className="shrink-0 text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                {isRenaming ? (
+                  <>
+                    <Input
+                      value={boxRenameValue}
+                      onChange={(e) => setBoxRenameValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleRenameBox();
+                        if (e.key === 'Escape') setBoxToRename(null);
+                      }}
+                      className="h-8 flex-1"
+                      autoFocus
+                    />
+                    <Button variant="ghost" size="icon" title="Save box name" aria-label="Save box name" onClick={handleRenameBox} className="shrink-0 text-primary hover:text-primary/80"><Check className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" title="Cancel box rename" aria-label="Cancel box rename" onClick={() => setBoxToRename(null)} className="shrink-0 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="min-w-0 flex-1"><p className="break-words font-medium">{box}</p><p className="text-xs text-muted-foreground">{hasStock ? 'Move items to another box first' : 'Empty box'}</p></div>
+                    {onRenameBox && (
+                      <Button variant="ghost" size="icon" title={`Rename ${box}`} aria-label={`Rename ${box}`} onClick={() => { setBoxToRename(box); setBoxRenameValue(box); }} className="shrink-0 text-muted-foreground hover:text-foreground"><Pencil className="h-4 w-4" /></Button>
+                    )}
+                    <Button variant="ghost" size="icon" disabled={hasStock} title={hasStock ? 'Move items out before deleting' : `Delete ${box}`} aria-label={`Delete ${box}`} onClick={() => setBoxToDelete(box)} className="shrink-0 text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                  </>
+                )}
               </div>;
             })}
           </div>

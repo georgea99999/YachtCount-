@@ -487,22 +487,6 @@ const StockList = ({
             ))
           )}
 
-          <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
-            {activeDragId && reorderBoxes ? (
-              <div className="px-4 py-3 bg-primary text-primary-foreground rounded-md shadow-xl text-sm font-semibold">
-                {activeDragId}
-              </div>
-            ) : activeDragItem ? (
-              <div className="bg-card shadow-xl ring-2 ring-primary/30 rounded-md opacity-90 px-3 py-3">
-                <div className="flex items-center gap-2">
-                  <GripVertical className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium text-sm text-foreground">{activeDragItem.name}</span>
-                  <span className="ml-auto text-sm text-muted-foreground">{activeDragItem.quantity}</span>
-                </div>
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
       </div>
       </div>
 

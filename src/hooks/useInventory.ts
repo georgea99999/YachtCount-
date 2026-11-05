@@ -445,21 +445,6 @@ export function useInventory(vesselId?: string) {
     addNotification('updated', oldName, `Renamed "${oldName}" to "${newName}"`);
   }, [customBoxes, addNotification]);
 
-  // Reorder stock items
-  const reorderStockItems = useCallback(async (reorderedItems: StockItem[]) => {
-    setStockItems(reorderedItems);
-    
-    // Update sort_order in DB for all items
-    const updates = reorderedItems.map((item, index) => 
-      supabase
-        .from('stock_items')
-        .update({ sort_order: index })
-        .eq('id', item.id)
-    );
-    
-    await Promise.all(updates);
-  }, []);
-
   // Restore a deleted item from notification data
   const restoreFromNotification = useCallback(async (notificationId: number) => {
     const notif = notifications.find(n => n.id === notificationId);
@@ -533,7 +518,6 @@ export function useInventory(vesselId?: string) {
     clearNotifications,
     addCustomBox,
     deleteBox,
-    reorderStockItems,
     renameBox,
     restoreFromNotification,
     isLoading,

@@ -68,64 +68,8 @@ const StockList = ({
   const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('default');
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [outOfStockOnly, setOutOfStockOnly] = useState(false);
   const [lowStockOnly, setLowStockOnly] = useState(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 5 } }),
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveDragId(String(event.active.id));
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveDragId(null);
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    if (reorderBoxes) {
-      // Reorder entire box sections
-      const boxOrder = sortedBoxEntries.map(([box]) => box);
-      const oldIdx = boxOrder.indexOf(String(active.id));
-      const newIdx = boxOrder.indexOf(String(over.id));
-      if (oldIdx === -1 || newIdx === -1) return;
-
-      const newBoxOrder = [...boxOrder];
-      const [moved] = newBoxOrder.splice(oldIdx, 1);
-      newBoxOrder.splice(newIdx, 0, moved);
-
-      // Rebuild allItems in new box order
-      const reordered: StockItem[] = [];
-      newBoxOrder.forEach(box => {
-        reordered.push(...allItems.filter(i => i.box === box));
-      });
-      // Add items from boxes not in the current view
-      allItems.forEach(i => {
-        if (!reordered.find(r => r.id === i.id)) reordered.push(i);
-      });
-      onReorderItems?.(reordered);
-      return;
-    }
-
-    // Item reorder within box
-    const activeItem = allItems.find(i => i.id === active.id);
-    const overItem = allItems.find(i => i.id === over.id);
-    if (!activeItem || !overItem || activeItem.box !== overItem.box) return;
-
-    const reordered = [...allItems];
-    const oldIndex = reordered.findIndex(i => i.id === active.id);
-    const newIndex = reordered.findIndex(i => i.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const [movedItem] = reordered.splice(oldIndex, 1);
-    reordered.splice(newIndex, 0, movedItem);
-    onReorderItems?.(reordered);
-  };
-
-  const activeDragItem = activeDragId ? allItems.find(i => i.id === activeDragId) : null;
 
   const handleExportPDF = () => {
     if (items.length === 0) {
@@ -256,7 +200,7 @@ const StockList = ({
     : items;
 
   // Sort items based on selected option
-  const sortedItems = sortInventoryItems(visibleItems, sortOption, isReorderMode);
+  const sortedItems = sortInventoryItems(visibleItems, sortOption);
 
   // Group items by box
   const groupedItems = sortedItems.reduce((acc, item) => {
@@ -281,13 +225,13 @@ const StockList = ({
   // Box chips and the item edit dropdown list alphabetically
   const allBoxNames = useMemo(() => sortBoxNames(boxNamesInDataOrder), [boxNamesInDataOrder]);
 
-  // Box sections list alphabetically; the crew's manual order only applies while dragging whole boxes
+  // Box sections list alphabetically
   const sortedBoxEntries = useMemo(() => {
     const byBox = new Map(Object.entries(groupedItems));
-    return sortBoxNames(boxNamesInDataOrder, isReorderMode && reorderBoxes)
+    return sortBoxNames(boxNamesInDataOrder)
       .filter(box => byBox.has(box))
       .map(box => [box, byBox.get(box)!] as [string, StockItem[]]);
-  }, [groupedItems, boxNamesInDataOrder, isReorderMode, reorderBoxes]);
+  }, [groupedItems, boxNamesInDataOrder]);
 
   const outOfStock = allItems.filter(i => i.quantity <= 0).length;
   const lowStock = allItems.filter(isLowStock).length;
@@ -414,31 +358,6 @@ const StockList = ({
 
         <Button
           variant={isReorderMode ? "default" : "outline"}
-          size="sm"
-          className="gap-1"
-          onClick={() => {
-            if (isReorderMode) {
-              setIsReorderMode(false);
-              setReorderBoxes(false);
-            } else {
-              setIsReorderMode(true);
-            }
-          }}
-        >
-          <GripVertical className="h-4 w-4" />
-          {isReorderMode ? 'Done' : 'Reorder'}
-        </Button>
-
-        {isReorderMode && (
-          <Button
-            variant={reorderBoxes ? "default" : "outline"}
-            size="sm"
-            className="gap-1 text-xs"
-            onClick={() => setReorderBoxes(!reorderBoxes)}
-          >
-            {reorderBoxes ? 'Items' : 'Boxes'}
-          </Button>
-        )}
         <div className="flex-1" />
         <Button size="sm" className="gap-1" onClick={() => setStockTakeOpen(true)} title="Start a guided stock take">
           <ClipboardCheck className="h-4 w-4" /><span>Count</span>

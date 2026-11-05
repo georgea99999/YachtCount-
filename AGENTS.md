@@ -2,7 +2,7 @@
 - Keep mobile stock-row swipe actions in a dedicated wrapper using scroll-safe pointer gestures and existing edit/history/delete callbacks; open history and minimum-stock settings in the shared bottom sheet so desktop controls and server-enforced permissions remain intact.
 - Reuse the crew and vessel dialogs with menu-style triggers in the mobile profile popover; desktop icon triggers stay separate so permissions and management actions remain consistent.
 - Parse inventory CSV files with Papa Parse and validate all rows before saving through the existing inventory hook; this handles quoted fields without partial invalid imports.
-- Keep inventory sorting in a shared pure utility used by the inventory view; this makes the default alphabetical order testable while preserving manual reorder mode.
+- Keep inventory sorting in a shared pure utility used by the inventory view; this makes the default alphabetical order testable. There is no manual drag-reorder mode (removed Nov 2026 — Sort menu owns ordering).
 - Authenticate each crew username as a separate account and derive vessel access and actor attribution on the server; client-selected identities must never grant access or overwrite audit authors.
 - Store inventory, To Do and Deck Order in vessel-scoped cloud tables, with subscriptions cleaned up on unmount; this keeps crew devices consistent without cross-vessel browser-cache leakage.
 - Create crew accounts through the authenticated crew-access function with owner checks; synthetic login emails avoid requiring crew personal email addresses.

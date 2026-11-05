@@ -356,8 +356,6 @@ const StockList = ({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button
-          variant={isReorderMode ? "default" : "outline"}
         <div className="flex-1" />
         <Button size="sm" className="gap-1" onClick={() => setStockTakeOpen(true)} title="Start a guided stock take">
           <ClipboardCheck className="h-4 w-4" /><span>Count</span>

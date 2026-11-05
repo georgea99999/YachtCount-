@@ -397,40 +397,6 @@ const StockList = ({
                 </Button>
               )}
             </div>
-          ) : isReorderMode && reorderBoxes ? (
-            // Box reorder mode
-            <SortableContext items={sortedBoxEntries.map(([box]) => box)} strategy={verticalListSortingStrategy}>
-              {sortedBoxEntries.map(([box, boxItems]) => (
-                <SortableBoxHeader key={box} id={box} boxName={box} itemCount={boxItems.length} onRenameBox={onRenameBox} />
-              ))}
-            </SortableContext>
-          ) : isReorderMode ? (
-            // Item reorder mode within boxes
-            sortedBoxEntries.map(([box, boxItems]) => (
-              <div key={box} className="mt-4 first:mt-0">
-                <div className="sticky top-0 z-10 flex items-center gap-2 border-y border-border bg-secondary px-3 py-2.5">
-                  <span aria-hidden="true" className="h-4 w-1 shrink-0 rounded-full bg-accent" />
-                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-foreground">{box}</span>
-                </div>
-                <SortableContext items={boxItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                  {boxItems.map(item => (
-                    <StockItemRow
-                      key={item.id}
-                      item={item}
-                      onUpdateQuantity={onUpdateQuantity}
-                      onUpdateQuantityDirect={onUpdateQuantityDirect}
-                      onDelete={onDelete}
-                      canDelete={canDelete}
-                      onEditItem={onEditItem}
-                      onSelect={handleSelectForOrder}
-                      usageHistory={usageHistory}
-                      isDragEnabled
-                      allBoxNames={allBoxNames}
-                    />
-                  ))}
-                </SortableContext>
-              </div>
-            ))
           ) : selectedBox && selectedBox !== 'all' ? (
             sortedItems.map(item => (
               <StockItemRow

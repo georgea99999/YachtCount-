@@ -62,7 +62,6 @@ const Index = ({ onLogout }: IndexProps) => {
     getMonthlyUsage,
     clearNotifications,
     addCustomBox,
-    reorderStockItems,
     renameBox,
     deleteBox,
     restoreFromNotification,
@@ -136,8 +135,6 @@ const Index = ({ onLogout }: IndexProps) => {
                 totalQuantity={totalQuantity}
                 onSendToDeckOrder={handleSendToDeckOrder}
                 usageHistory={usageHistory}
-                onReorderItems={reorderStockItems}
-                onRenameBox={renameBox}
                 onImportItems={addStockItems}
               />
             )}
@@ -175,6 +172,7 @@ const Index = ({ onLogout }: IndexProps) => {
           onAddCustomBox={addCustomBox}
           canDeleteBoxes={crew.owner}
           onDeleteBox={deleteBox}
+          onRenameBox={renameBox}
         />
       )}
 

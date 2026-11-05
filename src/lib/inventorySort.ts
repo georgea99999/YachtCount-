@@ -2,8 +2,7 @@ import { StockItem } from '@/types/inventory';
 
 export type InventorySort = 'default' | 'name-asc' | 'name-desc' | 'qty-asc' | 'qty-desc';
 
-export function sortInventoryItems(items: StockItem[], sort: InventorySort = 'default', manual = false) {
-  if (manual) return [...items];
+export function sortInventoryItems(items: StockItem[], sort: InventorySort = 'default') {
   const compareName = (a: StockItem, b: StockItem) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base', numeric: true });
   return [...items].sort((a, b) => {
     if (sort === 'name-desc') return compareName(b, a);
@@ -13,7 +12,6 @@ export function sortInventoryItems(items: StockItem[], sort: InventorySort = 'de
   });
 }
 
-export function sortBoxNames(boxes: string[], manual = false): string[] {
-  if (manual) return [...boxes];
+export function sortBoxNames(boxes: string[]): string[] {
   return [...boxes].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base', numeric: true }));
 }

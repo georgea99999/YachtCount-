@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Minus, Plus, Trash2, Package, History, Check, X, GripVertical } from 'lucide-react';
+import { Minus, Plus, Trash2, Package, History, Check, X } from 'lucide-react';
 import { StockItem as StockItemType, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,6 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { isLowStock } from '@/lib/lowStock';
 import { toast } from 'sonner';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import MobileSwipeActions from './MobileSwipeActions';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
@@ -30,7 +28,6 @@ interface StockItemProps {
   isSelected?: boolean;
   onSelect?: (id: string) => void;
   usageHistory?: UsageEntry[];
-  isDragEnabled?: boolean;
   allBoxNames?: string[];
   showBox?: boolean;
 }
@@ -45,7 +42,6 @@ const StockItemRow = ({
   isSelected,
   onSelect,
   usageHistory = [],
-  isDragEnabled = false,
   allBoxNames = [],
   showBox = false,
 }: StockItemProps) => {
@@ -67,15 +63,6 @@ const StockItemRow = ({
     setMinOverride(value);
     setMinDraft(null);
   };
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id, disabled: !isDragEnabled });
 
   // Get usage history for this specific item
   const itemHistory = usageHistory.filter(
@@ -136,24 +123,13 @@ const StockItemRow = ({
     );
   }
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition: transition ?? 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1)',
-    opacity: isDragging ? 0.6 : 1,
-    position: isDragging ? 'relative' as const : undefined,
-    zIndex: isDragging ? 50 : undefined,
-  };
-
   return (
-    <div 
-      ref={setNodeRef}
-      style={style}
+    <div
       className="border-b border-border last:border-b-0"
     >
       <MobileSwipeActions
         itemName={item.name}
         canDelete={canDelete}
-        disabled={isDragEnabled}
         onEdit={handleStartEdit}
         onHistory={() => setHistoryOpen(true)}
         onDelete={() => onDelete(item.id)}
@@ -161,22 +137,10 @@ const StockItemRow = ({
         "inventory-row relative border-l-2 border-l-transparent bg-card",
         (low || item.quantity === 0) && "before:absolute before:-left-0.5 before:top-2 before:bottom-2 before:w-0.5 before:pointer-events-none before:content-['']",
         item.quantity === 0 ? "before:bg-destructive" : low && "before:bg-warning",
-        item.quantity === 0 && !isDragging && "opacity-50",
-        isDragging && "shadow-xl ring-2 ring-primary/30 rounded-md"
+        item.quantity === 0 && "opacity-50"
       )}
       >
       <div className="flex items-center gap-2 px-3 py-3">
-        {/* Drag Handle */}
-        {isDragEnabled && (
-          <button
-            {...attributes}
-            {...listeners}
-            className="touch-none w-6 h-8 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground"
-          >
-            <GripVertical className="w-4 h-4" />
-          </button>
-        )}
-        
         {/* Checkbox */}
         <Checkbox 
           checked={isSelected}

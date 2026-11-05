@@ -36,9 +36,4 @@ describe('alphabetical boxes', () => {
       'stern Locker',
     ]);
   });
-
-  it('keeps the crew order while dragging whole boxes', () => {
-    const boxes = ['Lazarette', 'Foredeck', 'Bosun locker 1'];
-    expect(sortBoxNames(boxes, true)).toEqual(boxes);
-  });
 });

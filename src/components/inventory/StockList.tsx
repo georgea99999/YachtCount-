@@ -380,13 +380,6 @@ const StockList = ({
 
       {/* Items List */}
       <div className="flex-1 overflow-auto bg-card">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          modifiers={[restrictToVerticalAxis]}
-        >
           {visibleItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
               <div className="mb-4 rounded-full bg-secondary p-4 text-primary dark:text-primary-foreground">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { StockItem, UsageEntry, Notification } from '@/types/inventory';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,6 +13,7 @@ export function useInventory(vesselId?: string) {
   const [usageHistory, setUsageHistory] = useState<UsageEntry[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [deletedItems, setDeletedItems] = useState<{ item: StockItem; index: number }[]>([]);
+  const pendingRestores = useRef(new Set<string>());
   const [customBoxes, setCustomBoxes] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBox, setSelectedBox] = useState<string>('');
@@ -317,53 +318,98 @@ export function useInventory(vesselId?: string) {
 
     setDeletedItems([{ item: deletedItem, index: itemIndex }]);
     addNotification('deleted', deletedItem.name, `Removed "${deletedItem.name}" from ${deletedItem.box}`, {
+      itemId: deletedItem.id,
       name: deletedItem.name,
       quantity: deletedItem.quantity,
       box: deletedItem.box,
+      minQuantity: deletedItem.minQuantity,
       originalIndex: itemIndex,
     });
     setStockItems(prev => prev.filter(i => i.id !== id));
   }, [stockItems, addNotification]);
 
+  // Restore through one shared, single-flight path. Reusing the original id makes a
+  // repeated restore harmless and keeps future edits/deletes tied to the same row.
+  const restoreStockItem = useCallback(async (
+    item: Omit<StockItem, 'id'> & { id?: string },
+    originalIndex: number,
+    notificationId?: number,
+  ) => {
+    const restoreKey = item.id ?? `legacy-notification:${notificationId}`;
+    if (pendingRestores.current.has(restoreKey)) return;
+    pendingRestores.current.add(restoreKey);
+
+    try {
+      const userId = await getUserId();
+      const { data, error } = await supabase
+        .from('stock_items')
+        .insert({
+          ...(item.id ? { id: item.id } : {}),
+          name: item.name,
+          quantity: item.quantity,
+          box: item.box,
+          min_quantity: item.minQuantity ?? null,
+          sort_order: originalIndex,
+          user_id: userId,
+        })
+        .select()
+        .single();
+
+      // Another restore may have reinserted this original id already. That is a
+      // successful recovery, not a reason to create a second product.
+      const alreadyRestored = error?.code === '23505' && Boolean(item.id);
+      if (error && !alreadyRestored) {
+        console.error('Error restoring item:', error);
+        return;
+      }
+
+      if (data) {
+        setStockItems(prev => {
+          if (prev.some(existing => existing.id === data.id)) return prev;
+          const updated = [...prev];
+          const insertIndex = Math.min(originalIndex, updated.length);
+          updated.splice(insertIndex, 0, {
+            id: data.id,
+            name: data.name,
+            quantity: data.quantity,
+            box: data.box,
+            minQuantity: data.min_quantity ?? undefined,
+          });
+          return updated;
+        });
+      }
+
+      if (item.id) {
+        setDeletedItems(prev => prev.filter(entry => entry.item.id !== item.id));
+      } else {
+        setDeletedItems([]);
+      }
+
+      // Consume every deletion notice for this product, including the notice
+      // left behind by the corner Undo button.
+      setNotifications(prev => {
+        const updated = prev.filter(notification =>
+          notification.id !== notificationId &&
+          (!item.id || notification.deletedItemData?.itemId !== item.id)
+        );
+        saveNotifications(updated);
+        return updated;
+      });
+
+      if (data && notificationId !== undefined) {
+        addNotification('added', item.name, `Restored "${item.name}" to ${item.box}`);
+      }
+    } finally {
+      pendingRestores.current.delete(restoreKey);
+    }
+  }, [addNotification, saveNotifications]);
+
   // Undo delete - restore item
   const undoDelete = useCallback(async () => {
     if (deletedItems.length === 0) return;
-
     const restored = deletedItems[0];
-
-    const userId = await getUserId();
-    const { data, error } = await supabase
-      .from('stock_items')
-      .insert({
-        name: restored.item.name,
-        quantity: restored.item.quantity,
-        box: restored.item.box,
-        sort_order: restored.index,
-        user_id: userId,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error restoring item:', error);
-      return;
-    }
-
-    if (data) {
-      setStockItems(prev => {
-        const updated = [...prev];
-        const insertIndex = Math.min(restored.index, updated.length);
-        updated.splice(insertIndex, 0, {
-          id: data.id,
-          name: data.name,
-          quantity: data.quantity,
-          box: data.box,
-        });
-        return updated;
-      });
-      setDeletedItems([]);
-    }
-  }, [deletedItems]);
+    await restoreStockItem(restored.item, restored.index);
+  }, [deletedItems, restoreStockItem]);
 
   // Filter items - exact word matching
   const filteredItems = stockItems.filter(item => {
@@ -450,48 +496,13 @@ export function useInventory(vesselId?: string) {
     const notif = notifications.find(n => n.id === notificationId);
     if (!notif?.deletedItemData) return;
 
-    const { name, quantity, box, originalIndex } = notif.deletedItemData;
-    const userId = await getUserId();
-    const { data, error } = await supabase
-      .from('stock_items')
-      .insert({
-        name,
-        quantity,
-        box,
-        sort_order: originalIndex,
-        user_id: userId,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error restoring item:', error);
-      return;
-    }
-
-    if (data) {
-      setStockItems(prev => {
-        const updated = [...prev];
-        const insertIndex = Math.min(originalIndex, updated.length);
-        updated.splice(insertIndex, 0, {
-          id: data.id,
-          name: data.name,
-          quantity: data.quantity,
-          box: data.box,
-        });
-        return updated;
-      });
-
-      // Remove the notification
-      setNotifications(prev => {
-        const updated = prev.filter(n => n.id !== notificationId);
-        saveNotifications(updated);
-        return updated;
-      });
-
-      addNotification('added', name, `Restored "${name}" to ${box}`);
-    }
-  }, [notifications, addNotification, saveNotifications]);
+    const { itemId, name, quantity, box, minQuantity, originalIndex } = notif.deletedItemData;
+    await restoreStockItem(
+      { id: itemId, name, quantity, box, minQuantity },
+      originalIndex,
+      notificationId,
+    );
+  }, [notifications, restoreStockItem]);
 
   return {
     stockItems,

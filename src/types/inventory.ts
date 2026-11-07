@@ -40,9 +40,12 @@ export interface Notification {
   itemName: string;
   timestamp: string;
   deletedItemData?: {
+    /** Original database id, reused on restore so undo and notifications cannot create duplicates. */
+    itemId?: string;
     name: string;
     quantity: number;
     box: string;
+    minQuantity?: number;
     originalIndex: number;
   };
 }

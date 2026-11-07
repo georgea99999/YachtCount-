@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { StockItem, UsageEntry, Notification } from '@/types/inventory';
 import { supabase } from '@/integrations/supabase/client';
 

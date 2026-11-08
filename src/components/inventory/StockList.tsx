@@ -359,7 +359,7 @@ const StockList = ({
           <ClipboardCheck className="h-4 w-4" /><span>Count</span>
         </Button>
         <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={handleExportPDF} title="Export as PDF">
-          <Download className="h-4 w-4" /><span className="hidden sm:inline">PDF</span>
+          <Download className="h-4 w-4" /><span className="hidden sm:inline">Export</span>
         </Button>
         <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={() => setImportOpen(true)} title="Import from CSV">
           <FileSpreadsheet className="h-4 w-4" /><span className="hidden sm:inline">Import</span>

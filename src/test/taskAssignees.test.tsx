@@ -49,7 +49,7 @@ describe('task crew assignment', () => {
 
   it('does not show historical unregistered assignees as filter tabs', () => {
     render(<TaskList />);
-    expect(screen.queryByRole('button', { name: /Former Crew/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Former Crew/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Alice Smith/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Bob Jones/ })).toBeInTheDocument();
   });

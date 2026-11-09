@@ -48,10 +48,16 @@ const TaskList = () => {
 
   const outstanding = useMemo(() => tasks.filter(t => !t.completed), [tasks]);
 
+  useEffect(() => {
+    if (assignFilter !== 'all' && assignFilter !== 'unassigned' && !members.includes(assignFilter)) {
+      setAssignFilter('all');
+    }
+  }, [assignFilter, members]);
+
   const filterTabs = [
     { id: 'all', label: 'All', count: outstanding.length },
     { id: 'unassigned', label: 'Unassigned', count: outstanding.filter(t => !t.assignees || t.assignees.length === 0).length },
-    ...assignees.map(a => ({ id: a, label: a, count: outstanding.filter(t => t.assignees?.includes(a)).length })),
+    ...members.map(member => ({ id: member, label: member, count: outstanding.filter(t => t.assignees?.includes(member)).length })),
   ];
 
   return (

@@ -47,6 +47,13 @@ describe('task crew assignment', () => {
     expect(screen.queryByRole('option', { name: 'Former Crew' })).not.toBeInTheDocument();
   });
 
+  it('does not show historical unregistered assignees as filter tabs', () => {
+    render(<TaskList />);
+    expect(screen.queryByRole('button', { name: /Former Crew/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Alice Smith/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Bob Jones/ })).toBeInTheDocument();
+  });
+
   it('assigns multiple registered crew members to a task', async () => {
     mock.addTask.mockResolvedValue(true);
     const dropdown = openNewTask();

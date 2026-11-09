@@ -29,12 +29,6 @@ const TaskList = () => {
   );
   useEffect(() => { localStorage.setItem('yc_tasks_view', view); }, [view]);
 
-  const assignees = useMemo(() => {
-    const set = new Set<string>();
-    tasks.forEach(t => t.assignees?.forEach(a => set.add(a)));
-    return Array.from(set).sort();
-  }, [tasks]);
-
   const filteredTasks = useMemo(() => {
     if (assignFilter === 'all') return tasks;
     if (assignFilter === 'unassigned') return tasks.filter(t => !t.assignees || t.assignees.length === 0);

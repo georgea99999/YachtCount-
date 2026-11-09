@@ -218,7 +218,7 @@ const TaskList = () => {
 
       <TaskDialog
         mode={dialog}
-        suggestions={Array.from(new Set([...members,...crewMembers,...assignees]))}
+        crewMembers={members}
         onClose={() => setDialog({ kind: 'closed' })}
         onAdd={async (payload) => {
           if(await addTask(payload.text, { notes: payload.notes, starred: payload.starred, assignees: payload.assignees })) setDialog({ kind: 'closed' });

@@ -15,7 +15,7 @@ type DialogMode =
   | { kind: 'add' }
   | { kind: 'edit'; task: Task };
 
-const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
+const TaskList = () => {
   const {members}=useCrew();
   const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, setTaskStatus, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);
@@ -218,7 +218,7 @@ const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
 
       <TaskDialog
         mode={dialog}
-        suggestions={Array.from(new Set([...members,...crewMembers,...assignees]))}
+        crewMembers={members}
         onClose={() => setDialog({ kind: 'closed' })}
         onAdd={async (payload) => {
           if(await addTask(payload.text, { notes: payload.notes, starred: payload.starred, assignees: payload.assignees })) setDialog({ kind: 'closed' });
@@ -599,14 +599,14 @@ interface TaskPayload {
 
 interface TaskDialogProps {
   mode: DialogMode;
-  suggestions: string[];
+  crewMembers: string[];
   onClose: () => void;
   onAdd: (payload: TaskPayload) => void;
   onSave: (id: number, payload: TaskPayload) => void;
   onDelete: (id: number) => void;
 }
 
-const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: TaskDialogProps) => {
+const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: TaskDialogProps) => {
   const open = mode.kind !== 'closed';
   const editing = mode.kind === 'edit' ? mode.task : null;
 
@@ -614,7 +614,6 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
   const [notes, setNotes] = useState('');
   const [starred, setStarred] = useState(false);
   const [assignees, setAssignees] = useState<string[]>([]);
-  const [assigneeInput, setAssigneeInput] = useState('');
 
   // Seed state whenever dialog opens / target changes
   useEffect(() => {
@@ -623,25 +622,26 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
       setNotes(mode.task.notes ?? '');
       setStarred(!!mode.task.starred);
       setAssignees(mode.task.assignees ?? []);
-      setAssigneeInput('');
     } else if (mode.kind === 'add') {
       setText('');
       setNotes('');
       setStarred(false);
       setAssignees([]);
-      setAssigneeInput('');
     }
   }, [mode]);
 
-  const addAssignee = (raw: string) => {
-    const v = raw.trim();
-    if (!v) return;
+  const addAssignee = (username: string) => {
+    const member = crewMembers.find(name => name.toLowerCase() === username.toLowerCase());
+    if (!member) return;
     setAssignees(prev => {
-      if (prev.some(a => a.toLowerCase() === v.toLowerCase())) return prev;
-      return [...prev, v];
+      if (prev.some(a => a.toLowerCase() === member.toLowerCase())) return prev;
+      return [...prev, member];
     });
-    setAssigneeInput('');
   };
+
+  const availableCrew = crewMembers.filter(member =>
+    !assignees.some(assignee => assignee.toLowerCase() === member.toLowerCase())
+  );
 
   const removeAssignee = (a: string) => {
     setAssignees(prev => prev.filter(x => x !== a));
@@ -649,14 +649,7 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
 
   const submit = () => {
     if (!text.trim()) return;
-    // commit any pending assignee in the input
-    const finalAssignees = assigneeInput.trim()
-      ? (() => {
-          const v = assigneeInput.trim();
-          return assignees.some(a => a.toLowerCase() === v.toLowerCase()) ? assignees : [...assignees, v];
-        })()
-      : assignees;
-    const payload: TaskPayload = { text, notes, starred, assignees: finalAssignees };
+    const payload: TaskPayload = { text, notes, starred, assignees };
     if (editing) onSave(editing.id, payload);
     else onAdd(payload);
   };
@@ -673,8 +666,9 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
 
         <div className="flex flex-col gap-4 pt-2">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Task</label>
+            <label htmlFor="task-title" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Task</label>
             <Input
+              id="task-title"
               type="text"
               placeholder="What needs doing?"
               value={text}
@@ -691,7 +685,7 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <label htmlFor="task-assignees" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Assign to <span className="normal-case text-muted-foreground/70">(optional, multiple)</span>
             </label>
             {assignees.length > 0 && (
@@ -715,25 +709,22 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
                 ))}
               </div>
             )}
-            <Input
-              type="text"
-              placeholder="Type a name and press Enter"
-              value={assigneeInput}
-              onChange={(e) => setAssigneeInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ',') {
-                  e.preventDefault();
-                  addAssignee(assigneeInput);
-                } else if (e.key === 'Backspace' && !assigneeInput && assignees.length) {
-                  setAssignees(prev => prev.slice(0, -1));
-                }
-              }}
-              onBlur={() => assigneeInput.trim() && addAssignee(assigneeInput)}
-              list="assignee-suggestions"
-            />
-            <datalist id="assignee-suggestions">
-              {suggestions.map(a => <option key={a} value={a} />)}
-            </datalist>
+            <select
+              id="task-assignees"
+              value=""
+              disabled={availableCrew.length === 0}
+              onChange={(e) => addAssignee(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">
+                {crewMembers.length === 0
+                  ? 'No active crew registered'
+                  : availableCrew.length === 0
+                    ? 'All crew assigned'
+                    : 'Select crew member'}
+              </option>
+              {availableCrew.map(member => <option key={member} value={member}>{member}</option>)}
+            </select>
           </div>
 
           <div className="space-y-1.5">

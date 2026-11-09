@@ -149,7 +149,7 @@ const Index = ({ onLogout }: IndexProps) => {
               />
             )}
 
-            {activeTab === 'tasks' && <TaskList crewMembers={[]} />}
+            {activeTab === 'tasks' && <TaskList />}
 
             {activeTab === 'reports' && (
               <MonthlyReport

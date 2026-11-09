@@ -15,7 +15,7 @@ type DialogMode =
   | { kind: 'add' }
   | { kind: 'edit'; task: Task };
 
-const TaskList = ({crewMembers = []}: {crewMembers?:string[]}) => {
+const TaskList = () => {
   const {members}=useCrew();
   const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, setTaskStatus, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);

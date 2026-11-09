@@ -666,8 +666,9 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
 
         <div className="flex flex-col gap-4 pt-2">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Task</label>
+            <label htmlFor="task-title" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Task</label>
             <Input
+              id="task-title"
               type="text"
               placeholder="What needs doing?"
               value={text}

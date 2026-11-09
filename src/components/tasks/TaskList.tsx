@@ -599,14 +599,14 @@ interface TaskPayload {
 
 interface TaskDialogProps {
   mode: DialogMode;
-  suggestions: string[];
+  crewMembers: string[];
   onClose: () => void;
   onAdd: (payload: TaskPayload) => void;
   onSave: (id: number, payload: TaskPayload) => void;
   onDelete: (id: number) => void;
 }
 
-const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: TaskDialogProps) => {
+const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: TaskDialogProps) => {
   const open = mode.kind !== 'closed';
   const editing = mode.kind === 'edit' ? mode.task : null;
 
@@ -614,7 +614,6 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
   const [notes, setNotes] = useState('');
   const [starred, setStarred] = useState(false);
   const [assignees, setAssignees] = useState<string[]>([]);
-  const [assigneeInput, setAssigneeInput] = useState('');
 
   // Seed state whenever dialog opens / target changes
   useEffect(() => {
@@ -623,25 +622,26 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
       setNotes(mode.task.notes ?? '');
       setStarred(!!mode.task.starred);
       setAssignees(mode.task.assignees ?? []);
-      setAssigneeInput('');
     } else if (mode.kind === 'add') {
       setText('');
       setNotes('');
       setStarred(false);
       setAssignees([]);
-      setAssigneeInput('');
     }
   }, [mode]);
 
-  const addAssignee = (raw: string) => {
-    const v = raw.trim();
-    if (!v) return;
+  const addAssignee = (username: string) => {
+    const member = crewMembers.find(name => name.toLowerCase() === username.toLowerCase());
+    if (!member) return;
     setAssignees(prev => {
-      if (prev.some(a => a.toLowerCase() === v.toLowerCase())) return prev;
-      return [...prev, v];
+      if (prev.some(a => a.toLowerCase() === member.toLowerCase())) return prev;
+      return [...prev, member];
     });
-    setAssigneeInput('');
   };
+
+  const availableCrew = crewMembers.filter(member =>
+    !assignees.some(assignee => assignee.toLowerCase() === member.toLowerCase())
+  );
 
   const removeAssignee = (a: string) => {
     setAssignees(prev => prev.filter(x => x !== a));
@@ -649,14 +649,7 @@ const TaskDialog = ({ mode, suggestions, onClose, onAdd, onSave, onDelete }: Tas
 
   const submit = () => {
     if (!text.trim()) return;
-    // commit any pending assignee in the input
-    const finalAssignees = assigneeInput.trim()
-      ? (() => {
-          const v = assigneeInput.trim();
-          return assignees.some(a => a.toLowerCase() === v.toLowerCase()) ? assignees : [...assignees, v];
-        })()
-      : assignees;
-    const payload: TaskPayload = { text, notes, starred, assignees: finalAssignees };
+    const payload: TaskPayload = { text, notes, starred, assignees };
     if (editing) onSave(editing.id, payload);
     else onAdd(payload);
   };

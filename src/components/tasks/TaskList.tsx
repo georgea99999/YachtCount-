@@ -29,12 +29,6 @@ const TaskList = () => {
   );
   useEffect(() => { localStorage.setItem('yc_tasks_view', view); }, [view]);
 
-  const assignees = useMemo(() => {
-    const set = new Set<string>();
-    tasks.forEach(t => t.assignees?.forEach(a => set.add(a)));
-    return Array.from(set).sort();
-  }, [tasks]);
-
   const filteredTasks = useMemo(() => {
     if (assignFilter === 'all') return tasks;
     if (assignFilter === 'unassigned') return tasks.filter(t => !t.assignees || t.assignees.length === 0);
@@ -54,10 +48,16 @@ const TaskList = () => {
 
   const outstanding = useMemo(() => tasks.filter(t => !t.completed), [tasks]);
 
+  useEffect(() => {
+    if (assignFilter !== 'all' && assignFilter !== 'unassigned' && !members.includes(assignFilter)) {
+      setAssignFilter('all');
+    }
+  }, [assignFilter, members]);
+
   const filterTabs = [
     { id: 'all', label: 'All', count: outstanding.length },
     { id: 'unassigned', label: 'Unassigned', count: outstanding.filter(t => !t.assignees || t.assignees.length === 0).length },
-    ...assignees.map(a => ({ id: a, label: a, count: outstanding.filter(t => t.assignees?.includes(a)).length })),
+    ...members.map(member => ({ id: member, label: member, count: outstanding.filter(t => t.assignees?.includes(member)).length })),
   ];
 
   return (

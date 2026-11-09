@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Minus, Plus, Trash2, Package, History, Check, X } from 'lucide-react';
+import { Minus, Plus, Trash2, NotebookPen, Pencil, History, Check, X } from 'lucide-react';
 import { StockItem as StockItemType, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -142,22 +141,14 @@ const StockItemRow = ({
       >
       <div className="flex items-center gap-2 px-3 py-3">
         {/* Checkbox */}
-        <Checkbox 
-          checked={isSelected}
-          onCheckedChange={() => onSelect?.(item.id)}
-          title="Send to Deck Order"
-          aria-label={`Send ${item.name} to Deck Order`}
-          className="border-muted-foreground/50 flex-shrink-0"
-        />
-        
-        {/* Edit Icon */}
         <Button variant="ghost" size="icon"
-          aria-label={`Edit ${item.name}`}
-          onClick={handleStartEdit}
-           className="hidden md:flex w-8 h-8 bg-muted rounded-lg items-center justify-center flex-shrink-0 hover:bg-muted-foreground/20 transition-colors"
-          title="Edit item"
+          aria-label={`Send ${item.name} to Deck Order`}
+          aria-pressed={!!isSelected}
+          onClick={() => onSelect?.(item.id)}
+          title="Send to Deck Order"
+          className="w-8 h-8 rounded-full bg-muted flex-shrink-0 hover:bg-muted-foreground/20 transition-colors"
         >
-          <Package className="w-4 h-4 text-muted-foreground" />
+          <NotebookPen className="w-4 h-4 text-muted-foreground" />
         </Button>
         
         {/* Name & Box */}
@@ -219,6 +210,11 @@ const StockItemRow = ({
         <Button title="Stock history and minimum alert" aria-label={`History for ${item.name}`} variant="ghost" size="icon"
           className="hidden md:flex h-7 w-7 text-muted-foreground flex-shrink-0" onClick={() => setHistoryOpen(true)}>
           <History className="h-4 w-4" />
+        </Button>
+
+        <Button title="Edit item" aria-label={`Edit ${item.name}`} variant="ghost" size="icon"
+          className="hidden md:flex h-7 w-7 text-muted-foreground flex-shrink-0" onClick={handleStartEdit}>
+          <Pencil className="h-4 w-4" />
         </Button>
 
         {/* Delete */}

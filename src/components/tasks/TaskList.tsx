@@ -685,7 +685,7 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <label htmlFor="task-assignees" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Assign to <span className="normal-case text-muted-foreground/70">(optional, multiple)</span>
             </label>
             {assignees.length > 0 && (
@@ -709,25 +709,22 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
                 ))}
               </div>
             )}
-            <Input
-              type="text"
-              placeholder="Type a name and press Enter"
-              value={assigneeInput}
-              onChange={(e) => setAssigneeInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ',') {
-                  e.preventDefault();
-                  addAssignee(assigneeInput);
-                } else if (e.key === 'Backspace' && !assigneeInput && assignees.length) {
-                  setAssignees(prev => prev.slice(0, -1));
-                }
-              }}
-              onBlur={() => assigneeInput.trim() && addAssignee(assigneeInput)}
-              list="assignee-suggestions"
-            />
-            <datalist id="assignee-suggestions">
-              {suggestions.map(a => <option key={a} value={a} />)}
-            </datalist>
+            <select
+              id="task-assignees"
+              value=""
+              disabled={availableCrew.length === 0}
+              onChange={(e) => addAssignee(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">
+                {crewMembers.length === 0
+                  ? 'No active crew registered'
+                  : availableCrew.length === 0
+                    ? 'All crew assigned'
+                    : 'Select crew member'}
+              </option>
+              {availableCrew.map(member => <option key={member} value={member}>{member}</option>)}
+            </select>
           </div>
 
           <div className="space-y-1.5">

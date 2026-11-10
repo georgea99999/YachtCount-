@@ -176,10 +176,10 @@ const StockItemRow = ({
         </div>
         
         {/* Quantity stepper */}
-        <div className="flex h-8 flex-shrink-0 items-center overflow-hidden rounded-md border border-input bg-background shadow-sm">
+        <div className="flex h-8 flex-shrink-0 items-center gap-0.5 rounded-full bg-muted/60 p-0.5">
           <button
             type="button"
-            className="flex h-full w-8 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground hover:shadow-sm"
             title="Decrease quantity"
             aria-label={`Decrease ${item.name} quantity`}
             onClick={() => onUpdateQuantity(item.id, -1)}
@@ -194,11 +194,11 @@ const StockItemRow = ({
             onChange={(e) => onUpdateQuantityDirect(item.id, parseInt(e.target.value.replace(/\D/g, '')) || 0)}
             title={low ? `At or below minimum stock (${minQuantity})` : undefined}
             aria-label={`${item.name} quantity`}
-            className="h-full w-11 border-x border-input bg-transparent text-center text-sm font-semibold tabular-nums text-foreground focus:outline-none focus:bg-muted/50"
+            className="h-7 w-10 rounded-full bg-transparent text-center text-sm font-semibold tabular-nums text-foreground focus:outline-none focus:bg-background"
           />
           <button
             type="button"
-            className="flex h-full w-8 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground hover:shadow-sm"
             title="Increase quantity"
             aria-label={`Increase ${item.name} quantity`}
             onClick={() => onUpdateQuantity(item.id, 1)}
@@ -208,13 +208,13 @@ const StockItemRow = ({
         </div>
 
         {/* Desktop row actions */}
-        <div className="hidden md:flex flex-shrink-0 items-center gap-0.5 border-l border-border pl-2 ml-1 opacity-60 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="hidden md:flex flex-shrink-0 items-center gap-0.5 ml-2 opacity-40 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <Button title="Stock history and minimum alert" aria-label={`History for ${item.name}`} variant="ghost" size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setHistoryOpen(true)}>
+            className="h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => setHistoryOpen(true)}>
             <History className="h-4 w-4" />
           </Button>
           <Button title="Edit item" aria-label={`Edit ${item.name}`} variant="ghost" size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleStartEdit}>
+            className="h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" onClick={handleStartEdit}>
             <Pencil className="h-4 w-4" />
           </Button>
           {canDelete && <Button
@@ -222,7 +222,7 @@ const StockItemRow = ({
             aria-label={`Delete ${item.name}`}
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            className="h-8 w-8 rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             onClick={() => onDelete(item.id)}
           >
             <Trash2 className="h-4 w-4" />

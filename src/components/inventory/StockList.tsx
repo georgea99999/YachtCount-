@@ -1,6 +1,6 @@
 import { isLowStock } from '@/lib/lowStock';
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, Download, FileSpreadsheet, Package, Layers, BellRing, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import { ArrowUpDown, Download, FileSpreadsheet, Package, Layers, BellRing, AlertTriangle, ClipboardCheck, Upload } from 'lucide-react';
 import StockTakeMode from './StockTakeMode';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { InventoryImportItem } from '@/lib/inventoryImport';
@@ -356,14 +356,17 @@ const StockList = ({
 
         <div className="flex-1" />
         <Button size="sm" className="gap-1" onClick={() => setStockTakeOpen(true)} title="Start a guided stock take">
-          <ClipboardCheck className="h-4 w-4" /><span>Count</span>
+          <ClipboardCheck className="h-4 w-4" /><span>Start Count</span>
         </Button>
-        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={handleExportPDF} title="Export as PDF">
-          <Download className="h-4 w-4" /><span className="hidden sm:inline">Export</span>
-        </Button>
-        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={() => setImportOpen(true)} title="Import from CSV">
-          <FileSpreadsheet className="h-4 w-4" /><span className="hidden sm:inline">Import</span>
-        </Button>
+        <div className="inline-flex h-9 items-center overflow-hidden rounded-md border border-input bg-background shadow-sm">
+          <button type="button" className="flex h-full items-center gap-1 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground" onClick={() => setImportOpen(true)} title="Import from CSV" aria-label="Import from CSV">
+            <Upload className="h-4 w-4" /><span className="hidden sm:inline">Import</span>
+          </button>
+          <div className="h-5 w-px bg-border" />
+          <button type="button" className="flex h-full items-center gap-1 px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground" onClick={handleExportPDF} title="Export as PDF" aria-label="Export as PDF">
+            <Download className="h-4 w-4" /><span className="hidden sm:inline">Export</span>
+          </button>
+        </div>
       </div>
 
       <div className="mx-4 mb-4 flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">

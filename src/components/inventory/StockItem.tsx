@@ -175,59 +175,59 @@ const StockItemRow = ({
           </div>
         </div>
         
-        {/* Quantity Controls */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 rounded-full"
+        {/* Quantity stepper */}
+        <div className="flex h-8 flex-shrink-0 items-center overflow-hidden rounded-md border border-input bg-background shadow-sm">
+          <button
+            type="button"
+            className="flex h-full w-8 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title="Decrease quantity"
             aria-label={`Decrease ${item.name} quantity`}
             onClick={() => onUpdateQuantity(item.id, -1)}
           >
-            <Minus className="h-3 w-3" />
-          </Button>
-          <Input
-            type="number"
+            <Minus className="h-3.5 w-3.5" />
+          </button>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             value={item.quantity}
-            onChange={(e) => onUpdateQuantityDirect(item.id, parseInt(e.target.value) || 0)}
+            onChange={(e) => onUpdateQuantityDirect(item.id, parseInt(e.target.value.replace(/\D/g, '')) || 0)}
             title={low ? `At or below minimum stock (${minQuantity})` : undefined}
-            className="w-12 h-7 text-center px-1 text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            min={0}
+            aria-label={`${item.name} quantity`}
+            className="h-full w-11 border-x border-input bg-transparent text-center text-sm font-semibold tabular-nums text-foreground focus:outline-none focus:bg-muted/50"
           />
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 rounded-full"
+          <button
+            type="button"
+            className="flex h-full w-8 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title="Increase quantity"
             aria-label={`Increase ${item.name} quantity`}
             onClick={() => onUpdateQuantity(item.id, 1)}
           >
-            <Plus className="h-3 w-3" />
-          </Button>
+            <Plus className="h-3.5 w-3.5" />
+          </button>
         </div>
 
-        <Button title="Stock history and minimum alert" aria-label={`History for ${item.name}`} variant="ghost" size="icon"
-          className="hidden md:flex h-7 w-7 text-muted-foreground flex-shrink-0" onClick={() => setHistoryOpen(true)}>
-          <History className="h-4 w-4" />
-        </Button>
-
-        <Button title="Edit item" aria-label={`Edit ${item.name}`} variant="ghost" size="icon"
-          className="hidden md:flex h-7 w-7 text-muted-foreground flex-shrink-0" onClick={handleStartEdit}>
-          <Pencil className="h-4 w-4" />
-        </Button>
-
-        {/* Delete */}
-        {canDelete && <Button
-          title="Delete item"
-          aria-label={`Delete ${item.name}`}
-          variant="ghost"
-          size="icon"
-          className="hidden md:flex h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0"
-          onClick={() => onDelete(item.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>}
+        {/* Desktop row actions */}
+        <div className="hidden md:flex flex-shrink-0 items-center gap-0.5 border-l border-border pl-2 ml-1 opacity-60 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+          <Button title="Stock history and minimum alert" aria-label={`History for ${item.name}`} variant="ghost" size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setHistoryOpen(true)}>
+            <History className="h-4 w-4" />
+          </Button>
+          <Button title="Edit item" aria-label={`Edit ${item.name}`} variant="ghost" size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleStartEdit}>
+            <Pencil className="h-4 w-4" />
+          </Button>
+          {canDelete && <Button
+            title="Delete item"
+            aria-label={`Delete ${item.name}`}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onDelete(item.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>}
+        </div>
       </div>
       
       </MobileSwipeActions>

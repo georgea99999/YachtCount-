@@ -1,6 +1,6 @@
 import { isLowStock } from '@/lib/lowStock';
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, Download, FileSpreadsheet, Package, Layers, BellRing, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import { ArrowUpDown, Download, FileSpreadsheet, Package, Layers, BellRing, AlertTriangle, ClipboardCheck, Upload } from 'lucide-react';
 import StockTakeMode from './StockTakeMode';
 import { StockItem, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { InventoryImportItem } from '@/lib/inventoryImport';

@@ -139,7 +139,7 @@ const StockItemRow = ({
         item.quantity === 0 && "opacity-50"
       )}
       >
-      <div className="flex items-center gap-2 px-3 py-3">
+      <div className="group flex items-center gap-2 px-3 py-3">
         {/* Checkbox */}
         <Button variant="ghost" size="icon"
           aria-label={`Send ${item.name} to Deck Order`}

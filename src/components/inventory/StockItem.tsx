@@ -192,7 +192,7 @@ const StockItemRow = ({
             value={item.quantity}
             onChange={(e) => onUpdateQuantityDirect(item.id, parseInt(e.target.value) || 0)}
             title={low ? `At or below minimum stock (${minQuantity})` : undefined}
-            className="w-12 h-7 text-center px-1 text-sm"
+            className="w-12 h-7 text-center px-1 text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             min={0}
           />
           <Button

@@ -3,6 +3,7 @@ import { Plus, X, Table2, Trash2, Pencil, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -102,55 +103,49 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
 
   return (
     <>
-      {/* Overlay when form is open */}
-      {showForm && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={() => setShowForm(false)}
-        />
-      )}
-
-      {/* Floating button or form */}
       <div className="fixed bottom-6 right-6 z-50">
-        {!showForm ? (
-          <Button 
-            onClick={() => setShowForm(true)}
-            className="w-14 h-14 rounded-full shadow-lg btn-add"
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
-        ) : (
-          <div className="bg-card rounded-lg shadow-xl p-4 w-80 animate-fade-in border">
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-semibold">Add New Item</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8"
-                onClick={() => setShowForm(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex flex-col gap-3">
+        <Button
+          onClick={() => setShowForm(true)}
+          className="w-14 h-14 rounded-full shadow-lg btn-add"
+          aria-label="Add new stock item"
+          title="Add new stock item"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      </div>
+
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md max-h-[90dvh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Item</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={e => { e.preventDefault(); handleAddItem(); }} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="new-stock-name">Product name</Label>
               <Input
+                id="new-stock-name"
                 type="text"
                 placeholder="Item name..."
                 value={newItemName}
                 onChange={(e) => setNewItemName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
                 autoFocus
               />
-              <div className="flex gap-2">
+            </div>
+            <div className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="new-stock-quantity">Quantity</Label>
                 <Input
+                  id="new-stock-quantity"
                   type="number"
                   value={newItemQty}
                   onChange={(e) => setNewItemQty(parseInt(e.target.value) || 1)}
                   min={1}
-                  className="w-20"
                 />
+              </div>
+              <div className="min-w-0 space-y-2">
+                <Label htmlFor="new-stock-box">Box / location</Label>
                 <Select value={newItemBox} onValueChange={handleBoxChange}>
-                  <SelectTrigger className="flex-1">
+                  <SelectTrigger id="new-stock-box" className="w-full [&>span]:truncate">
                     <SelectValue placeholder="Box / location..." />
                   </SelectTrigger>
                   <SelectContent className="max-h-60 bg-popover">
@@ -164,27 +159,31 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
               {canDeleteBoxes && (
-                <Button variant="ghost" size="sm" className="self-end text-muted-foreground" onClick={() => setShowManageBoxes(true)}>
+                <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setShowManageBoxes(true)}>
                   <Trash2 className="h-4 w-4 mr-1" /> Manage boxes
                 </Button>
               )}
-              <Button onClick={handleAddItem} disabled={!newItemBox} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                Add Item
-              </Button>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
-                className="w-full text-muted-foreground"
+                className="text-muted-foreground"
                 onClick={() => { setShowForm(false); setShowBulkDialog(true); }}
               >
                 <Table2 className="h-4 w-4 mr-1" />
                 Bulk entry sheet
               </Button>
             </div>
-          </div>
-        )}
-      </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+              <Button type="submit" disabled={!newItemName.trim() || !newItemBox}>Add Item</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Bulk Add Dialog */}
       <Dialog open={showManageBoxes} onOpenChange={setShowManageBoxes}>

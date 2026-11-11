@@ -242,7 +242,7 @@ const StockList = ({
   const activeBox = selectedBox && selectedBox !== 'all' ? selectedBox : '';
 
   return (
-    <div className="flex flex-col h-full w-full max-w-5xl mx-auto">
+    <div className="flex flex-col h-full w-full">
       {/* Page title */}
       <div className="px-4 pt-5 pb-1 hidden md:flex items-end justify-between">
         <div>

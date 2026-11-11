@@ -112,7 +112,7 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
                       <p className="text-xs text-muted-foreground">Expected {exp}{isDone && counted[item.id] !== exp && <span className="ml-1 font-semibold text-destructive">→ {counted[item.id]}</span>}</p>
                     </div>
                     <Input type="number" inputMode="numeric" min={0} placeholder="Count" aria-label={`Counted ${item.name}`}
-                      className="w-16 h-10 text-center" value={drafts[item.id] ?? ''}
+                      className="w-20 h-10 px-1 text-center" value={drafts[item.id] ?? ''}
                       onChange={e => setDrafts(d => ({ ...d, [item.id]: e.target.value }))}
                       onBlur={() => commitDraft(item)} onKeyDown={e => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} />
                     <Button variant={isDone ? 'default' : 'outline'} size="icon" className="h-10 w-10 flex-shrink-0"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,15 +20,20 @@ interface SendToDeckOrderDialogProps {
 }
 
 const SendToDeckOrderDialog = ({ open, onOpenChange, item, onConfirm }: SendToDeckOrderDialogProps) => {
+  const [productName, setProductName] = useState(item?.name ?? '');
   const [quantity, setQuantity] = useState('1');
   const [colour, setColour] = useState('');
   const [size, setSize] = useState('');
   const [link, setLink] = useState('');
 
+  useEffect(() => {
+    if (open) setProductName(item?.name ?? '');
+  }, [open, item?.id, item?.name]);
+
   const handleConfirm = () => {
-    if (item) {
+    if (item && productName.trim()) {
       onConfirm({
-        productName: item.name,
+        productName: productName.trim(),
         quantity: quantity || '1',
         colour,
         size,
@@ -70,9 +75,8 @@ const SendToDeckOrderDialog = ({ open, onOpenChange, item, onConfirm }: SendToDe
             <Label htmlFor="product-name">Product Name</Label>
             <Input
               id="product-name"
-              value={item.name}
-              disabled
-              className="bg-muted"
+              value={productName}
+              onChange={e => setProductName(e.target.value)}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -120,7 +124,7 @@ const SendToDeckOrderDialog = ({ open, onOpenChange, item, onConfirm }: SendToDe
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm}>
+          <Button onClick={handleConfirm} disabled={!productName.trim()}>
             Add to Deck Order
           </Button>
         </DialogFooter>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Minus, Plus, Trash2, NotebookPen, Pencil, History, Check, X } from 'lucide-react';
+import { Minus, Plus, Trash2, NotebookPen, MoreHorizontal, Check, X } from 'lucide-react';
 import { StockItem as StockItemType, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,8 @@ import { isLowStock } from '@/lib/lowStock';
 import { toast } from 'sonner';
 import MobileSwipeActions from './MobileSwipeActions';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 interface StockItemProps {
   item: StockItemType;
@@ -48,6 +50,9 @@ const StockItemRow = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
   const [editBox, setEditBox] = useState(item.box);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsMin, setDetailsMin] = useState('');
+  const [saving, setSaving] = useState(false);
   const [minOverride, setMinOverride] = useState<number | undefined | null>(null);
   const minQuantity = minOverride === null ? item.minQuantity : minOverride;
   const [minDraft, setMinDraft] = useState<string | null>(null);
@@ -86,6 +91,57 @@ const StockItemRow = ({
     setEditName(item.name);
     setEditBox(item.box);
   };
+
+  const openDetails = () => {
+    setEditName(item.name);
+    setEditBox(item.box);
+    setDetailsMin(minQuantity != null ? String(minQuantity) : '');
+    setDetailsOpen(true);
+  };
+
+  const saveDetails = async () => {
+    if (saving || !editName.trim() || !editBox) return;
+    setSaving(true);
+    try {
+      const value = detailsMin.trim() === '' ? undefined : Math.max(0, parseInt(detailsMin) || 0);
+      if (value !== minQuantity) {
+        const { error } = await supabase.from('stock_items').update({ min_quantity: value ?? null }).eq('id', item.id);
+        if (error) { toast.error('Could not save minimum stock'); return; }
+        setMinOverride(value);
+      }
+      if (editName.trim() !== item.name || editBox !== item.box) {
+        await onEditItem?.(item.id, { name: editName.trim(), box: editBox });
+      }
+      setDetailsOpen(false);
+    } catch {
+      toast.error('Could not save changes. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const historyContent = (
+    <div className="pt-5">
+      <p className="text-sm font-semibold text-foreground mb-3">Quantity Changes</p>
+      {itemHistory.length > 0 ? (
+        <div className="divide-y divide-border">
+          {itemHistory.map((entry, idx) => (
+            <div key={idx} className="flex items-start justify-between gap-4 py-3 text-sm">
+              <span className="min-w-0 break-words text-muted-foreground">
+                {new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                {entry.actorUsername && <span className="ml-2 font-medium">{entry.actorUsername}</span>}
+                {' '}
+                {new Date(entry.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className={cn('flex-shrink-0 font-semibold', entry.quantity > 0 ? 'text-destructive' : 'text-success')}>
+                {entry.quantity > 0 ? `-${entry.quantity}` : `+${Math.abs(entry.quantity)}`}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : <p className="text-xs text-muted-foreground italic">No changes recorded</p>}
+    </div>
+  );
 
   if (isEditing) {
     return (
@@ -208,29 +264,52 @@ const StockItemRow = ({
         </div>
 
         {/* Desktop row actions */}
-        <div className="hidden md:flex flex-shrink-0 items-center gap-0.5 ml-2 opacity-40 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-          <Button title="Stock history and minimum alert" aria-label={`History for ${item.name}`} variant="ghost" size="icon"
-            className="h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => setHistoryOpen(true)}>
-            <History className="h-4 w-4" />
+        <div className="hidden md:flex flex-shrink-0 items-center ml-2">
+          <Button title="Edit, history and minimum stock" aria-label={`Manage ${item.name}`} variant="ghost" size="icon"
+            className="h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" onClick={openDetails}>
+            <MoreHorizontal className="h-4 w-4" />
           </Button>
-          <Button title="Edit item" aria-label={`Edit ${item.name}`} variant="ghost" size="icon"
-            className="h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" onClick={handleStartEdit}>
-            <Pencil className="h-4 w-4" />
-          </Button>
-          {canDelete && <Button
-            title="Delete item"
-            aria-label={`Delete ${item.name}`}
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => onDelete(item.id)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>}
         </div>
       </div>
       
       </MobileSwipeActions>
+      <Dialog open={detailsOpen} onOpenChange={open => { if (!saving) setDetailsOpen(open); }}>
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md max-h-[90dvh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+            <DialogDescription className="break-words">{item.name}</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={e => { e.preventDefault(); void saveDetails(); }} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor={`name-${item.id}`}>Product name</Label>
+              <Input id={`name-${item.id}`} value={editName} onChange={e => setEditName(e.target.value)} disabled={saving || !onEditItem} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`box-${item.id}`}>Box / location</Label>
+              <Select value={editBox} onValueChange={setEditBox} disabled={saving || !onEditItem}>
+                <SelectTrigger id={`box-${item.id}`} className="w-full [&>span]:truncate"><SelectValue /></SelectTrigger>
+                <SelectContent className="max-h-60 bg-popover">
+                  {Array.from(new Set([item.box, ...allBoxNames])).map(box => <SelectItem key={box} value={box}>{box}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`details-min-${item.id}`}>Minimum stock alert</Label>
+              <Input id={`details-min-${item.id}`} type="number" min={0} placeholder="Off" value={detailsMin} onChange={e => setDetailsMin(e.target.value)} disabled={saving} />
+            </div>
+            <div className="border-t border-border">{historyContent}</div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+              {canDelete && <Button type="button" variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" disabled={saving} onClick={() => { setDetailsOpen(false); onDelete(item.id); }}>
+                <Trash2 className="mr-1 h-4 w-4" />Delete Item
+              </Button>}
+              <DialogFooter className="ml-auto">
+                <Button type="button" variant="outline" disabled={saving} onClick={() => setDetailsOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={saving || !editName.trim() || !editBox}>{saving ? 'Saving…' : 'Save Changes'}</Button>
+              </DialogFooter>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
       <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
         <SheetContent side="bottom" className="mx-auto max-h-[85dvh] max-w-2xl overflow-y-auto rounded-t-lg px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] motion-reduce:transition-none">
           <SheetHeader className="pr-6 text-left">
@@ -253,31 +332,7 @@ const StockItemRow = ({
               title="Alert when quantity is at or below this number (leave blank for no alert)"
             />
           </div>
-          <div className="pt-5">
-            <p className="text-sm font-semibold text-foreground mb-3">Quantity Changes</p>
-            {itemHistory.length > 0 ? (
-              <div className="divide-y divide-border">
-                {itemHistory.map((entry, idx) => (
-                  <div key={idx} className="flex items-start justify-between gap-4 py-3 text-sm">
-                    <span className="min-w-0 break-words text-muted-foreground">
-                      {new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
-                      {entry.actorUsername && <span className="ml-2 font-medium">{entry.actorUsername}</span>}
-                      {' '}
-                      {new Date(entry.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                    <span className={cn(
-                      "flex-shrink-0 font-semibold",
-                      entry.quantity > 0 ? "text-destructive" : "text-success"
-                    )}>
-                      {entry.quantity > 0 ? `-${entry.quantity}` : `+${Math.abs(entry.quantity)}`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground italic">No changes recorded</p>
-            )}
-          </div>
+          {historyContent}
         </SheetContent>
       </Sheet>
     </div>

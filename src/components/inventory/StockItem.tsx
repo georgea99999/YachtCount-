@@ -1,3 +1,4 @@
+import { groupHistoryByMinute } from '@/lib/historyGroups';
 import { useState } from 'react';
 import { Minus, Plus, Trash2, NotebookPen, MoreHorizontal, Check, X } from 'lucide-react';
 import { StockItem as StockItemType, UsageEntry } from '@/types/inventory';
@@ -69,9 +70,9 @@ const StockItemRow = ({
   };
 
   // Get usage history for this specific item
-  const itemHistory = usageHistory.filter(
+  const itemHistory = groupHistoryByMinute(usageHistory.filter(
     entry => entry.itemName === item.name && entry.box === item.box
-  );
+  ));
 
   const handleStartEdit = () => {
     setEditName(item.name);

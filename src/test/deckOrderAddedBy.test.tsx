@@ -25,8 +25,8 @@ const item = {
   addedBy: 'John Smith',
 };
 
-function openEditor(overrides: Partial<typeof item> = {}) {
-  render(
+function renderList(overrides: Partial<typeof item> = {}) {
+  return render(
     <DeckOrderList
       items={[{ ...item, ...overrides }]}
       onAddItem={vi.fn()}
@@ -35,7 +35,12 @@ function openEditor(overrides: Partial<typeof item> = {}) {
       onClearAll={vi.fn()}
     />,
   );
-  fireEvent.click(screen.getByRole('button', { name: /^Edit$/i }).first?.() ?? screen.getAllByText('Edit')[0]);
+}
+
+function openEditor(overrides: Partial<typeof item> = {}) {
+  renderList(overrides);
+  fireEvent.click(screen.getByText('No slip deck paint'));
+  fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
 }
 
 describe('deck order added-by attribution', () => {

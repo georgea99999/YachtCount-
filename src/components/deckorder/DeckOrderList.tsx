@@ -493,6 +493,11 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
             {dialog.kind === 'edit' ? <Attachments parentType="deck_order" parentId={dialog.item.id} /> : <p className="text-xs text-muted-foreground">Add the item first, then tap it to attach photos or documents.</p>}
           </div>
           <DialogFooter>
+            {dialog.kind === 'edit' && (
+              <p className="mr-auto self-center text-xs text-muted-foreground">
+                Added by {dialog.item.addedBy || 'Not recorded'}
+              </p>
+            )}
             <Button variant="outline" onClick={closeDialog}>Cancel</Button>
             <Button onClick={handleConfirm} disabled={!form.productName.trim()}>
               {dialog.kind === 'edit' ? 'Save' : 'Add to Order'}

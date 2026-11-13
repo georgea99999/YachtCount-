@@ -148,6 +148,9 @@ export type Database = {
       }
       deck_orders: {
         Row: {
+          added_at: string
+          added_by: string | null
+          added_by_username: string | null
           colour: string
           id: number
           link: string
@@ -157,6 +160,9 @@ export type Database = {
           vessel_id: string
         }
         Insert: {
+          added_at?: string
+          added_by?: string | null
+          added_by_username?: string | null
           colour?: string
           id?: number
           link?: string
@@ -166,6 +172,9 @@ export type Database = {
           vessel_id?: string
         }
         Update: {
+          added_at?: string
+          added_by?: string | null
+          added_by_username?: string | null
           colour?: string
           id?: number
           link?: string

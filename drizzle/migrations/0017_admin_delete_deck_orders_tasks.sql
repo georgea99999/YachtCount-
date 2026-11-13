@@ -1,0 +1,2 @@
+CREATE POLICY admin_deck_order_delete ON public.deck_orders AS RESTRICTIVE FOR DELETE TO authenticated USING (EXISTS (SELECT 1 FROM public.user_roles r WHERE r.user_id = auth.uid() AND r.vessel_id = deck_orders.vessel_id AND r.role IN ('owner','junior')));
+CREATE POLICY admin_task_purge ON public.tasks AS RESTRICTIVE FOR DELETE TO authenticated USING (EXISTS (SELECT 1 FROM public.user_roles r WHERE r.user_id = auth.uid() AND r.vessel_id = tasks.vessel_id AND r.role IN ('owner','junior')));

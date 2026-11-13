@@ -59,5 +59,6 @@ export interface DeckOrderItem {
   colour: string;
   size: string;
   link: string;
+  addedBy?: string | null;
 }
 

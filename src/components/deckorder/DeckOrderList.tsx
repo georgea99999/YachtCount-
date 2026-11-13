@@ -494,7 +494,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
           </div>
           <DialogFooter>
             {dialog.kind === 'edit' && (
-              <p className="mr-auto self-center text-[11px] text-muted-foreground sm:mr-2 sm:self-center">
+              <p className="mr-auto self-center text-xs text-muted-foreground">
                 Added by {dialog.item.addedBy || 'Not recorded'}
               </p>
             )}

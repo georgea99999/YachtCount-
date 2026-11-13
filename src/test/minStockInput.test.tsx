@@ -9,6 +9,9 @@ vi.mock('@/integrations/supabase/client', () => ({
 vi.mock('@dnd-kit/sortable', () => ({
   useSortable: () => ({ attributes: {}, listeners: {}, setNodeRef: vi.fn() }),
 }));
+vi.mock('@/components/inventory/MobileSwipeActions', () => ({
+  default: ({ children, onHistory }: { children: React.ReactNode; onHistory: () => void }) => <div>{children}<button onClick={onHistory}>History for Deck brush</button></div>,
+}));
 
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 

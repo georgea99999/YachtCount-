@@ -16,7 +16,7 @@ type DialogMode =
   | { kind: 'edit'; task: Task };
 
 const TaskList = () => {
-  const {members}=useCrew();
+  const {members,crew}=useCrew();
   const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, setTaskStatus, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
@@ -181,11 +181,11 @@ const TaskList = () => {
           </Button>
           {showDeleted && <div className="mt-2 space-y-2.5">
             {deletedTasks.length > 0 ? <>
-              <div className="flex justify-end">
+              {crew?.canDeleteItems && <div className="flex justify-end">
                 <Button variant="ghost" size="sm" onClick={() => setConfirmClear(true)} className="text-muted-foreground hover:bg-muted hover:text-foreground">
                   <Trash2 className="h-3.5 w-3.5" /> Clear deleted folder
                 </Button>
-              </div>
+              </div>}
               {deletedTasks.map(task => <TaskRow key={task.id} task={task} archived onToggle={() => {}} onStar={() => {}} onOpen={() => {}} onDelete={() => {}} onRestore={() => restoreTask(task.id)} />)}
             </> : <p className="px-3 py-4 text-sm text-muted-foreground">No deleted tasks.</p>}
           </div>}

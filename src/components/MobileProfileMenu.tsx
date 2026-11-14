@@ -1,4 +1,5 @@
-import { UserRound, Moon } from 'lucide-react';
+import { useState } from 'react';
+import { UserRound, Moon, BarChart3 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -10,12 +11,14 @@ interface MobileProfileMenuProps {
   vesselName?: string;
   crewName?: string;
   crewRole?: string;
+  onOpenReports?: () => void;
 }
 
-export function MobileProfileMenu({ vesselName, crewName, crewRole }: MobileProfileMenuProps) {
+export function MobileProfileMenu({ vesselName, crewName, crewRole, onOpenReports }: MobileProfileMenuProps) {
   const { resolvedTheme, setTheme } = useTheme();
+  const [open, setOpen] = useState(false);
 
-  return <Popover>
+  return <Popover open={open} onOpenChange={setOpen}>
     <PopoverTrigger asChild>
       <Button variant="ghost" size="icon" title="Profile" aria-label="Profile" className="h-9 w-9 text-primary-foreground hover:bg-sidebar-accent md:hidden">
         <UserRound className="h-5 w-5" />
@@ -30,6 +33,7 @@ export function MobileProfileMenu({ vesselName, crewName, crewRole }: MobileProf
       <div className="p-1">
         <CrewPanel menuTrigger />
         <ProvisionVesselPanel menuTrigger />
+        {onOpenReports && <Button variant="ghost" className="h-12 w-full justify-start gap-3 px-3 text-sm font-medium" onClick={() => { setOpen(false); onOpenReports(); }}><BarChart3 className="h-5 w-5" />Monthly Report</Button>}
       </div>
       <div className="flex min-h-14 items-center justify-between gap-3 border-t border-border px-4 py-3">
         <label htmlFor="mobile-dark-mode" className="flex items-center gap-3 text-sm font-medium"><Moon className="h-5 w-5" />Dark mode</label>

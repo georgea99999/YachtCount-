@@ -1,5 +1,5 @@
 import { type CSSProperties } from 'react';
-import { Home, BarChart3, ClipboardList, ListTodo, LogOut } from 'lucide-react';
+import { Home, ClipboardList, ListTodo, LogOut } from 'lucide-react';
 import { TabType } from '@/types/inventory';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +17,6 @@ const tabs = [
   { id: 'stock' as TabType, label: 'Stock Take', icon: Home },
   { id: 'deckOrder' as TabType, label: 'Deck Order', icon: ClipboardList },
   { id: 'tasks' as TabType, label: 'To Do', icon: ListTodo },
-  { id: 'reports' as TabType, label: 'Monthly Report', icon: BarChart3 },
 ];
 
 const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout, headerHeight = 0 }: SidebarProps) => {

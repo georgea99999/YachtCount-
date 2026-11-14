@@ -100,6 +100,7 @@ const Index = ({ onLogout }: IndexProps) => {
         onRestoreItem={restoreFromNotification}
         onLogout={onLogout}
         canManageNotifications={crew.canDeleteItems}
+        onOpenReports={crew.canDeleteItems ? () => setActiveTab('reports') : undefined}
         crewName={crew.username}
         vesselName={crew.vesselName}
         crewRole={crew.owner ? 'Admin' : crew.canDeleteItems ? 'Junior admin' : 'Crew member'}
@@ -153,7 +154,7 @@ const Index = ({ onLogout }: IndexProps) => {
 
             {activeTab === 'tasks' && <TaskList />}
 
-            {activeTab === 'reports' && (
+            {activeTab === 'reports' && crew.canDeleteItems && (
               <MonthlyReport
                 usageHistory={usageHistory}
                 availableMonths={availableMonths}

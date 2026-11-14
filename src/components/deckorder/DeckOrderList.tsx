@@ -468,7 +468,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                 <Trash2 className="h-4 w-4" /> Delete
               </Button>
             )}
-            {dialog.kind === 'edit' && !canDelete && (
+            {dialog.kind === 'edit' && (
               <p className="mr-auto self-center text-xs text-muted-foreground">
                 Added by {dialog.item.addedBy || 'Not recorded'}
               </p>

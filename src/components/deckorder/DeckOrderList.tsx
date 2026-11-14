@@ -2,14 +2,11 @@ import { useMemo, useState } from 'react';
 import Attachments from '@/components/Attachments';
 import {
   ArrowUpDown,
-  ChevronDown,
-  ChevronUp,
   Download,
   ExternalLink,
   Layers,
   Link2,
   ListChecks,
-  Pencil,
   Plus,
   Trash2,
   XCircle,
@@ -64,7 +61,6 @@ const qtyValue = (quantity: string) => {
 };
 
 const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAll, canDelete = false }: DeckOrderListProps) => {
-  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [dialog, setDialog] = useState<{ kind: 'closed' } | { kind: 'add' } | { kind: 'edit'; item: DeckOrderItem }>({ kind: 'closed' });
   const [form, setForm] = useState(emptyForm);
@@ -351,69 +347,42 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
           ) : (
             <div className="divide-y">
               {visibleItems.map((item) => {
-                const isExpanded = expandedId === item.id;
+                const href = item.link ? (item.link.startsWith('http') ? item.link : `https://${item.link}`) : '';
+                const chips = [item.colour, item.size && `Size ${item.size}`].filter(Boolean) as string[];
                 return (
-                  <div key={item.id}>
-                    <div
-                      className="flex items-center gap-2 px-3 py-3 hover:bg-muted/50 cursor-pointer"
-                      onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                    >
-                      <div className="flex-1 min-w-0 flex items-center gap-1">
-                        <span className={`font-medium text-sm text-foreground ${isExpanded ? 'break-words' : 'truncate'}`}>
-                          {item.productName}
-                        </span>
-                        {isExpanded ? (
-                          <ChevronUp className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-                        )}
-                      </div>
-                      <span className="w-auto min-w-[3rem] shrink-0 whitespace-nowrap text-right text-sm font-medium tabular-nums">{item.quantity}</span>
-                    </div>
-
-                    {isExpanded && (
-                      <div className="px-4 py-3 bg-muted/30 border-t space-y-2">
-                        <p className="text-sm"><span className="text-muted-foreground">Quantity:</span> {item.quantity}</p>
-                        {item.colour && (
-                          <p className="text-sm"><span className="text-muted-foreground">Colour:</span> {item.colour}</p>
-                        )}
-                        {item.size && (
-                          <p className="text-sm"><span className="text-muted-foreground">Size:</span> {item.size}</p>
-                        )}
-                        {item.link && (
-                          <a
-                            href={item.link.startsWith('http') ? item.link : `https://${item.link}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-sm text-primary hover:underline"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                            <span className="break-all">{item.link}</span>
-                          </a>
-                        )}
-                        <div className="flex gap-2 pt-2 border-t border-border/50">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-1"
-                            onClick={(e) => { e.stopPropagation(); openEdit(item); }}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                            Edit
-                          </Button>
-                          {canDelete && <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={(e) => { e.stopPropagation(); onDeleteItem(item.id); }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Delete
-                          </Button>}
+                  <div
+                    key={item.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open ${item.productName}`}
+                    className="flex items-center gap-3 px-3 py-3 hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:bg-muted/50"
+                    onClick={() => openEdit(item)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEdit(item); } }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm text-foreground break-words line-clamp-2">{item.productName}</p>
+                      {chips.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {chips.map((c) => (
+                            <span key={c} className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{c}</span>
+                          ))}
                         </div>
-                      </div>
+                      )}
+                    </div>
+                    {href && (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Open supplier link"
+                        aria-label={`Open supplier link for ${item.productName}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
                     )}
+                    <span className="shrink-0 whitespace-nowrap rounded-full bg-muted/60 px-3 py-1 text-sm font-semibold tabular-nums text-foreground">{item.quantity}</span>
                   </div>
                 );
               })}
@@ -494,7 +463,12 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
             {dialog.kind === 'edit' ? <Attachments parentType="deck_order" parentId={dialog.item.id} /> : <p className="text-xs text-muted-foreground">Add the item first, then tap it to attach photos or documents.</p>}
           </div>
           <DialogFooter>
-            {dialog.kind === 'edit' && (
+            {dialog.kind === 'edit' && canDelete && (
+              <Button variant="ghost" className="mr-auto gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => { onDeleteItem(dialog.item.id); closeDialog(); }}>
+                <Trash2 className="h-4 w-4" /> Delete
+              </Button>
+            )}
+            {false && dialog.kind === 'edit' && (
               <p className="mr-auto self-center text-xs text-muted-foreground">
                 Added by {dialog.item.addedBy || 'Not recorded'}
               </p>

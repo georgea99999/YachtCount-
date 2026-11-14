@@ -40,7 +40,6 @@ function renderList(overrides: Partial<typeof item> = {}) {
 function openEditor(overrides: Partial<typeof item> = {}) {
   renderList(overrides);
   fireEvent.click(screen.getByText('No slip deck paint'));
-  fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
 }
 
 describe('deck order added-by attribution', () => {

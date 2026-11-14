@@ -51,6 +51,7 @@ interface DeckOrderListProps {
   onUpdateItem: (id: number, updates: Partial<Omit<DeckOrderItem, 'id'>>) => void;
   onDeleteItem: (id: number) => void;
   onClearAll: () => void;
+  canDelete?: boolean;
 }
 
 type SortOption = 'default' | 'name-asc' | 'name-desc' | 'qty-asc' | 'qty-desc';
@@ -62,7 +63,7 @@ const qtyValue = (quantity: string) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAll }: DeckOrderListProps) => {
+const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAll, canDelete = false }: DeckOrderListProps) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [dialog, setDialog] = useState<{ kind: 'closed' } | { kind: 'add' } | { kind: 'edit'; item: DeckOrderItem }>({ kind: 'closed' });
@@ -296,7 +297,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
 
         <div className="flex-1" />
 
-        {items.length > 0 && (
+        {canDelete && items.length > 0 && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-destructive" title="Clear all items">
@@ -401,7 +402,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                             <Pencil className="h-3.5 w-3.5" />
                             Edit
                           </Button>
-                          <Button
+                          {canDelete && <Button
                             variant="outline"
                             size="sm"
                             className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -409,7 +410,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             Delete
-                          </Button>
+                          </Button>}
                         </div>
                       </div>
                     )}

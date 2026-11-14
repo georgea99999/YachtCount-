@@ -99,6 +99,7 @@ const Index = ({ onLogout }: IndexProps) => {
         onClearNotifications={clearNotifications}
         onRestoreItem={restoreFromNotification}
         onLogout={onLogout}
+        canManageNotifications={crew.canDeleteItems}
         crewName={crew.username}
         vesselName={crew.vesselName}
         crewRole={crew.owner ? 'Admin' : crew.canDeleteItems ? 'Junior admin' : 'Crew member'}
@@ -146,6 +147,7 @@ const Index = ({ onLogout }: IndexProps) => {
                 onUpdateItem={updateOrderItem}
                 onDeleteItem={deleteOrderItem}
                 onClearAll={clearOrderItems}
+                canDelete={crew.canDeleteItems}
               />
             )}
 

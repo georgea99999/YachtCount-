@@ -22,6 +22,7 @@ interface HeaderProps {
   onClearNotifications: () => void;
   onRestoreItem?: (notificationId: number) => void;
   onLogout?: () => void;
+  canManageNotifications?: boolean;
 }
 const Header = ({
   activeTab,
@@ -34,7 +35,8 @@ const Header = ({
   notifications,
   onClearNotifications,
   onRestoreItem,
-  onLogout
+  onLogout,
+  canManageNotifications = false
 }: HeaderProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const formatTimestamp = (timestamp: string) => {
@@ -121,7 +123,7 @@ const Header = ({
             <PopoverContent className="w-80 p-0" align="end">
               <div className="p-3 border-b flex items-center justify-between">
                 <h3 className="font-semibold">Notifications</h3>
-                {notifications.length > 0 && <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={onClearNotifications}>
+                {canManageNotifications && notifications.length > 0 && <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={onClearNotifications}>
                     <Trash2 className="h-3 w-3 mr-1" />
                     Clear All
                   </Button>}
@@ -137,7 +139,7 @@ const Header = ({
                           <p className="text-xs text-muted-foreground">
                             {formatTimestamp(notif.timestamp)}
                           </p>
-                          {notif.type === 'deleted' && notif.deletedItemData && (
+                          {canManageNotifications && notif.type === 'deleted' && notif.deletedItemData && (
                             <Button
                               variant="ghost"
                               size="sm"

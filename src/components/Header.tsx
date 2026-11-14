@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Bell, Menu, Trash2, RotateCcw, Ship, UserRound } from 'lucide-react';
+import { Search, Bell, Menu, Trash2, RotateCcw, Ship, UserRound, BarChart3 } from 'lucide-react';
 import yachtcountLogo from '@/assets/yachtcount-logo.png';
 import ThemeToggle from './ThemeToggle';
 import { CrewPanel } from './CrewPanel';
@@ -23,6 +23,7 @@ interface HeaderProps {
   onRestoreItem?: (notificationId: number) => void;
   onLogout?: () => void;
   canManageNotifications?: boolean;
+  onOpenReports?: () => void;
 }
 const Header = ({
   activeTab,
@@ -36,7 +37,8 @@ const Header = ({
   onClearNotifications,
   onRestoreItem,
   onLogout,
-  canManageNotifications = false
+  canManageNotifications = false,
+  onOpenReports
 }: HeaderProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const formatTimestamp = (timestamp: string) => {
@@ -86,6 +88,7 @@ const Header = ({
            <div className="hidden items-center gap-1 md:flex">
           <ProvisionVesselPanel />
           <CrewPanel />
+          {onOpenReports && <Button title="Monthly Report" aria-label="Monthly Report" variant="ghost" size="icon" className="h-10 w-10 text-primary-foreground hover:bg-sidebar-accent" onClick={onOpenReports}><BarChart3 className="h-5 w-5" /></Button>}
           {/* Theme Toggle */}
           <ThemeToggle />
            </div>
@@ -156,7 +159,7 @@ const Header = ({
               </ScrollArea>
             </PopoverContent>
           </Popover>
-           <MobileProfileMenu vesselName={vesselName} crewName={crewName} crewRole={crewRole} />
+           <MobileProfileMenu vesselName={vesselName} crewName={crewName} crewRole={crewRole} onOpenReports={onOpenReports} />
 
         </div>
       </div>

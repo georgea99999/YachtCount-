@@ -347,9 +347,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
           ) : (
             <div className="divide-y">
               {visibleItems.map((item) => {
-                const href = item.link ? (item.link.startsWith('http') ? item.link : `https://${item.link}`) : '';
-                const chips = [item.colour, item.size && `Size ${item.size}`].filter(Boolean) as string[];
-                return (
+                                                return (
                   <div
                     key={item.id}
                     role="button"
@@ -359,30 +357,8 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                     onClick={() => openEdit(item)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEdit(item); } }}
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-foreground break-words line-clamp-2">{item.productName}</p>
-                      {chips.length > 0 && (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {chips.map((c) => (
-                            <span key={c} className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{c}</span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    {href && (
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Open supplier link"
-                        aria-label={`Open supplier link for ${item.productName}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
-                    <span className="shrink-0 whitespace-nowrap rounded-full bg-muted/60 px-3 py-1 text-sm font-semibold tabular-nums text-foreground">{item.quantity}</span>
+                    <p className="flex-1 min-w-0 truncate text-sm font-medium text-foreground">{item.productName}</p>
+                    <span className="w-auto min-w-[3rem] shrink-0 whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground">{item.quantity}</span>
                   </div>
                 );
               })}

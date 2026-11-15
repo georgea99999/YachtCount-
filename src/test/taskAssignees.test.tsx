@@ -65,7 +65,7 @@ describe('task crew assignment', () => {
     await waitFor(() => expect(mock.addTask).toHaveBeenCalledWith('Wash down decks', {
       notes: '',
       starred: false,
-      assignees: ['Alice Smith', 'Bob Jones'],
+      assignees: ['Alice Smith', 'Bob Jones'], checklist: [],
     }));
   });
 });

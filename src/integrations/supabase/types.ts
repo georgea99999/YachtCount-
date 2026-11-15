@@ -311,6 +311,7 @@ export type Database = {
       tasks: {
         Row: {
           assignees: string[]
+          checklist: Json
           completed: boolean
           completed_at: string | null
           completed_by: string | null
@@ -328,6 +329,7 @@ export type Database = {
         }
         Insert: {
           assignees?: string[]
+          checklist?: Json
           completed?: boolean
           completed_at?: string | null
           completed_by?: string | null
@@ -345,6 +347,7 @@ export type Database = {
         }
         Update: {
           assignees?: string[]
+          checklist?: Json
           completed?: boolean
           completed_at?: string | null
           completed_by?: string | null

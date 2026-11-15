@@ -9,6 +9,12 @@ export interface StockItem {
 
 export type TaskStatus = 'todo' | 'in_progress' | 'completed';
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface Task {
   id: number;
   text: string;
@@ -21,6 +27,7 @@ export interface Task {
   deletedAt?: string;
   notes?: string;
   assignees?: string[];
+  checklist?: ChecklistItem[];
   /** @deprecated use assignees */
   assignee?: string;
 }

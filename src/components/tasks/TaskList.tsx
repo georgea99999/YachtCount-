@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Attachments from '@/components/Attachments';
-import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, ChevronLeft, Trash2, User, X, RotateCcw, List, LayoutGrid, StickyNote } from 'lucide-react';
+import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, ChevronLeft, Trash2, User, X, RotateCcw, List, LayoutGrid, StickyNote, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useTasks } from '@/hooks/useTasks';
-import { Task, TaskStatus } from '@/types/inventory';
+import { Task, TaskStatus, ChecklistItem } from '@/types/inventory';
 import { cn } from '@/lib/utils';
 import { useCrew } from '@/hooks/useCrew';
 
@@ -17,7 +17,7 @@ type DialogMode =
 
 const TaskList = () => {
   const {members,crew}=useCrew();
-  const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, setTaskStatus, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
+  const { tasks, deletedTasks, addTask, toggleTask, toggleStar, updateTaskFields, setTaskStatus, toggleChecklistItem, deleteTask, restoreTask, clearDeletedTasks } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -138,6 +138,7 @@ const TaskList = () => {
                   onToggle={() => toggleTask(task.id)}
                   onStar={() => toggleStar(task.id)}
                   onOpen={() => setDialog({ kind: 'edit', task })}
+                  onCheck={(itemId) => toggleChecklistItem(task.id, itemId)}
                   onDelete={() => deleteTask(task.id)}
                 />
               ))}
@@ -164,6 +165,7 @@ const TaskList = () => {
                         onToggle={() => toggleTask(task.id)}
                         onStar={() => toggleStar(task.id)}
                         onOpen={() => setDialog({ kind: 'edit', task })}
+                        onCheck={(itemId) => toggleChecklistItem(task.id, itemId)}
                         onDelete={() => deleteTask(task.id)}
                       />
                     ))}
@@ -221,7 +223,7 @@ const TaskList = () => {
         crewMembers={members}
         onClose={() => setDialog({ kind: 'closed' })}
         onAdd={async (payload) => {
-          if(await addTask(payload.text, { notes: payload.notes, starred: payload.starred, assignees: payload.assignees })) setDialog({ kind: 'closed' });
+          if(await addTask(payload.text, { notes: payload.notes, starred: payload.starred, assignees: payload.assignees, checklist: payload.checklist })) setDialog({ kind: 'closed' });
         }}
         onSave={async (id, payload) => {
           if(await updateTaskFields(id, payload)) setDialog({ kind: 'closed' });
@@ -427,6 +429,7 @@ const BoardCard = ({ task, canMoveBack, canMoveForward, onMoveBack, onMoveForwar
         <div className="mt-2.5 md:mt-2 flex items-center justify-between">
           <div className="flex items-center gap-1 text-muted-foreground/70">
             {task.notes && <StickyNote className="h-4 w-4 md:h-3.5 md:w-3.5" aria-label="Has notes" />}
+            <ChecklistBadge items={task.checklist} />
           </div>
           <div className="flex items-center gap-1.5 md:gap-1">
             {canMoveBack && (
@@ -462,11 +465,12 @@ interface TaskRowProps {
   onToggle: () => void;
   onStar: () => void;
   onOpen: () => void;
+  onCheck?: (itemId: string) => void;
   onDelete: () => void;
   onRestore?: () => void;
 }
 
-const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete, onRestore }: TaskRowProps) => {
+const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, onDelete, onRestore }: TaskRowProps) => {
   const assignees = task.assignees ?? [];
   const visible = assignees.slice(0, 2);
   const overflow = assignees.length - visible.length;
@@ -534,6 +538,28 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onDelete, o
 
 
 
+          {(task.checklist?.length ?? 0) > 0 && (
+            <div className="mt-1.5 space-y-1">
+              <ChecklistBadge items={task.checklist} />
+              <ul className="space-y-0.5">
+                {task.checklist!.map(item => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      disabled={archived || !onCheck}
+                      onClick={() => onCheck?.(item.id)}
+                      className="flex w-full items-start gap-2 rounded px-1 py-1 -ml-1 text-left text-xs hover:bg-muted disabled:hover:bg-transparent"
+                      aria-label={`${item.done ? 'Untick' : 'Tick'} ${item.text}`}
+                    >
+                      {item.done ? <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" /> : <Circle className="h-4 w-4 shrink-0 text-muted-foreground/60" />}
+                      <span className={cn("break-words", item.done ? "line-through text-muted-foreground" : "text-foreground")}>{item.text}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {task.notes && (
             <div onClick={archived ? undefined : onOpen} className={cn("mt-1.5 w-full", !archived && "cursor-pointer")}>
               <div
@@ -595,6 +621,7 @@ interface TaskPayload {
   notes: string;
   starred: boolean;
   assignees: string[];
+  checklist: ChecklistItem[];
 }
 
 interface TaskDialogProps {
@@ -614,6 +641,8 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
   const [notes, setNotes] = useState('');
   const [starred, setStarred] = useState(false);
   const [assignees, setAssignees] = useState<string[]>([]);
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [newItem, setNewItem] = useState('');
 
   // Seed state whenever dialog opens / target changes
   useEffect(() => {
@@ -622,11 +651,15 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
       setNotes(mode.task.notes ?? '');
       setStarred(!!mode.task.starred);
       setAssignees(mode.task.assignees ?? []);
+      setChecklist(mode.task.checklist ?? []);
+      setNewItem('');
     } else if (mode.kind === 'add') {
       setText('');
       setNotes('');
       setStarred(false);
       setAssignees([]);
+      setChecklist([]);
+      setNewItem('');
     }
   }, [mode]);
 
@@ -649,7 +682,9 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
 
   const submit = () => {
     if (!text.trim()) return;
-    const payload: TaskPayload = { text, notes, starred, assignees };
+    const pending = newItem.trim();
+    const items = pending ? [...checklist, { id: crypto.randomUUID(), text: pending, done: false }] : checklist;
+    const payload: TaskPayload = { text, notes, starred, assignees, checklist: items };
     if (editing) onSave(editing.id, payload);
     else onAdd(payload);
   };
@@ -728,6 +763,41 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
           </div>
 
           <div className="space-y-1.5">
+            <label htmlFor="task-checklist" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Checklist <span className="normal-case text-muted-foreground/70">(optional)</span>
+            </label>
+            {checklist.length > 0 && (
+              <ul className="space-y-1">
+                {checklist.map(item => (
+                  <li key={item.id} className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5">
+                    <button type="button" onClick={() => setChecklist(prev => prev.map(i => i.id === item.id ? { ...i, done: !i.done } : i))} aria-label={`${item.done ? 'Untick' : 'Tick'} ${item.text}`}>
+                      {item.done ? <CheckCircle2 className="h-4 w-4 text-accent" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
+                    </button>
+                    <span className={cn("flex-1 text-sm break-words", item.done && "line-through text-muted-foreground")}>{item.text}</span>
+                    <button type="button" onClick={() => setChecklist(prev => prev.filter(i => i.id !== item.id))} aria-label={`Remove ${item.text}`} className="text-muted-foreground hover:text-destructive">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex gap-2">
+              <Input
+                id="task-checklist"
+                placeholder="e.g. Check windlass oil"
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); const v = newItem.trim(); if (v) { setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: v, done: false }]); setNewItem(''); } }
+                }}
+              />
+              <Button type="button" variant="outline" size="icon" aria-label="Add checklist item" disabled={!newItem.trim()} onClick={() => { const v = newItem.trim(); if (v) { setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: v, done: false }]); setNewItem(''); } }}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Notes <span className="normal-case text-muted-foreground/70">(optional)</span>
             </label>
@@ -792,3 +862,13 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
 };
 
 export default TaskList;
+
+const ChecklistBadge = ({ items }: { items?: ChecklistItem[] }) => {
+  if (!items || items.length === 0) return null;
+  const done = items.filter(i => i.done).length;
+  return (
+    <span className={cn("inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-semibold", done === items.length ? "bg-accent/15 text-accent" : "bg-muted text-muted-foreground")} aria-label={`Checklist ${done} of ${items.length} done`}>
+      <ListChecks className="h-3 w-3" />{done}/{items.length}
+    </span>
+  );
+};

@@ -127,6 +127,13 @@
       "when": 1794574271854,
       "tag": "0017_admin_delete_deck_orders_tasks",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794743122445,
+      "tag": "0018_task_checklist",
+      "breakpoints": true
     }
   ]
 }

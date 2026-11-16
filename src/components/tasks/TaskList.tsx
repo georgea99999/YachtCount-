@@ -508,13 +508,12 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, on
             >
               {task.text}
             </div>
-            {assignees.length > 0 && (
-              <div className="mt-1 flex flex-wrap items-center gap-1">
+            {(assignees.length > 0 || task.notes || (task.checklist?.length ?? 0) > 0) && (
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-muted-foreground/70">
+                <ChecklistBadge items={task.checklist} />
+                {task.notes && <StickyNote className="h-3.5 w-3.5" aria-label="Has notes" />}
                 {visible.map(a => (
-                  <span
-                    key={a}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent"
-                  >
+                  <span key={a} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
                     <User className="h-2.5 w-2.5" />
                     {a}
                   </span>
@@ -538,52 +537,6 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, on
 
 
 
-          {(task.checklist?.length ?? 0) > 0 && (
-            <div className="mt-1.5 space-y-1">
-              <ChecklistBadge items={task.checklist} />
-              <ul className="space-y-0.5">
-                {task.checklist!.map(item => (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      disabled={archived || !onCheck}
-                      onClick={() => onCheck?.(item.id)}
-                      className="flex w-full items-start gap-2 rounded px-1 py-1 -ml-1 text-left text-xs hover:bg-muted disabled:hover:bg-transparent"
-                      aria-label={`${item.done ? 'Untick' : 'Tick'} ${item.text}`}
-                    >
-                      {item.done ? <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" /> : <Circle className="h-4 w-4 shrink-0 text-muted-foreground/60" />}
-                      <span className={cn("break-words", item.done ? "line-through text-muted-foreground" : "text-foreground")}>{item.text}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {task.notes && (
-            <div onClick={archived ? undefined : onOpen} className={cn("mt-1.5 w-full", !archived && "cursor-pointer")}>
-              <div
-                ref={notesRef}
-                className={cn(
-                  "text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap break-words",
-                  !expanded && "line-clamp-4"
-                )}
-              >
-                {task.notes}
-              </div>
-              {isLong && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); setExpanded(v => !v); }}
-                  className="mt-1 inline-flex items-center gap-1 rounded px-1 py-0.5 -ml-1 text-[11px] font-semibold text-accent hover:bg-accent/10"
-                  aria-expanded={expanded}
-                >
-                  {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                  {expanded ? 'Show less' : 'Show more'}
-                </button>
-              )}
-            </div>
-          )}
         </div>
 
         {archived && onRestore && <button

@@ -134,6 +134,13 @@
       "when": 1794743122445,
       "tag": "0018_task_checklist",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794829301852,
+      "tag": "0019_task_due_date",
+      "breakpoints": true
     }
   ]
 }

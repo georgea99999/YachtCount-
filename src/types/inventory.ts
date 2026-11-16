@@ -28,6 +28,8 @@ export interface Task {
   notes?: string;
   assignees?: string[];
   checklist?: ChecklistItem[];
+  /** YYYY-MM-DD */
+  dueDate?: string;
   /** @deprecated use assignees */
   assignee?: string;
 }

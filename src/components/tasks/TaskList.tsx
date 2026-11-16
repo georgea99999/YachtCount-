@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Attachments from '@/components/Attachments';
-import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, ChevronLeft, Trash2, User, X, RotateCcw, List, LayoutGrid, StickyNote, ListChecks } from 'lucide-react';
+import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, ChevronLeft, Trash2, User, X, RotateCcw, List, LayoutGrid, StickyNote, ListChecks, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -223,7 +223,7 @@ const TaskList = () => {
         crewMembers={members}
         onClose={() => setDialog({ kind: 'closed' })}
         onAdd={async (payload) => {
-          if(await addTask(payload.text, { notes: payload.notes, starred: payload.starred, assignees: payload.assignees, checklist: payload.checklist })) setDialog({ kind: 'closed' });
+          if(await addTask(payload.text, { notes: payload.notes, starred: payload.starred, assignees: payload.assignees, checklist: payload.checklist, dueDate: payload.dueDate || undefined })) setDialog({ kind: 'closed' });
         }}
         onSave={async (id, payload) => {
           if(await updateTaskFields(id, payload)) setDialog({ kind: 'closed' });
@@ -429,7 +429,7 @@ const BoardCard = ({ task, canMoveBack, canMoveForward, onMoveBack, onMoveForwar
         <div className="mt-2.5 md:mt-2 flex items-center justify-between">
           <div className="flex items-center gap-1 text-muted-foreground/70">
             {task.notes && <StickyNote className="h-4 w-4 md:h-3.5 md:w-3.5" aria-label="Has notes" />}
-            <ChecklistBadge items={task.checklist} />
+            <DueBadge date={task.dueDate} done={task.completed} /><ChecklistBadge items={task.checklist} />
           </div>
           <div className="flex items-center gap-1.5 md:gap-1">
             {canMoveBack && (
@@ -470,6 +470,16 @@ interface TaskRowProps {
   onRestore?: () => void;
 }
 
+const DueBadge = ({ date, done }: { date?: string; done?: boolean }) => {
+  if (!date) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d = new Date(date + 'T00:00:00');
+  const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
+  const label = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  const tone = done ? 'bg-muted text-muted-foreground' : diff < 0 ? 'bg-destructive/10 text-destructive' : diff <= 2 ? 'bg-accent/15 text-accent' : 'bg-muted text-muted-foreground';
+  return <span className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold", tone)} title={diff < 0 && !done ? 'Overdue' : 'Due date'}><CalendarDays className="h-3 w-3" />{label}</span>;
+};
+
 const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, onDelete, onRestore }: TaskRowProps) => {
   const assignees = task.assignees ?? [];
   const visible = assignees.slice(0, 2);
@@ -508,8 +518,9 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, on
             >
               {task.text}
             </div>
-            {(assignees.length > 0 || task.notes || (task.checklist?.length ?? 0) > 0) && (
+            {(assignees.length > 0 || task.notes || task.dueDate || (task.checklist?.length ?? 0) > 0) && (
               <div className="mt-1 flex flex-wrap items-center gap-1.5 text-muted-foreground/70">
+                <DueBadge date={task.dueDate} done={task.completed} />
                 <ChecklistBadge items={task.checklist} />
                 {task.notes && <StickyNote className="h-3.5 w-3.5" aria-label="Has notes" />}
                 {visible.map(a => (
@@ -574,6 +585,7 @@ interface TaskPayload {
   notes: string;
   starred: boolean;
   assignees: string[];
+  dueDate?: string;
   checklist: ChecklistItem[];
 }
 
@@ -596,6 +608,7 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
   const [assignees, setAssignees] = useState<string[]>([]);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [newItem, setNewItem] = useState('');
+  const [dueDate, setDueDate] = useState('');
 
   // Seed state whenever dialog opens / target changes
   useEffect(() => {
@@ -605,6 +618,7 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
       setStarred(!!mode.task.starred);
       setAssignees(mode.task.assignees ?? []);
       setChecklist(mode.task.checklist ?? []);
+      setDueDate(mode.task.dueDate ?? '');
       setNewItem('');
     } else if (mode.kind === 'add') {
       setText('');
@@ -613,6 +627,7 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
       setAssignees([]);
       setChecklist([]);
       setNewItem('');
+      setDueDate('');
     }
   }, [mode]);
 
@@ -637,7 +652,7 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
     if (!text.trim()) return;
     const pending = newItem.trim();
     const items = pending ? [...checklist, { id: crypto.randomUUID(), text: pending, done: false }] : checklist;
-    const payload: TaskPayload = { text, notes, starred, assignees, checklist: items };
+    const payload: TaskPayload = { text, notes, starred, assignees, checklist: items, dueDate: editing ? dueDate : (dueDate || undefined) };
     if (editing) onSave(editing.id, payload);
     else onAdd(payload);
   };
@@ -672,9 +687,10 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="grid gap-4 rounded-lg border border-border bg-muted/30 p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-start">
+          <div className="space-y-1.5 min-w-0">
             <label htmlFor="task-assignees" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Assign to <span className="normal-case text-muted-foreground/70">(optional, multiple)</span>
+              Assign to
             </label>
             {assignees.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
@@ -702,7 +718,7 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
               value=""
               disabled={availableCrew.length === 0}
               onChange={(e) => addAssignee(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-9 w-full sm:w-52 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">
                 {crewMembers.length === 0
@@ -713,6 +729,39 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
               </option>
               {availableCrew.map(member => <option key={member} value={member}>{member}</option>)}
             </select>
+          </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="task-due" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Due date</label>
+              <div className="flex items-center gap-1">
+                <div className="relative">
+                  <CalendarDays className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input id="task-due" type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+                    className="h-9 rounded-md border border-input bg-background pl-8 pr-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                </div>
+                {dueDate && <button type="button" onClick={() => setDueDate('')} aria-label="Clear due date" className="p-1 text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></button>}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <span className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">Priority</span>
+          <button
+            type="button"
+            onClick={() => setStarred(s => !s)}
+            className={cn(
+              "flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 border transition-colors w-fit h-9",
+              starred
+                ? "bg-accent/10 border-accent/40 text-accent"
+                : "border-border text-muted-foreground hover:text-accent hover:border-accent/40"
+            )}
+          >
+            <Star className={cn("h-4 w-4", starred && "fill-accent text-accent")} />
+            {starred ? 'Starred' : 'Star'}
+          </button>
+
+            </div>
+            <div className="sm:col-span-3">
+            {editing ? <Attachments parentType="task" parentId={editing.id} /> : <p className="text-xs text-muted-foreground">Save the task first to add photos or documents.</p>}
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -762,21 +811,6 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
             />
           </div>
 
-          <button
-            type="button"
-            onClick={() => setStarred(s => !s)}
-            className={cn(
-              "flex items-center gap-2 text-sm font-medium rounded-md px-3 py-2 border transition-colors w-fit",
-              starred
-                ? "bg-accent/10 border-accent/40 text-accent"
-                : "border-border text-muted-foreground hover:text-accent hover:border-accent/40"
-            )}
-          >
-            <Star className={cn("h-4 w-4", starred && "fill-accent text-accent")} />
-            {starred ? 'Starred' : 'Mark as starred'}
-          </button>
-
-          {editing ? <Attachments parentType="task" parentId={editing.id} /> : <p className="text-xs text-muted-foreground">Save the task first to add photos or documents.</p>}
 
           <div className="flex items-center justify-between gap-2 pt-2">
             <div>

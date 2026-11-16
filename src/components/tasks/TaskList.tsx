@@ -687,6 +687,54 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
             />
           </div>
 
+          <div className="space-y-1.5">
+            <label htmlFor="task-checklist" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Checklist <span className="normal-case text-muted-foreground/70">(optional)</span>
+            </label>
+            {checklist.length > 0 && (
+              <ul className="space-y-1">
+                {checklist.map(item => (
+                  <li key={item.id} className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5">
+                    <button type="button" onClick={() => setChecklist(prev => prev.map(i => i.id === item.id ? { ...i, done: !i.done } : i))} aria-label={`${item.done ? 'Untick' : 'Tick'} ${item.text}`}>
+                      {item.done ? <CheckCircle2 className="h-4 w-4 text-accent" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
+                    </button>
+                    <span className={cn("flex-1 text-sm break-words", item.done && "line-through text-muted-foreground")}>{item.text}</span>
+                    <button type="button" onClick={() => setChecklist(prev => prev.filter(i => i.id !== item.id))} aria-label={`Remove ${item.text}`} className="text-muted-foreground hover:text-destructive">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex gap-2">
+              <Input
+                id="task-checklist"
+                placeholder="e.g. Check windlass oil"
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); const v = newItem.trim(); if (v) { setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: v, done: false }]); setNewItem(''); } }
+                }}
+              />
+              <Button type="button" variant="outline" size="icon" aria-label="Add checklist item" disabled={!newItem.trim()} onClick={() => { const v = newItem.trim(); if (v) { setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: v, done: false }]); setNewItem(''); } }}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Notes <span className="normal-case text-muted-foreground/70">(optional)</span>
+            </label>
+            <Textarea
+              placeholder="Add details, links, or context..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="min-h-[90px] resize-none"
+            />
+          </div>
+
+
           <div className="grid gap-4 rounded-lg border border-border bg-muted/30 p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-start">
           <div className="space-y-1.5 min-w-0">
             <label htmlFor="task-assignees" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -763,54 +811,6 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
             {editing ? <Attachments parentType="task" parentId={editing.id} /> : <p className="text-xs text-muted-foreground">Save the task first to add photos or documents.</p>}
             </div>
           </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="task-checklist" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Checklist <span className="normal-case text-muted-foreground/70">(optional)</span>
-            </label>
-            {checklist.length > 0 && (
-              <ul className="space-y-1">
-                {checklist.map(item => (
-                  <li key={item.id} className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5">
-                    <button type="button" onClick={() => setChecklist(prev => prev.map(i => i.id === item.id ? { ...i, done: !i.done } : i))} aria-label={`${item.done ? 'Untick' : 'Tick'} ${item.text}`}>
-                      {item.done ? <CheckCircle2 className="h-4 w-4 text-accent" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
-                    </button>
-                    <span className={cn("flex-1 text-sm break-words", item.done && "line-through text-muted-foreground")}>{item.text}</span>
-                    <button type="button" onClick={() => setChecklist(prev => prev.filter(i => i.id !== item.id))} aria-label={`Remove ${item.text}`} className="text-muted-foreground hover:text-destructive">
-                      <X className="h-4 w-4" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="flex gap-2">
-              <Input
-                id="task-checklist"
-                placeholder="e.g. Check windlass oil"
-                value={newItem}
-                onChange={(e) => setNewItem(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') { e.preventDefault(); const v = newItem.trim(); if (v) { setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: v, done: false }]); setNewItem(''); } }
-                }}
-              />
-              <Button type="button" variant="outline" size="icon" aria-label="Add checklist item" disabled={!newItem.trim()} onClick={() => { const v = newItem.trim(); if (v) { setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: v, done: false }]); setNewItem(''); } }}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Notes <span className="normal-case text-muted-foreground/70">(optional)</span>
-            </label>
-            <Textarea
-              placeholder="Add details, links, or context..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[90px] resize-none"
-            />
-          </div>
-
 
           <div className="flex items-center justify-between gap-2 pt-2">
             <div>

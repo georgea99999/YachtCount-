@@ -429,7 +429,7 @@ const BoardCard = ({ task, canMoveBack, canMoveForward, onMoveBack, onMoveForwar
         <div className="mt-2.5 md:mt-2 flex items-center justify-between">
           <div className="flex items-center gap-1 text-muted-foreground/70">
             {task.notes && <StickyNote className="h-4 w-4 md:h-3.5 md:w-3.5" aria-label="Has notes" />}
-            <ChecklistBadge items={task.checklist} />
+            <DueBadge date={task.dueDate} done={task.completed} /><ChecklistBadge items={task.checklist} />
           </div>
           <div className="flex items-center gap-1.5 md:gap-1">
             {canMoveBack && (

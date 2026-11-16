@@ -644,7 +644,7 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="sm:max-w-md bg-card">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl lg:max-w-4xl max-h-[90dvh] overflow-y-auto bg-card">
         <DialogHeader>
           <DialogTitle className="text-card-foreground">{editing ? 'Edit Task' : 'New Task'}</DialogTitle>
           <DialogDescription>

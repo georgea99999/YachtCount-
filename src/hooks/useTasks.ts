@@ -7,7 +7,7 @@ export function useTasks() {
   const load = async () => {
     const {data,error} = await supabase.from('tasks').select('*').order('created_at',{ascending:false});
     if(error) {toast.error('Unable to load To Do');return;}
-    setTasks(data.map(t=>({id:t.id,text:t.text,completed:t.completed,status:(t.status as TaskStatus)??(t.completed?'completed':'todo'),starred:t.starred,notes:t.notes??undefined,assignees:t.assignees,checklist:Array.isArray(t.checklist)?(t.checklist as unknown as ChecklistItem[]):[],completedAt:t.completed_at??undefined,createdBy:t.created_by_username??undefined,completedBy:t.completed_by_username??undefined,deletedAt:t.deleted_at??undefined})));
+    setTasks(data.map(t=>({id:t.id,text:t.text,completed:t.completed,status:(t.status as TaskStatus)??(t.completed?'completed':'todo'),starred:t.starred,notes:t.notes??undefined,assignees:t.assignees,checklist:Array.isArray(t.checklist)?(t.checklist as unknown as ChecklistItem[]):[],completedAt:t.completed_at??undefined,createdBy:t.created_by_username??undefined,completedBy:t.completed_by_username??undefined,deletedAt:t.deleted_at??undefined,dueDate:t.due_date??undefined})));
   };
   useEffect(()=>{
     void load();
@@ -19,8 +19,8 @@ export function useTasks() {
     if(error) {toast.error('Task not saved. Please try again.');return false;}
     await load();return true;
   };
-  const addTask=(text:string,opts?:{notes?:string;starred?:boolean;assignees?:string[];checklist?:ChecklistItem[]})=>save(supabase.from('tasks').insert({text:text.trim(),notes:opts?.notes?.trim(),starred:opts?.starred,assignees:opts?.assignees,checklist:(opts?.checklist??[]) as never}));
-  const updateTaskFields=(id:number,patch:Partial<Task>)=>save(supabase.from('tasks').update({text:patch.text?.trim(),notes:patch.notes?.trim(),starred:patch.starred,assignees:patch.assignees,checklist:patch.checklist as never,completed:patch.completed,status:patch.status}).eq('id',id));
+  const addTask=(text:string,opts?:{notes?:string;starred?:boolean;assignees?:string[];checklist?:ChecklistItem[];dueDate?:string})=>save(supabase.from('tasks').insert({text:text.trim(),notes:opts?.notes?.trim(),starred:opts?.starred,assignees:opts?.assignees,checklist:(opts?.checklist??[]) as never,due_date:opts?.dueDate||null}));
+  const updateTaskFields=(id:number,patch:Partial<Task>)=>save(supabase.from('tasks').update({text:patch.text?.trim(),notes:patch.notes?.trim(),starred:patch.starred,assignees:patch.assignees,checklist:patch.checklist as never,completed:patch.completed,status:patch.status,due_date:patch.dueDate===undefined?undefined:(patch.dueDate||null)}).eq('id',id));
   const setTaskStatus=(id:number,status:TaskStatus)=>save(supabase.from('tasks').update({status}).eq('id',id));
   const toggleTask=(id:number)=>{const t=tasks.find(t=>t.id===id);if(t) return setTaskStatus(id,t.completed?'todo':'completed');};
   const toggleStar=(id:number)=>{const t=tasks.find(t=>t.id===id);if(t) return updateTaskFields(id,{starred:!t.starred});};

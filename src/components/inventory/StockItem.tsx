@@ -1,3 +1,5 @@
+import ProductName from './ProductName';
+import { StockEdit } from '@/lib/stockProduct';
 import { groupHistoryByMinute } from '@/lib/historyGroups';
 import { useState } from 'react';
 import { Minus, Plus, Trash2, NotebookPen, MoreHorizontal, Check, X } from 'lucide-react';
@@ -26,7 +28,7 @@ interface StockItemProps {
   onUpdateQuantityDirect: (id: string, value: number) => void;
   onDelete: (id: string) => void;
   canDelete?: boolean;
-  onEditItem?: (id: string, updates: { name: string; box: string }) => void;
+  onEditItem?: (id: string, updates: StockEdit) => void;
   isSelected?: boolean;
   onSelect?: (id: string) => void;
   usageHistory?: UsageEntry[];
@@ -50,6 +52,8 @@ const StockItemRow = ({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
+  const [editBrand, setEditBrand] = useState(item.brand ?? '');
+  const [editSize, setEditSize] = useState(item.size ?? '');
   const [editBox, setEditBox] = useState(item.box);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsMin, setDetailsMin] = useState('');
@@ -76,13 +80,15 @@ const StockItemRow = ({
 
   const handleStartEdit = () => {
     setEditName(item.name);
+    setEditBrand(item.brand ?? '');
+    setEditSize(item.size ?? '');
     setEditBox(item.box);
     setIsEditing(true);
   };
 
   const handleSaveEdit = () => {
     if (editName.trim() && onEditItem) {
-      onEditItem(item.id, { name: editName.trim(), box: editBox });
+      onEditItem(item.id, { name: editName.trim(), box: editBox, ...(editBrand !== (item.brand ?? '') ? { brand: editBrand.trim() } : {}), ...(editSize !== (item.size ?? '') ? { size: editSize.trim() } : {}) });
     }
     setIsEditing(false);
   };
@@ -90,11 +96,15 @@ const StockItemRow = ({
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditName(item.name);
+    setEditBrand(item.brand ?? '');
+    setEditSize(item.size ?? '');
     setEditBox(item.box);
   };
 
   const openDetails = () => {
     setEditName(item.name);
+    setEditBrand(item.brand ?? '');
+    setEditSize(item.size ?? '');
     setEditBox(item.box);
     setDetailsMin(minQuantity != null ? String(minQuantity) : '');
     setDetailsOpen(true);
@@ -110,8 +120,8 @@ const StockItemRow = ({
         if (error) { toast.error('Could not save minimum stock'); return; }
         setMinOverride(value);
       }
-      if (editName.trim() !== item.name || editBox !== item.box) {
-        await onEditItem?.(item.id, { name: editName.trim(), box: editBox });
+      if (editName.trim() !== item.name || editBox !== item.box || editBrand !== (item.brand ?? '') || editSize !== (item.size ?? '')) {
+        await onEditItem?.(item.id, { name: editName.trim(), box: editBox, ...(editBrand !== (item.brand ?? '') ? { brand: editBrand.trim() } : {}), ...(editSize !== (item.size ?? '') ? { size: editSize.trim() } : {}) });
       }
       setDetailsOpen(false);
     } catch {
@@ -154,6 +164,10 @@ const StockItemRow = ({
             placeholder="Product name"
             autoFocus
           />
+          <div className="grid grid-cols-2 gap-2">
+            <Input aria-label="Brand" placeholder="Brand (optional)" value={editBrand} onChange={e => setEditBrand(e.target.value)} />
+            <Input aria-label="Size / Unit" placeholder="e.g. 500ml" value={editSize} onChange={e => setEditSize(e.target.value)} />
+          </div>
           <Select value={editBox} onValueChange={setEditBox}>
             <SelectTrigger className="w-full h-9">
               <SelectValue />
@@ -213,8 +227,8 @@ const StockItemRow = ({
           className="flex-1 min-w-0 px-1 -mx-1"
         >
           <div className="flex items-center gap-1 flex-wrap">
-            <p className="font-medium text-sm text-foreground break-words line-clamp-2">
-              {item.name}
+            <p className="text-sm text-foreground break-words">
+              <ProductName item={item} />
             </p>
             {item.quantity === 0 && (
               <span
@@ -284,6 +298,10 @@ const StockItemRow = ({
             <div className="space-y-2">
               <Label htmlFor={`name-${item.id}`}>Product name</Label>
               <Input id={`name-${item.id}`} value={editName} onChange={e => setEditName(e.target.value)} disabled={saving || !onEditItem} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2"><Label htmlFor={`brand-${item.id}`}>Brand</Label><Input id={`brand-${item.id}`} placeholder="Optional" value={editBrand} onChange={e => setEditBrand(e.target.value)} disabled={saving || !onEditItem} /></div>
+              <div className="space-y-2"><Label htmlFor={`size-${item.id}`}>Size / Unit</Label><Input id={`size-${item.id}`} placeholder="e.g. 500ml" value={editSize} onChange={e => setEditSize(e.target.value)} disabled={saving || !onEditItem} /></div>
             </div>
             <div className="space-y-2">
               <Label htmlFor={`box-${item.id}`}>Box / location</Label>

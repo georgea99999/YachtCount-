@@ -3,6 +3,14 @@ import { describe, expect, it, vi } from 'vitest';
 import SendToDeckOrderDialog from '@/components/inventory/SendToDeckOrderDialog';
 
 describe('Stock Take to Deck Order names', () => {
+  it('carries the stock size into the order while allowing changes', () => {
+    const item = { id: 'polish', name: 'Stainless Polish', quantity: 3, box: 'Locker', brand: 'Flitz', size: '500ml' };
+    const onConfirm = vi.fn();
+    render(<SendToDeckOrderDialog open onOpenChange={vi.fn()} item={item} onConfirm={onConfirm} />);
+    expect(screen.getByLabelText('Size')).toHaveValue('500ml');
+    fireEvent.click(screen.getByRole('button', { name: 'Add to Deck Order' }));
+    expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ size: '500ml', productName: 'Stainless Polish' }));
+  });
   it('sends the edited name without renaming the stock product', () => {
     const item = { id: 'tape', name: '3M Blue Tape 1 Inch', quantity: 16, box: 'BOX BS1' };
     const onConfirm = vi.fn();

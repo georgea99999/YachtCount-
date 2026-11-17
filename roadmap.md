@@ -12,3 +12,4 @@
 - [x] Replace inventory CSV export with validated CSV import.
 - [x] Retain deleted To Do tasks with a clear-folder action, restrict stock deletion to admins, and label the annotated icons; archive flow verified signed in, restrictive deletion policy checked, regression tests added.
 - [x] Default products to alphabetical order within boxes and verify both changes.
+- [x] Add inline inventory brand and size, entry/edit fields, search, order transfer and count display; signed-in create/reload/edit/order-size/count display verified on desktop and phone, with regression tests.

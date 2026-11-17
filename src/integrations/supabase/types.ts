@@ -226,11 +226,13 @@ export type Database = {
       stock_items: {
         Row: {
           box: string
+          brand: string | null
           created_at: string
           id: string
           min_quantity: number | null
           name: string
           quantity: number
+          size: string | null
           sort_order: number
           updated_at: string
           user_id: string | null
@@ -238,11 +240,13 @@ export type Database = {
         }
         Insert: {
           box: string
+          brand?: string | null
           created_at?: string
           id?: string
           min_quantity?: number | null
           name: string
           quantity?: number
+          size?: string | null
           sort_order?: number
           updated_at?: string
           user_id?: string | null
@@ -250,11 +254,13 @@ export type Database = {
         }
         Update: {
           box?: string
+          brand?: string | null
           created_at?: string
           id?: string
           min_quantity?: number | null
           name?: string
           quantity?: number
+          size?: string | null
           sort_order?: number
           updated_at?: string
           user_id?: string | null

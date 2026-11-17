@@ -14,3 +14,5 @@
 - Only platform owners (public.platform_admins) may create new vessels, via the crew-access 'provision' action; there is no public vessel sign-up.
 - Tasks carry a status column (todo / in_progress / completed) synced to the legacy completed flag by the sync_task_completed trigger, which also stamps completer and time; the To Do board view and list view both read status so they never disagree.
 - Desktop stock-row actions share one centered edit/history/minimum dialog; mobile retains its existing swipe callbacks and history sheet so desktop refinements do not change phone workflows.
+
+- Keep optional inventory brand/size separate from the product name and share product display/search helpers across stock views; metadata stays searchable and survives cloud reloads and restores.

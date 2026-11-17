@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { StockItem, UsageEntry, Notification } from '@/types/inventory';
+import { StockDetails, StockEdit, stockMatchesSearch } from '@/lib/stockProduct';
 import { supabase } from '@/integrations/supabase/client';
 
 const getUserId = async () => {
@@ -39,6 +40,8 @@ export function useInventory(vesselId?: string) {
         setStockItems(stockData.map(item => ({
           id: item.id,
           name: item.name,
+          brand: item.brand ?? undefined,
+          size: item.size ?? undefined,
           quantity: item.quantity,
           box: item.box,
           minQuantity: item.min_quantity ?? undefined,
@@ -109,6 +112,8 @@ export function useInventory(vesselId?: string) {
             setStockItems(data.map(item => ({
               id: item.id,
               name: item.name,
+          brand: item.brand ?? undefined,
+          size: item.size ?? undefined,
               quantity: item.quantity,
               box: item.box,
               minQuantity: item.min_quantity ?? undefined,
@@ -180,7 +185,7 @@ export function useInventory(vesselId?: string) {
   }, [storageKey]);
 
   // Add stock item
-  const addStockItem = useCallback(async (name: string, quantity: number, box: string) => {
+  const addStockItem = useCallback(async (name: string, quantity: number, box: string, details: StockDetails = {}) => {
     if (!name.trim()) return;
 
     // Find the max sort_order for items in the same box
@@ -194,6 +199,8 @@ export function useInventory(vesselId?: string) {
       .from('stock_items')
       .insert({
         name: name.trim(),
+        brand: details.brand?.trim() || null,
+        size: details.size?.trim() || null,
         quantity,
         box,
         sort_order: maxSortOrder,
@@ -220,6 +227,8 @@ export function useInventory(vesselId?: string) {
         updated.splice(insertIndex, 0, {
           id: data.id,
           name: data.name,
+          brand: data.brand ?? undefined,
+          size: data.size ?? undefined,
           quantity: data.quantity,
           box: data.box,
         });
@@ -231,7 +240,7 @@ export function useInventory(vesselId?: string) {
   }, [stockItems, addNotification]);
 
   // Add multiple stock items at once (bulk entry)
-  const addStockItems = useCallback(async (items: { name: string; quantity: number; box: string }[]) => {
+  const addStockItems = useCallback(async (items: ({ name: string; quantity: number; box: string } & StockDetails)[]) => {
     const valid = items.filter(i => i.name.trim() && i.box);
     if (valid.length === 0) return false;
 
@@ -241,6 +250,8 @@ export function useInventory(vesselId?: string) {
       .from('stock_items')
       .insert(valid.map((i, idx) => ({
         name: i.name.trim(),
+        brand: i.brand?.trim() || null,
+        size: i.size?.trim() || null,
         quantity: i.quantity,
         box: i.box,
         sort_order: baseOrder + idx,
@@ -259,6 +270,8 @@ export function useInventory(vesselId?: string) {
         ...data.map(item => ({
           id: item.id,
           name: item.name,
+          brand: item.brand ?? undefined,
+          size: item.size ?? undefined,
           quantity: item.quantity,
           box: item.box,
         })),
@@ -281,10 +294,10 @@ export function useInventory(vesselId?: string) {
   const updateStockQuantityDirect = useCallback((id: string, value: number) => applyQuantity(id, undefined, value), [applyQuantity]);
 
   // Edit stock item (name and box)
-  const editStockItem = useCallback(async (id: string, updates: { name: string; box: string }) => {
+  const editStockItem = useCallback(async (id: string, updates: StockEdit) => {
     const { error } = await supabase
       .from('stock_items')
-      .update({ name: updates.name, box: updates.box })
+      .update({ name: updates.name, box: updates.box, ...(updates.brand !== undefined ? { brand: updates.brand.trim() || null } : {}), ...(updates.size !== undefined ? { size: updates.size.trim() || null } : {}) })
       .eq('id', id);
 
     if (error) {
@@ -293,7 +306,7 @@ export function useInventory(vesselId?: string) {
     }
 
     setStockItems(prev =>
-      prev.map(i => (i.id === id ? { ...i, name: updates.name, box: updates.box } : i))
+      prev.map(i => (i.id === id ? { ...i, ...updates } : i))
     );
     addNotification('updated', updates.name, `Updated "${updates.name}" to ${updates.box}`);
   }, [addNotification]);
@@ -320,6 +333,8 @@ export function useInventory(vesselId?: string) {
     addNotification('deleted', deletedItem.name, `Removed "${deletedItem.name}" from ${deletedItem.box}`, {
       itemId: deletedItem.id,
       name: deletedItem.name,
+      brand: deletedItem.brand,
+      size: deletedItem.size,
       quantity: deletedItem.quantity,
       box: deletedItem.box,
       minQuantity: deletedItem.minQuantity,
@@ -348,6 +363,8 @@ export function useInventory(vesselId?: string) {
           name: item.name,
           quantity: item.quantity,
           box: item.box,
+          brand: item.brand ?? null,
+          size: item.size ?? null,
           min_quantity: item.minQuantity ?? null,
           sort_order: originalIndex,
           user_id: userId,
@@ -371,6 +388,8 @@ export function useInventory(vesselId?: string) {
           updated.splice(insertIndex, 0, {
             id: data.id,
             name: data.name,
+          brand: data.brand ?? undefined,
+          size: data.size ?? undefined,
             quantity: data.quantity,
             box: data.box,
             minQuantity: data.min_quantity ?? undefined,
@@ -419,9 +438,7 @@ export function useInventory(vesselId?: string) {
       return matchesBox;
     }
 
-    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
-    const itemNameLower = item.name.toLowerCase();
-    const matchesSearch = searchWords.every(word => itemNameLower.includes(word));
+    const matchesSearch = stockMatchesSearch(item, searchTerm);
 
     return matchesSearch && matchesBox;
   });
@@ -496,9 +513,9 @@ export function useInventory(vesselId?: string) {
     const notif = notifications.find(n => n.id === notificationId);
     if (!notif?.deletedItemData) return;
 
-    const { itemId, name, quantity, box, minQuantity, originalIndex } = notif.deletedItemData;
+    const { itemId, name, quantity, box, brand, size, minQuantity, originalIndex } = notif.deletedItemData;
     await restoreStockItem(
-      { id: itemId, name, quantity, box, minQuantity },
+      { id: itemId, name, quantity, box, brand, size, minQuantity },
       originalIndex,
       notificationId,
     );

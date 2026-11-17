@@ -1,3 +1,5 @@
+import ProductName from './ProductName';
+import { stockProductLabel } from '@/lib/stockProduct';
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, ClipboardCheck, FileText, History } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -58,7 +60,7 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
   };
 
   const lines = (): StockTakeLine[] => items.filter(i => counted[i.id] !== undefined).map(i => ({
-    name: i.name, box: i.box, expected: expected[i.id] ?? i.quantity, counted: counted[i.id],
+    name: stockProductLabel(i), box: i.box, expected: expected[i.id] ?? i.quantity, counted: counted[i.id],
   }));
 
   const finish = async () => {
@@ -108,7 +110,7 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
                 return (
                   <div key={item.id} className={cn('flex items-center gap-2 p-2', isDone && 'bg-primary/5')}>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium break-words">{item.name}</p>
+                      <p><ProductName item={item} /></p>
                       <p className="text-xs text-muted-foreground">Expected {exp}{isDone && counted[item.id] !== exp && <span className="ml-1 font-semibold text-destructive">→ {counted[item.id]}</span>}</p>
                     </div>
                     <Input type="number" inputMode="numeric" min={0} placeholder="Count" aria-label={`Counted ${item.name}`}

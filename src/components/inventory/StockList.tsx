@@ -1,3 +1,4 @@
+import { StockEdit, stockMatchesSearch, stockProductLabel } from '@/lib/stockProduct';
 import { isLowStock } from '@/lib/lowStock';
 import { useState, useMemo } from 'react';
 import { ArrowUpDown, Download, FileSpreadsheet, Package, Layers, BellRing, AlertTriangle, ClipboardCheck, Upload } from 'lucide-react';
@@ -34,7 +35,7 @@ interface StockListProps {
   onUpdateQuantityDirect: (id: string, value: number) => void;
   onDelete: (id: string) => void;
   canDelete?: boolean;
-  onEditItem?: (id: string, updates: { name: string; box: string }) => void;
+  onEditItem?: (id: string, updates: StockEdit) => void;
   totalItems: number;
   totalQuantity: number;
   onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
@@ -95,7 +96,7 @@ const StockList = ({
 
     const tableRows = sortedBoxes.map(box => 
       sortInventoryItems(groupedForPDF[box]).map(item => 
-        '<tr><td>' + item.name + '</td><td>' + item.box + '</td><td>' + item.quantity + '</td></tr>'
+        '<tr><td>' + stockProductLabel(item).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c)) + '</td><td>' + item.box + '</td><td>' + item.quantity + '</td></tr>'
       ).join('')
     ).join('');
 
@@ -192,8 +193,7 @@ const StockList = ({
   const visibleItems = (outOfStockOnly || lowStockOnly)
     ? allItems.filter(i => {
         if (outOfStockOnly ? i.quantity > 0 : !isLowStock(i)) return false;
-        const words = searchTerm.toLowerCase().trim().split(/\s+/).filter(Boolean);
-        return words.every(w => i.name.toLowerCase().includes(w));
+        return stockMatchesSearch(i, searchTerm);
       })
     : items;
 

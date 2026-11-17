@@ -1,6 +1,8 @@
 export interface StockItem {
   id: string;
   name: string;
+  brand?: string;
+  size?: string;
   quantity: number;
   box: string;
   /** Minimum stock alert threshold; undefined = no alert */
@@ -52,6 +54,8 @@ export interface Notification {
     /** Original database id, reused on restore so undo and notifications cannot create duplicates. */
     itemId?: string;
     name: string;
+    brand?: string;
+    size?: string;
     quantity: number;
     box: string;
     minQuantity?: number;

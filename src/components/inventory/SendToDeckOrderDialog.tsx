@@ -27,8 +27,8 @@ const SendToDeckOrderDialog = ({ open, onOpenChange, item, onConfirm }: SendToDe
   const [link, setLink] = useState('');
 
   useEffect(() => {
-    if (open) setProductName(item?.name ?? '');
-  }, [open, item?.id, item?.name]);
+    if (open) { setProductName(item?.name ?? ''); setSize(item?.size ?? ''); }
+  }, [open, item?.id, item?.name, item?.size]);
 
   const handleConfirm = () => {
     if (item && productName.trim()) {

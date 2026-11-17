@@ -19,6 +19,13 @@ function setup(canDelete = true) {
 }
 
 describe('desktop product details', () => {
+  it('saves brand and size separately from the product name', async () => {
+    const { edit } = setup();
+    fireEvent.change(screen.getByLabelText('Brand'), { target: { value: 'Flitz' } });
+    fireEvent.change(screen.getByLabelText('Size / Unit'), { target: { value: '500ml' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+    await waitFor(() => expect(edit).toHaveBeenCalledWith('stock-1', { name: 'Deck brush', box: 'Locker', brand: 'Flitz', size: '500ml' }));
+  });
   it('saves edited product details and minimum through the existing paths', async () => {
     const { edit } = setup();
     fireEvent.change(screen.getByLabelText('Product name'), { target: { value: 'Soft deck brush' } });

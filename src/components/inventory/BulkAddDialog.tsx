@@ -1,3 +1,4 @@
+import { StockDetails } from '@/lib/stockProduct';
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,8 @@ import { toast } from 'sonner';
 interface BulkRow {
   id: number;
   name: string;
+  brand: string;
+  size: string;
   quantity: number;
   box: string;
 }
@@ -32,11 +35,11 @@ interface BulkAddDialogProps {
   existingBoxes: string[];
   customBoxes: string[];
   onAddCustomBox: (boxName: string) => void;
-  onAddItems: (items: { name: string; quantity: number; box: string }[]) => void;
+  onAddItems: (items: ({ name: string; quantity: number; box: string } & StockDetails)[]) => void;
 }
 
 let nextRowId = 1;
-const emptyRow = (): BulkRow => ({ id: nextRowId++, name: '', quantity: 1, box: '' });
+const emptyRow = (): BulkRow => ({ id: nextRowId++, name: '', brand: '', size: '', quantity: 1, box: '' });
 
 const BulkAddDialog = ({
   open,
@@ -84,7 +87,7 @@ const BulkAddDialog = ({
 
   const handleAddAll = () => {
     if (validRows.length === 0) return;
-    onAddItems(validRows.map(r => ({ name: r.name.trim(), quantity: r.quantity, box: r.box })));
+    onAddItems(validRows.map(r => ({ name: r.name.trim(), quantity: r.quantity, box: r.box, brand: r.brand.trim(), size: r.size.trim() })));
     toast.success(`Added ${validRows.length} item${validRows.length === 1 ? '' : 's'} to inventory`);
     setRows([emptyRow(), emptyRow(), emptyRow()]);
     onOpenChange(false);
@@ -93,14 +96,14 @@ const BulkAddDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-3xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Bulk Add Items</DialogTitle>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto space-y-2 py-2 pr-1">
             {rows.map((row, idx) => (
-              <div key={row.id} className="flex items-center gap-2">
+              <div key={row.id} className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
                 <span className="text-xs text-muted-foreground w-4 shrink-0">{idx + 1}</span>
                 <Input
                   type="text"
@@ -109,6 +112,8 @@ const BulkAddDialog = ({
                   onChange={(e) => updateRow(row.id, { name: e.target.value })}
                   className="flex-1 min-w-0"
                 />
+                <Input aria-label={`Brand row ${idx + 1}`} placeholder="Brand" value={row.brand} onChange={e => updateRow(row.id, { brand: e.target.value })} className="w-24 flex-grow" />
+                <Input aria-label={`Size row ${idx + 1}`} placeholder="Size / Unit" value={row.size} onChange={e => updateRow(row.id, { size: e.target.value })} className="w-24 flex-grow" />
                 <Input
                   type="number"
                   value={row.quantity}

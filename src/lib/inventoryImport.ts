@@ -2,6 +2,8 @@ import Papa from 'papaparse';
 
 export interface InventoryImportItem {
   name: string;
+  brand?: string;
+  size?: string;
   box: string;
   quantity: number;
 }
@@ -14,6 +16,8 @@ export function parseInventoryCsv(csv: string): InventoryImportItem[] {
   const normalized = headers.map(h => h.trim().toLowerCase());
   const nameIndex = normalized.findIndex(h => ['product', 'name', 'item', 'product name', 'item name'].includes(h));
   const boxIndex = normalized.findIndex(h => ['box', 'location', 'storage location'].includes(h));
+  const brandIndex = normalized.indexOf('brand');
+  const sizeIndex = normalized.findIndex(h => ['size', 'size / unit', 'unit'].includes(h));
   const qtyIndex = normalized.findIndex(h => ['quantity', 'qty'].includes(h));
   if ([nameIndex, boxIndex, qtyIndex].some(i => i < 0)) {
     throw new Error('The CSV needs Product, Box and Quantity columns.');
@@ -27,6 +31,6 @@ export function parseInventoryCsv(csv: string): InventoryImportItem[] {
     if (row.length !== headers.length || !name || !box || !rawQty || !Number.isFinite(quantity) || quantity < 0) {
       throw new Error(`Row ${index + 2}: enter a product, box and a valid quantity of zero or more.`);
     }
-    return { name, box, quantity };
+    return { name, box, quantity, ...(brandIndex >= 0 ? { brand: row[brandIndex]?.trim() ?? '' } : {}), ...(sizeIndex >= 0 ? { size: row[sizeIndex]?.trim() ?? '' } : {}) };
   });
 }

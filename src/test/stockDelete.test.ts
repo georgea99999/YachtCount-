@@ -5,6 +5,8 @@ import { useInventory } from '@/hooks/useInventory';
 type TestStockItem = {
   id: string;
   name: string;
+  brand?: string;
+  size?: string;
   quantity: number;
   box: string;
   min_quantity: number | null;
@@ -39,6 +41,8 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {
         const inserted: TestStockItem = {
           id: payload?.id ?? `restored-${state.insertCount}`,
           name: payload?.name ?? '',
+          brand: payload?.brand,
+          size: payload?.size,
           quantity: payload?.quantity ?? 0,
           box: payload?.box ?? '',
           min_quantity: payload?.min_quantity ?? null,
@@ -105,6 +109,17 @@ beforeEach(() => {
   state.items = [initialItem()];
   state.insertCount = 0;
   localStorage.clear();
+});
+
+it('preserves brand and size through notification recovery', async () => {
+  state.items = [{ ...initialItem(), brand: 'Flitz', size: '500ml' }];
+  const { result } = renderHook(() => useInventory('vessel-1'));
+  await waitFor(() => expect(result.current.stockItems[0]).toMatchObject({ brand: 'Flitz', size: '500ml' }));
+  await act(async () => { await result.current.deleteStockItem('item-1'); });
+  const id = result.current.notifications[0].id;
+  await act(async () => { await result.current.restoreFromNotification(id); });
+  expect(state.items[0]).toMatchObject({ brand: 'Flitz', size: '500ml' });
+  expect(result.current.stockItems[0]).toMatchObject({ brand: 'Flitz', size: '500ml' });
 });
 
 it('keeps stock and creates no deletion notification when crew deletion is denied', async () => {

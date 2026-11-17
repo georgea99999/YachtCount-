@@ -1,3 +1,4 @@
+import { StockDetails } from '@/lib/stockProduct';
 import { useState } from 'react';
 import { Plus, X, Table2, Trash2, Pencil, Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -22,8 +23,8 @@ import {
 import BulkAddDialog from '@/components/inventory/BulkAddDialog';
 
 interface FloatingAddButtonProps {
-  onAddItem: (name: string, quantity: number, box: string) => void;
-  onAddItems: (items: { name: string; quantity: number; box: string }[]) => void;
+  onAddItem: (name: string, quantity: number, box: string, details?: StockDetails) => void;
+  onAddItems: (items: ({ name: string; quantity: number; box: string } & StockDetails)[]) => void;
   customBoxes: string[];
   existingBoxes: string[];
   onAddCustomBox: (boxName: string) => void;
@@ -36,6 +37,8 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
   const [showForm, setShowForm] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [newItemName, setNewItemName] = useState('');
+  const [brand, setBrand] = useState('');
+  const [size, setSize] = useState('');
   const [newItemQty, setNewItemQty] = useState(1);
   const [newItemBox, setNewItemBox] = useState('');
   const [showCreateBoxDialog, setShowCreateBoxDialog] = useState(false);
@@ -77,7 +80,8 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
 
   const handleAddItem = () => {
     if (newItemName.trim() && newItemBox) {
-      onAddItem(newItemName, newItemQty, newItemBox);
+      onAddItem(newItemName, newItemQty, newItemBox, { brand: brand.trim(), size: size.trim() });
+      setBrand(''); setSize('');
       setNewItemName('');
       setNewItemQty(1);
       setShowForm(false);
@@ -130,6 +134,10 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
                 onChange={(e) => setNewItemName(e.target.value)}
                 autoFocus
               />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2"><Label htmlFor="new-stock-brand">Brand</Label><Input id="new-stock-brand" placeholder="Optional" value={brand} onChange={e => setBrand(e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor="new-stock-size">Size / Unit</Label><Input id="new-stock-size" placeholder="e.g. 500ml" value={size} onChange={e => setSize(e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3">
               <div className="space-y-2">

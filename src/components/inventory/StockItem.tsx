@@ -303,8 +303,9 @@ const StockItemRow = ({
               <div className="space-y-2"><Label htmlFor={`brand-${item.id}`}>Brand</Label><Input id={`brand-${item.id}`} placeholder="Optional" value={editBrand} onChange={e => setEditBrand(e.target.value)} disabled={saving || !onEditItem} /></div>
               <div className="space-y-2"><Label htmlFor={`size-${item.id}`}>Size / Unit</Label><Input id={`size-${item.id}`} placeholder="e.g. 500ml" value={editSize} onChange={e => setEditSize(e.target.value)} disabled={saving || !onEditItem} /></div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor={`box-${item.id}`}>Box / location</Label>
+            <div className="grid grid-cols-2 gap-3">
+            <div className="min-w-0 space-y-2">
+              <Label className="block min-h-10 sm:min-h-0" htmlFor={`box-${item.id}`}>Box / location</Label>
               <Select value={editBox} onValueChange={setEditBox} disabled={saving || !onEditItem}>
                 <SelectTrigger id={`box-${item.id}`} className="w-full [&>span]:truncate"><SelectValue /></SelectTrigger>
                 <SelectContent className="max-h-60 bg-popover">
@@ -312,9 +313,10 @@ const StockItemRow = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor={`details-min-${item.id}`}>Minimum stock alert</Label>
+            <div className="min-w-0 space-y-2">
+              <Label className="block min-h-10 sm:min-h-0" htmlFor={`details-min-${item.id}`}>Minimum stock alert</Label>
               <Input id={`details-min-${item.id}`} type="number" min={0} placeholder="Off" value={detailsMin} onChange={e => setDetailsMin(e.target.value)} disabled={saving} />
+            </div>
             </div>
             <div className="border-t border-border">{historyContent}</div>
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">

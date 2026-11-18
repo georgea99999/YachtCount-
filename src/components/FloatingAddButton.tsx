@@ -119,7 +119,7 @@ const FloatingAddButton = ({ onAddItem, onAddItems, customBoxes, existingBoxes, 
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[950px] max-h-[90dvh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[900px] max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Item</DialogTitle>
           </DialogHeader>

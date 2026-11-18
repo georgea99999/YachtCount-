@@ -84,7 +84,7 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg w-[calc(100vw-1rem)] md:w-[calc(100vw-2rem)] md:max-w-[950px] max-h-[92vh] flex flex-col gap-3 p-4">
+      <DialogContent className="max-w-lg w-[calc(100vw-1rem)] md:w-[calc(100vw-2rem)] md:max-w-[900px] max-h-[92vh] flex flex-col gap-3 p-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><ClipboardCheck className="h-5 w-5 text-primary" />Stock Take Mode</DialogTitle>
         </DialogHeader>

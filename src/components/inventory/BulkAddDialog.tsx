@@ -96,7 +96,7 @@ const BulkAddDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-3xl md:max-w-[950px] max-h-[85vh] flex flex-col">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-3xl md:max-w-[900px] max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Bulk Add Items</DialogTitle>
           </DialogHeader>

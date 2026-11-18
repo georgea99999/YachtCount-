@@ -1,4 +1,4 @@
-- [x] Match Stock Take, Deck Order, Start Count and To Do working windows to 950px on desktop; preserve phone sizing; 14 regression tests pass and build OK.
+- [x] Match Stock Take, Deck Order, Start Count and To Do working windows to 900px on desktop; preserve phone sizing.
 - [ ] Visually verify the resized windows while signed in — blocked by no account matching the requester for automatic preview sign-in.
 - [x] Add 64px Edit/History/Delete stock swipe tiles and a bottom history drawer; remove the product chevron; swipe and minimum-stock tests pass.
 - [x] Combine desktop History, Edit and Delete in a centered product window opened by •••; edit, cancellation, permission and mobile regression tests pass.

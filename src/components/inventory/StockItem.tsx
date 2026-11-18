@@ -289,7 +289,7 @@ const StockItemRow = ({
       
       </MobileSwipeActions>
       <Dialog open={detailsOpen} onOpenChange={open => { if (!saving) setDetailsOpen(open); }}>
-        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[950px] max-h-[90dvh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[900px] max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Item</DialogTitle>
             <DialogDescription className="break-words">{item.name}</DialogDescription>

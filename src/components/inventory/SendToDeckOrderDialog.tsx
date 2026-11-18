@@ -63,7 +63,7 @@ const SendToDeckOrderDialog = ({ open, onOpenChange, item, onConfirm }: SendToDe
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="md:w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[950px] max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="md:w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[900px] max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add to Deck Order</DialogTitle>
           <DialogDescription>

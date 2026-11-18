@@ -240,7 +240,7 @@ export function useInventory(vesselId?: string) {
   }, [stockItems, addNotification]);
 
   // Add multiple stock items at once (bulk entry)
-  const addStockItems = useCallback(async (items: ({ name: string; quantity: number; box: string } & StockDetails)[]) => {
+  const addStockItems = useCallback(async (items: ({ name: string; quantity: number; box: string; minQuantity?: number } & StockDetails)[]) => {
     const valid = items.filter(i => i.name.trim() && i.box);
     if (valid.length === 0) return false;
 
@@ -253,6 +253,7 @@ export function useInventory(vesselId?: string) {
         brand: i.brand?.trim() || null,
         size: i.size?.trim() || null,
         quantity: i.quantity,
+        min_quantity: i.minQuantity ?? null,
         box: i.box,
         sort_order: baseOrder + idx,
         user_id: userId,
@@ -274,6 +275,7 @@ export function useInventory(vesselId?: string) {
           size: item.size ?? undefined,
           quantity: item.quantity,
           box: item.box,
+          minQuantity: item.min_quantity ?? undefined,
         })),
       ]);
       setDeletedItems([]);

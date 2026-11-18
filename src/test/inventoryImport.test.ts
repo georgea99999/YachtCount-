@@ -15,6 +15,29 @@ describe('inventory CSV import', () => {
   it('requires all three columns', () => {
     expect(() => parseInventoryCsv('Product,Quantity\nLine,4')).toThrow('Product, Box and Quantity');
   });
+  it('imports all requested fields with mandatory locker and qty', () => {
+    expect(parseInventoryCsv('Product,Brand,Size/unit,Locker,Min stock,Qty\nTeak Cleaner,Semco,500ml,Bosun Locker 1,2,5')).toEqual([
+      { name: 'Teak Cleaner', brand: 'Semco', size: '500ml', box: 'Bosun Locker 1', minQuantity: 2, quantity: 5 },
+    ]);
+  });
+  it('rejects a missing box column', () => {
+    expect(() => parseInventoryCsv('Product,Brand,Size/unit,Min stock,Qty\nCleaner,Semco,500ml,2,5')).toThrow('Product, Box and Quantity');
+  });
+  it('rejects an empty locker on any row', () => {
+    expect(() => parseInventoryCsv('Product,Locker,Qty\nCleaner,Locker,5\nBrush,,3')).toThrow('Row 3');
+  });
+  it('keeps a zero minimum and leaves blank minimum stock unset', () => {
+    expect(parseInventoryCsv('Product,Box,Qty,Min stock\nCleaner,Locker,5,0\nBrush,Locker,3,')).toEqual([
+      { name: 'Cleaner', box: 'Locker', quantity: 5, minQuantity: 0 },
+      { name: 'Brush', box: 'Locker', quantity: 3 },
+    ]);
+  });
+  it.each(['-1', 'abc', 'Infinity'])('rejects invalid minimum stock %s before saving', value => {
+    expect(() => parseInventoryCsv(`Product,Box,Qty,Min stock\nCleaner,Locker,5,2\nBrush,Locker,3,${value}`)).toThrow('Row 3');
+  });
+  it.each(['Min stock alert', 'Minimum stock', 'Min qty'])('accepts the %s minimum header', header => {
+    expect(parseInventoryCsv(`Product,Box,Qty,${header}\nCleaner,Locker,5,2`)[0].minQuantity).toBe(2);
+  });
 });
 
 describe('alphabetical products within boxes', () => {

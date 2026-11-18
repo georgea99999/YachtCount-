@@ -51,16 +51,16 @@ export default function ImportInventoryDialog({ open, onOpenChange, onImport }: 
 
   return (
     <Dialog open={open} onOpenChange={value => { if (!busy) onOpenChange(value); }}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col min-w-0">
         <DialogHeader><DialogTitle>Import Inventory from CSV</DialogTitle></DialogHeader>
         <Input aria-label="CSV file" type="file" accept=".csv,text/csv" disabled={busy || reading} onChange={e => void selectFile(e.target.files?.[0])} />
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         {items.length > 0 && <>
           <p className="text-sm text-muted-foreground">{items.length} items · {new Set(items.map(i => i.box)).size} boxes</p>
-          <div className="overflow-auto border rounded-md">
-            <table className="w-full text-sm table-fixed">
-              <thead className="bg-muted text-muted-foreground"><tr><th className="p-2 text-left w-1/2">Product</th><th className="p-2 text-left">Box</th><th className="p-2 text-right w-16">Qty</th></tr></thead>
-              <tbody>{items.slice(0, 50).map((item, i) => <tr key={i} className="border-t"><td className="p-2 break-words">{item.name}</td><td className="p-2 break-words">{item.box}</td><td className="p-2 text-right">{item.quantity}</td></tr>)}</tbody>
+          <div className="overflow-auto border rounded-md min-h-0">
+            <table className="w-full min-w-[640px] text-sm table-fixed">
+              <thead className="bg-muted text-muted-foreground"><tr><th className="p-2 text-left w-1/4">Product</th><th className="p-2 text-left">Brand</th><th className="p-2 text-left">Size/unit</th><th className="p-2 text-left">Box / Locker</th><th className="p-2 text-right w-20">Min stock</th><th className="p-2 text-right w-16">Qty</th></tr></thead>
+              <tbody>{items.slice(0, 50).map((item, i) => <tr key={i} className="border-t"><td className="p-2 break-words">{item.name}</td><td className="p-2 break-words">{item.brand || '—'}</td><td className="p-2 break-words">{item.size || '—'}</td><td className="p-2 break-words">{item.box}</td><td className="p-2 text-right">{item.minQuantity ?? '—'}</td><td className="p-2 text-right">{item.quantity}</td></tr>)}</tbody>
             </table>
           </div>
         </>}

@@ -376,7 +376,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
 
       {/* Add / Edit dialog */}
       <Dialog open={dialog.kind !== 'closed'} onOpenChange={(open) => { if (!open) closeDialog(); }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="md:w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[950px] max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{dialog.kind === 'edit' ? 'Edit Item' : 'Add to Deck Order'}</DialogTitle>
             <DialogDescription>

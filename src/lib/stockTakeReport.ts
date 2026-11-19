@@ -1,4 +1,4 @@
-export interface StockTakeLine { name: string; box: string; expected: number; counted: number }
+export interface StockTakeLine { itemId?: string; name: string; box: string; expected: number; counted: number }
 export interface StockTakeRecord { id?: string; countedBy?: string | null; startedAt: string; finishedAt: string; lines: StockTakeLine[] }
 
 const esc = (s: string | number) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));

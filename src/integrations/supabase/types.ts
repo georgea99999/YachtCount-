@@ -278,6 +278,7 @@ export type Database = {
       }
       stock_takes: {
         Row: {
+          completed_boxes: string[]
           counted_by: string | null
           counted_by_username: string | null
           finished_at: string
@@ -287,6 +288,7 @@ export type Database = {
           vessel_id: string
         }
         Insert: {
+          completed_boxes?: string[]
           counted_by?: string | null
           counted_by_username?: string | null
           finished_at?: string
@@ -296,6 +298,7 @@ export type Database = {
           vessel_id?: string
         }
         Update: {
+          completed_boxes?: string[]
           counted_by?: string | null
           counted_by_username?: string | null
           finished_at?: string
@@ -537,6 +540,14 @@ export type Database = {
       crew_access_enabled: { Args: never; Returns: boolean }
       current_vessel: { Args: never; Returns: string }
       delete_empty_box: { Args: { box_name: string }; Returns: boolean }
+      locker_count_status: {
+        Args: never
+        Returns: {
+          box: string
+          counted_by_username: string
+          finished_at: string
+        }[]
+      }
       reset_vessel_password: {
         Args: { new_password: string; vid: string }
         Returns: undefined

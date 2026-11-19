@@ -16,3 +16,4 @@
 - Desktop stock-row actions share one centered edit/history/minimum dialog; mobile retains its existing swipe callbacks and history sheet so desktop refinements do not change phone workflows.
 
 - Keep optional inventory brand/size separate from the product name and share product display/search helpers across stock views; metadata stays searchable and survives cloud reloads and restores.
+- Derive locker audit status from server-validated fully counted boxes in saved stock takes, matching stable item IDs; partial and legacy records cannot falsely mark a locker checked.

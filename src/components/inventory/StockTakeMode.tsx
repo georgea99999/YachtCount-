@@ -1,7 +1,7 @@
 import ProductName from './ProductName';
 import { stockProductLabel } from '@/lib/stockProduct';
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, ClipboardCheck, FileText, History } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, ClipboardCheck, FileText, History, ListChecks } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,7 @@ interface Props {
 }
 
 const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }: Props) => {
-  const [view, setView] = useState<'count' | 'summary' | 'history'>('count');
+  const [view, setView] = useState<'count' | 'summary' | 'history' | 'lockers'>('count');
   const [startedAt, setStartedAt] = useState(() => new Date().toISOString());
   const [expected, setExpected] = useState<Record<string, number>>({});
   const [counted, setCounted] = useState<Record<string, number>>({});
@@ -30,6 +30,10 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
   const [boxIndex, setBoxIndex] = useState(0);
   const [saved, setSaved] = useState<StockTakeRecord | null>(null);
   const [history, setHistory] = useState<StockTakeRecord[]>([]);
+  const [lockerStatus, setLockerStatus] = useState<{ box: string; finished_at: string | null; counted_by_username: string | null }[]>([]);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [statusError, setStatusError] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -60,15 +64,18 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
   };
 
   const lines = (): StockTakeLine[] => items.filter(i => counted[i.id] !== undefined).map(i => ({
-    name: stockProductLabel(i), box: i.box, expected: expected[i.id] ?? i.quantity, counted: counted[i.id],
+    itemId: i.id, name: stockProductLabel(i), box: i.box, expected: expected[i.id] ?? i.quantity, counted: counted[i.id],
   }));
 
   const finish = async () => {
+    if (saving) return;
     const l = lines();
     if (l.length === 0) { toast.error('Count at least one item first'); return; }
+    setSaving(true);
     const { data, error } = await supabase.from('stock_takes')
       .insert({ started_at: startedAt, finished_at: new Date().toISOString(), lines: l as never })
       .select('id,counted_by_username,started_at,finished_at,lines').single();
+    setSaving(false);
     if (error || !data) { toast.error('Could not save the stock take record'); return; }
     setSaved({ id: data.id, countedBy: data.counted_by_username, startedAt: data.started_at, finishedAt: data.finished_at, lines: data.lines as unknown as StockTakeLine[] });
     setView('summary');
@@ -80,17 +87,27 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
     setView('history');
   };
 
+  const loadLockerStatus = async () => {
+    setView('lockers');
+    setStatusLoading(true);
+    setStatusError(false);
+    const { data, error } = await supabase.rpc('locker_count_status');
+    if (error) setStatusError(true);
+    else setLockerStatus((data ?? []).sort((a, b) => a.box.localeCompare(b.box, undefined, { numeric: true, sensitivity: 'base' })));
+    setStatusLoading(false);
+  };
+
   const fmt = (s: string) => new Date(s).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg w-[calc(100vw-1rem)] md:w-[calc(100vw-2rem)] md:max-w-[900px] max-h-[92vh] flex flex-col gap-3 p-4">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><ClipboardCheck className="h-5 w-5 text-primary" />Stock Take Mode</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><ClipboardCheck className="h-5 w-5 text-primary" />{view === 'lockers' ? 'Locker status' : 'Stock Take Mode'}</DialogTitle>
         </DialogHeader>
 
         {view === 'count' && (
-          total === 0 ? <p className="text-sm text-muted-foreground py-6 text-center">Add items before starting a stock take.</p> : <>
+          total === 0 ? <><p className="text-sm text-muted-foreground py-6 text-center">Add items before starting a stock take.</p><Button variant="ghost" size="sm" onClick={loadLockerStatus} className="gap-1 self-start"><ListChecks className="h-4 w-4" />Locker status</Button></> : <>
             <div className="space-y-1">
               <div className="flex justify-between text-xs text-muted-foreground"><span>{done} of {total} items counted</span><span>Box {boxIndex + 1} of {boxes.length}</span></div>
               <Progress value={(done / total) * 100} className="h-2" />
@@ -125,14 +142,15 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
                 );
               })}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="ghost" size="sm" onClick={loadHistory} className="gap-1"><History className="h-4 w-4" />Past</Button>
+              <Button variant="ghost" size="sm" onClick={loadLockerStatus} className="gap-1"><ListChecks className="h-4 w-4" />Locker status</Button>
               <div className="flex-1" />
               {boxIndex < boxes.length - 1
                 ? <Button onClick={() => setBoxIndex(i => i + 1)}>Next box</Button>
-                : <Button onClick={finish}>Finish stock take</Button>}
+                : <Button disabled={saving} onClick={finish}>{saving ? 'Saving…' : 'Finish stock take'}</Button>}
             </div>
-            {boxIndex < boxes.length - 1 && done > 0 && <Button variant="link" size="sm" className="self-center h-auto p-0" onClick={finish}>Finish now</Button>}
+            {boxIndex < boxes.length - 1 && done > 0 && <Button disabled={saving} variant="link" size="sm" className="self-center h-auto p-0" onClick={finish}>Finish now</Button>}
           </>
         )}
 
@@ -155,6 +173,25 @@ const StockTakeMode = ({ open, onOpenChange, items, onSetQuantity, vesselName }:
             </div>
           </>;
         })()}
+
+        {view === 'lockers' && <>
+          <div className="flex-1 overflow-auto border rounded-md divide-y divide-border" aria-busy={statusLoading}>
+            {statusLoading ? <p className="p-4 text-sm text-muted-foreground">Loading locker status…</p>
+              : statusError ? <div className="p-4 space-y-2"><p className="text-sm text-destructive">Could not load locker status.</p><Button variant="outline" size="sm" onClick={loadLockerStatus}>Try again</Button></div>
+              : lockerStatus.length === 0 ? <p className="p-4 text-sm text-muted-foreground">No boxes added yet.</p>
+              : lockerStatus.map(status => {
+                const index = boxes.indexOf(status.box);
+                return <div key={status.box} className="flex flex-wrap items-center gap-3 p-3">
+                  <div className="flex-1 min-w-[150px]">
+                    <p className="font-semibold text-sm break-words">{status.box}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{status.finished_at ? <>Last counted: <time dateTime={status.finished_at} title={fmt(status.finished_at)}>{fmt(status.finished_at)}</time><span className="block mt-0.5">By {status.counted_by_username ?? 'Not recorded'}</span></> : 'Not yet counted'}</p>
+                  </div>
+                  <Button variant="outline" size="sm" disabled={index < 0} onClick={() => { setBoxIndex(index); setView('count'); }} className="gap-1"><ClipboardCheck className="h-4 w-4" />{index < 0 ? 'Empty box' : 'Count this box'}</Button>
+                </div>;
+              })}
+          </div>
+          <Button variant="outline" onClick={() => setView('count')} className="self-start gap-1"><ChevronLeft className="h-4 w-4" />Back to count</Button>
+        </>}
 
         {view === 'history' && <>
           <div className="flex-1 overflow-auto border rounded-md divide-y">

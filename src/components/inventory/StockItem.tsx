@@ -19,7 +19,7 @@ import { isLowStock } from '@/lib/lowStock';
 import { toast } from 'sonner';
 import MobileSwipeActions from './MobileSwipeActions';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
 interface StockItemProps {
@@ -135,7 +135,7 @@ const StockItemRow = ({
 
   const HISTORY_PREVIEW_COUNT = 3;
   const renderHistoryEntry = (entry: UsageEntry, idx: number) => (
-    <div key={idx} className="flex items-start justify-between gap-4 py-3 text-sm">
+    <div key={idx} className="flex items-start justify-between gap-4 py-1.5 text-sm">
       <span className="min-w-0 break-words text-muted-foreground">
         {new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
         {entry.actorUsername && <span className="ml-2 font-medium">{entry.actorUsername}</span>}
@@ -151,8 +151,8 @@ const StockItemRow = ({
   const renderHistory = (collapsible: boolean) => {
     const extra = collapsible ? itemHistory.slice(HISTORY_PREVIEW_COUNT) : [];
     return (
-      <div className="pt-5">
-        <p className="text-sm font-semibold text-foreground mb-3">Quantity Changes</p>
+      <div className="pt-3">
+        <p className="text-sm font-semibold text-foreground mb-2">Quantity Changes</p>
         {itemHistory.length > 0 ? (
           <>
             <div className="divide-y divide-border">
@@ -322,22 +322,21 @@ const StockItemRow = ({
       
       </MobileSwipeActions>
       <Dialog open={detailsOpen} onOpenChange={open => { if (!saving) setDetailsOpen(open); }}>
-        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[900px] max-h-[90dvh] overflow-y-auto">
+        <DialogContent aria-describedby={undefined} className="w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[900px] max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Item</DialogTitle>
-            <DialogDescription className="break-words">{item.name}</DialogDescription>
           </DialogHeader>
-          <form onSubmit={e => { e.preventDefault(); void saveDetails(); }} className="space-y-5">
-            <div className="space-y-2">
+          <form onSubmit={e => { e.preventDefault(); void saveDetails(); }} className="space-y-3">
+            <div className="space-y-1">
               <Label htmlFor={`name-${item.id}`}>Product name</Label>
               <Input id={`name-${item.id}`} value={editName} onChange={e => setEditName(e.target.value)} disabled={saving || !onEditItem} />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2"><Label htmlFor={`brand-${item.id}`}>Brand</Label><Input id={`brand-${item.id}`} placeholder="Optional" value={editBrand} onChange={e => setEditBrand(e.target.value)} disabled={saving || !onEditItem} /></div>
-              <div className="space-y-2"><Label htmlFor={`size-${item.id}`}>Size / Unit</Label><Input id={`size-${item.id}`} placeholder="e.g. 500ml" value={editSize} onChange={e => setEditSize(e.target.value)} disabled={saving || !onEditItem} /></div>
+              <div className="space-y-1"><Label htmlFor={`brand-${item.id}`}>Brand</Label><Input id={`brand-${item.id}`} placeholder="Optional" value={editBrand} onChange={e => setEditBrand(e.target.value)} disabled={saving || !onEditItem} /></div>
+              <div className="space-y-1"><Label htmlFor={`size-${item.id}`}>Size / Unit</Label><Input id={`size-${item.id}`} placeholder="e.g. 500ml" value={editSize} onChange={e => setEditSize(e.target.value)} disabled={saving || !onEditItem} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-            <div className="min-w-0 space-y-2">
+            <div className="min-w-0 space-y-1">
               <Label className="block min-h-10 sm:min-h-0" htmlFor={`box-${item.id}`}>Box / location</Label>
               <Select value={editBox} onValueChange={setEditBox} disabled={saving || !onEditItem}>
                 <SelectTrigger id={`box-${item.id}`} className="w-full [&>span]:truncate"><SelectValue /></SelectTrigger>
@@ -346,7 +345,7 @@ const StockItemRow = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="min-w-0 space-y-2">
+            <div className="min-w-0 space-y-1">
               <Label className="block min-h-10 sm:min-h-0" htmlFor={`details-min-${item.id}`}>Minimum stock alert</Label>
               <Input id={`details-min-${item.id}`} type="number" min={0} placeholder="Off" value={detailsMin} onChange={e => setDetailsMin(e.target.value)} disabled={saving} />
             </div>

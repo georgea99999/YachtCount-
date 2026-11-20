@@ -2,7 +2,7 @@ import ProductName from './ProductName';
 import { StockEdit } from '@/lib/stockProduct';
 import { groupHistoryByMinute } from '@/lib/historyGroups';
 import { useState } from 'react';
-import { Minus, Plus, Trash2, NotebookPen, MoreHorizontal, Check, X } from 'lucide-react';
+import { Minus, Plus, Trash2, NotebookPen, MoreHorizontal, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { StockItem as StockItemType, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +50,7 @@ const StockItemRow = ({
   showBox = false,
 }: StockItemProps) => {
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
   const [editBrand, setEditBrand] = useState(item.brand ?? '');
@@ -107,6 +108,7 @@ const StockItemRow = ({
     setEditSize(item.size ?? '');
     setEditBox(item.box);
     setDetailsMin(minQuantity != null ? String(minQuantity) : '');
+    setHistoryExpanded(false);
     setDetailsOpen(true);
   };
 
@@ -131,28 +133,59 @@ const StockItemRow = ({
     }
   };
 
-  const historyContent = (
-    <div className="pt-5">
-      <p className="text-sm font-semibold text-foreground mb-3">Quantity Changes</p>
-      {itemHistory.length > 0 ? (
-        <div className="divide-y divide-border">
-          {itemHistory.map((entry, idx) => (
-            <div key={idx} className="flex items-start justify-between gap-4 py-3 text-sm">
-              <span className="min-w-0 break-words text-muted-foreground">
-                {new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
-                {entry.actorUsername && <span className="ml-2 font-medium">{entry.actorUsername}</span>}
-                {' '}
-                {new Date(entry.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-              </span>
-              <span className={cn('flex-shrink-0 font-semibold', entry.quantity > 0 ? 'text-destructive' : 'text-success')}>
-                {entry.quantity > 0 ? `-${entry.quantity}` : `+${Math.abs(entry.quantity)}`}
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : <p className="text-xs text-muted-foreground italic">No changes recorded</p>}
+  const HISTORY_PREVIEW_COUNT = 3;
+  const renderHistoryEntry = (entry: UsageEntry, idx: number) => (
+    <div key={idx} className="flex items-start justify-between gap-4 py-3 text-sm">
+      <span className="min-w-0 break-words text-muted-foreground">
+        {new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+        {entry.actorUsername && <span className="ml-2 font-medium">{entry.actorUsername}</span>}
+        {' '}
+        {new Date(entry.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+      </span>
+      <span className={cn('flex-shrink-0 font-semibold', entry.quantity > 0 ? 'text-destructive' : 'text-success')}>
+        {entry.quantity > 0 ? `-${entry.quantity}` : `+${Math.abs(entry.quantity)}`}
+      </span>
     </div>
   );
+
+  const renderHistory = (collapsible: boolean) => {
+    const extra = collapsible ? itemHistory.slice(HISTORY_PREVIEW_COUNT) : [];
+    return (
+      <div className="pt-5">
+        <p className="text-sm font-semibold text-foreground mb-3">Quantity Changes</p>
+        {itemHistory.length > 0 ? (
+          <>
+            <div className="divide-y divide-border">
+              {(collapsible ? itemHistory.slice(0, HISTORY_PREVIEW_COUNT) : itemHistory).map(renderHistoryEntry)}
+            </div>
+            {extra.length > 0 && (
+              <>
+                {historyExpanded && (
+                  <div className="max-h-48 overflow-y-auto divide-y divide-border border-t border-border">
+                    {extra.map((entry, idx) => renderHistoryEntry(entry, idx + HISTORY_PREVIEW_COUNT))}
+                  </div>
+                )}
+                <div className="flex justify-center pt-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
+                    aria-label={historyExpanded ? 'Show fewer quantity changes' : `Show all quantity changes (${extra.length} more)`}
+                    title={historyExpanded ? 'Show fewer' : `Show all (${extra.length} more)`}
+                    aria-expanded={historyExpanded}
+                    onClick={() => setHistoryExpanded(e => !e)}
+                  >
+                    {historyExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </>
+            )}
+          </>
+        ) : <p className="text-xs text-muted-foreground italic">No changes recorded</p>}
+      </div>
+    );
+  };
 
   if (isEditing) {
     return (
@@ -318,7 +351,7 @@ const StockItemRow = ({
               <Input id={`details-min-${item.id}`} type="number" min={0} placeholder="Off" value={detailsMin} onChange={e => setDetailsMin(e.target.value)} disabled={saving} />
             </div>
             </div>
-            <div className="border-t border-border">{historyContent}</div>
+            <div className="border-t border-border">{renderHistory(true)}</div>
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
               {canDelete && <Button type="button" variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" disabled={saving} onClick={() => { setDetailsOpen(false); onDelete(item.id); }}>
                 <Trash2 className="mr-1 h-4 w-4" />Delete Item
@@ -353,7 +386,7 @@ const StockItemRow = ({
               title="Alert when quantity is at or below this number (leave blank for no alert)"
             />
           </div>
-          {historyContent}
+          {renderHistory(false)}
         </SheetContent>
       </Sheet>
     </div>

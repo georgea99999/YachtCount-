@@ -49,6 +49,25 @@ describe('desktop product details', () => {
     expect(screen.getByLabelText('Minimum stock alert')).toHaveValue(3);
   });
 
+  it('collapses long quantity history behind a chevron toggle', async () => {
+    update.mockReturnValue({ eq });
+    eq.mockResolvedValue({ error: null });
+    const usageHistory = [0, 1, 2, 3, 4].map(i => ({
+      itemName: 'Deck brush', box: 'Locker', quantity: 1,
+      date: `2026-11-12T09:0${i}:00Z`, actorUsername: 'John Smith',
+    }));
+    render(<StockItemRow item={{ id: 'stock-1', name: 'Deck brush', box: 'Locker', quantity: 5, minQuantity: 3 }}
+      onUpdateQuantity={vi.fn()} onUpdateQuantityDirect={vi.fn()} onDelete={vi.fn()} onEditItem={vi.fn()} canDelete allBoxNames={['Locker']}
+      usageHistory={usageHistory} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Manage Deck brush' }));
+    expect(screen.getAllByText('John Smith')).toHaveLength(3);
+    expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show all quantity changes (2 more)' }));
+    expect(screen.getAllByText('John Smith')).toHaveLength(5);
+    fireEvent.click(screen.getByRole('button', { name: 'Show fewer quantity changes' }));
+    expect(screen.getAllByText('John Smith')).toHaveLength(3);
+  });
+
   it('only exposes deletion for crew with existing deletion permission', () => {
     const { remove } = setup();
     fireEvent.click(screen.getByRole('button', { name: 'Delete Item' }));

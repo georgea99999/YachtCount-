@@ -484,18 +484,6 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, on
   const assignees = task.assignees ?? [];
   const visible = assignees.slice(0, 2);
   const overflow = assignees.length - visible.length;
-  const [expanded, setExpanded] = useState(false);
-  const [isLong, setIsLong] = useState(false);
-  const notesRef = useRef<HTMLDivElement>(null);
-
-  // Measure only while collapsed — once expanded the text is never clipped, so
-  // re-measuring would hide the "Show less" control.
-  useEffect(() => {
-    if (expanded) return;
-    const el = notesRef.current;
-    if (!el) return;
-    setIsLong(el.scrollHeight > el.clientHeight + 1);
-  }, [task.notes, expanded]);
 
   return (
     <div className="bg-card text-card-foreground rounded-xl border border-border shadow-sm overflow-hidden">
@@ -518,11 +506,15 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, on
             >
               {task.text}
             </div>
-            {(assignees.length > 0 || task.notes || task.dueDate || (task.checklist?.length ?? 0) > 0) && (
-              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-muted-foreground/70">
+            {task.notes && (
+              <p className="mt-1 text-xs text-muted-foreground whitespace-pre-line break-words line-clamp-2">
+                {task.notes}
+              </p>
+            )}
+            {(assignees.length > 0 || task.dueDate || (task.checklist?.length ?? 0) > 0) && (
+              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-muted-foreground/70">
                 <DueBadge date={task.dueDate} done={task.completed} />
                 <ChecklistBadge items={task.checklist} />
-                {task.notes && <StickyNote className="h-3.5 w-3.5" aria-label="Has notes" />}
                 {visible.map(a => (
                   <span key={a} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
                     <User className="h-2.5 w-2.5" />

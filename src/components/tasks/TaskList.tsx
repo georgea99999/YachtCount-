@@ -497,27 +497,27 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, on
         </button>}
 
         <div className="flex-1 min-w-0">
-          <button onClick={onOpen} disabled={archived} className="block w-full text-left">
+          <button onClick={onOpen} disabled={archived} className="grid w-full grid-cols-1 text-left md:grid-cols-[minmax(0,1fr)_auto] md:gap-x-3">
             <div
               className={cn(
-                "text-sm font-medium break-words",
+                "order-1 min-w-0 text-sm font-medium break-words md:self-center",
                 task.completed && "line-through text-muted-foreground"
               )}
             >
               {task.text}
             </div>
             {task.notes && (
-              <p className="mt-1 text-xs text-muted-foreground whitespace-pre-line break-words line-clamp-2">
+              <p className="order-2 mt-1 text-xs text-muted-foreground whitespace-pre-line break-words line-clamp-2 md:order-3 md:col-span-2">
                 {task.notes}
               </p>
             )}
             {(assignees.length > 0 || task.dueDate || (task.checklist?.length ?? 0) > 0) && (
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-muted-foreground/70">
+              <div className="order-3 mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5 text-muted-foreground/70 md:order-2 md:mt-0 md:max-w-xs md:justify-end md:self-center">
                 <DueBadge date={task.dueDate} done={task.completed} />
                 <ChecklistBadge items={task.checklist} />
                 {visible.map(a => (
-                  <span key={a} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent">
-                    <User className="h-2.5 w-2.5" />
+                  <span key={a} className="inline-flex min-w-0 items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent break-words [overflow-wrap:anywhere]">
+                    <User className="h-2.5 w-2.5 shrink-0" />
                     {a}
                   </span>
                 ))}

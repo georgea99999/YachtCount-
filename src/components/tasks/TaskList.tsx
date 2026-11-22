@@ -643,7 +643,9 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
   const submit = () => {
     if (!text.trim()) return;
     const pending = newItem.trim();
-    const items = pending ? [...checklist, { id: crypto.randomUUID(), text: pending, done: false }] : checklist;
+    const editedItems = checklist.map(item => ({ ...item, text: item.text.trim() }));
+    if (editedItems.some(item => !item.text)) return;
+    const items = pending ? [...editedItems, { id: crypto.randomUUID(), text: pending, done: false }] : editedItems;
     const payload: TaskPayload = { text, notes, starred, assignees, checklist: items, dueDate: editing ? dueDate : (dueDate || undefined) };
     if (editing) onSave(editing.id, payload);
     else onAdd(payload);
@@ -685,12 +687,17 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
             </label>
             {checklist.length > 0 && (
               <ul className="space-y-1">
-                {checklist.map(item => (
+                {checklist.map((item, index) => (
                   <li key={item.id} className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5">
                     <button type="button" onClick={() => setChecklist(prev => prev.map(i => i.id === item.id ? { ...i, done: !i.done } : i))} aria-label={`${item.done ? 'Untick' : 'Tick'} ${item.text}`}>
                       {item.done ? <CheckCircle2 className="h-4 w-4 text-accent" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
                     </button>
-                    <span className={cn("flex-1 text-sm break-words", item.done && "line-through text-muted-foreground")}>{item.text}</span>
+                    <Input
+                      aria-label={`Checklist item ${index + 1}`}
+                      value={item.text}
+                      onChange={e => setChecklist(prev => prev.map(i => i.id === item.id ? { ...i, text: e.target.value } : i))}
+                      className={cn("min-w-0 flex-1 text-sm", item.done && "line-through text-muted-foreground")}
+                    />
                     <button type="button" onClick={() => setChecklist(prev => prev.filter(i => i.id !== item.id))} aria-label={`Remove ${item.text}`} className="text-muted-foreground hover:text-destructive">
                       <X className="h-4 w-4" />
                     </button>
@@ -821,7 +828,7 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
               <Button variant="ghost" onClick={onClose}>Cancel</Button>
               <Button
                 onClick={submit}
-                disabled={!text.trim()}
+                disabled={!text.trim() || checklist.some(item => !item.text.trim())}
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
                 {editing ? 'Save' : 'Add Task'}

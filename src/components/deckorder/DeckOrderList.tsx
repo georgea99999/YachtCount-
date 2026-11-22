@@ -60,6 +60,17 @@ const qtyValue = (quantity: string) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const supplierUrl = (link: string) => {
+  const value = link.trim();
+  if (!value) return undefined;
+  try {
+    const url = new URL(/^[a-z][a-z\d+.-]*:/i.test(value) ? value : `https://${value}`);
+    return ['https:', 'http:'].includes(url.protocol) ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAll, canDelete = false }: DeckOrderListProps) => {
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [dialog, setDialog] = useState<{ kind: 'closed' } | { kind: 'add' } | { kind: 'edit'; item: DeckOrderItem }>({ kind: 'closed' });
@@ -347,7 +358,8 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
           ) : (
             <div className="divide-y">
               {visibleItems.map((item) => {
-                                                return (
+                const href = supplierUrl(item.link);
+                return (
                   <div
                     key={item.id}
                     role="button"
@@ -357,7 +369,23 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                     onClick={() => openEdit(item)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEdit(item); } }}
                   >
-                    <p className="flex-1 min-w-0 truncate text-sm font-medium text-foreground">{item.productName}</p>
+                    <div className="flex flex-1 min-w-0 items-center gap-1">
+                      <p className="min-w-0 truncate text-sm text-foreground">
+                        <span className="font-bold">{item.productName}</span>
+                        {(item.colour || item.size) && (
+                          <span className="font-normal text-muted-foreground">
+                            {item.colour ? ` · ${item.colour}` : ''}{item.size ? ` (${item.size})` : ''}
+                          </span>
+                        )}
+                      </p>
+                      {href && (
+                        <Button asChild variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-accent">
+                          <a href={href} target="_blank" rel="noopener noreferrer" title="Open supplier link" aria-label={`Open supplier link for ${item.productName}`} onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
                     <span className="w-auto min-w-[3rem] shrink-0 whitespace-nowrap text-right text-sm font-semibold tabular-nums text-foreground">{item.quantity}</span>
                   </div>
                 );

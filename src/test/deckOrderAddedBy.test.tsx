@@ -43,6 +43,27 @@ function openEditor(overrides: Partial<typeof item> = {}) {
 }
 
 describe('deck order added-by attribution', () => {
+  it('opens a supplier link separately from the item editor', () => {
+    renderList({ link: 'https://example.com/paint' });
+    const link = screen.getByRole('link', { name: 'Open supplier link for No slip deck paint' });
+    expect(link).toHaveAttribute('href', 'https://example.com/paint');
+    expect(link).toHaveAttribute('target', '_blank');
+    fireEvent.click(link);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('No slip deck paint'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('does not expose unsafe supplier links', () => {
+    renderList({ link: 'javascript:alert(1)' });
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('supports supplier addresses without a protocol', () => {
+    renderList({ link: 'example.com/paint' });
+    expect(screen.getByRole('link')).toHaveAttribute('href', 'https://example.com/paint');
+  });
+
   it('names the crew member who added the item when editing', () => {
     openEditor();
     expect(screen.getByText('Added by John Smith')).toBeInTheDocument();

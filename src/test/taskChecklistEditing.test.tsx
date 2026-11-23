@@ -34,7 +34,7 @@ describe('existing task checklist editing', () => {
     mock.save.mockResolvedValue(true);
     openTask();
     fireEvent.change(screen.getByRole('textbox', { name: 'Checklist item 1' }), { target: { value: ' Check windlass oil level ' } });
-    fireEvent.click(screen.getByRole('button', { name: /^Save$/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     await waitFor(() => expect(mock.save).toHaveBeenCalledWith(42, expect.objectContaining({
       checklist: [
         { id: 'oil', text: 'Check windlass oil level', done: true },
@@ -43,19 +43,25 @@ describe('existing task checklist editing', () => {
     })));
   });
 
-  it('discards checklist text edits when cancelled', () => {
+  it('saves checklist edits on field blur without closing the task', async () => {
+    mock.save.mockResolvedValue(true);
     openTask();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Checklist item 2' }), { target: { value: 'Replace safety pins' } });
-    fireEvent.click(screen.getByRole('button', { name: /^Cancel$/ }));
-    expect(mock.save).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: /Anchor Locker Prep/ }));
-    expect(screen.getByRole('textbox', { name: 'Checklist item 2' })).toHaveValue('Secure safety pins');
+    const input = screen.getByRole('textbox', { name: 'Checklist item 2' });
+    fireEvent.change(input, { target: { value: 'Replace safety pins' } });
+    fireEvent.blur(input);
+    await waitFor(() => expect(mock.save).toHaveBeenCalledWith(42, expect.objectContaining({ checklist: [
+      { id: 'oil', text: 'Check windlass oil', done: true },
+      { id: 'pins', text: 'Replace safety pins', done: false },
+    ] })));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('does not save an empty checklist entry', () => {
+  it('restores an empty checklist entry without losing other edits', async () => {
+    mock.save.mockResolvedValue(true);
     openTask();
     fireEvent.change(screen.getByRole('textbox', { name: 'Checklist item 1' }), { target: { value: '   ' } });
-    fireEvent.click(screen.getByRole('button', { name: /^Save$/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(mock.save).not.toHaveBeenCalled();
   });
 });

@@ -2,10 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type SaveResult = void | boolean | Promise<void | boolean>;
 
+const encode = (value: unknown) => JSON.stringify(value, (_key, entry) =>
+  entry && typeof entry === 'object' && !Array.isArray(entry)
+    ? Object.fromEntries(Object.keys(entry).sort().map(key => [key, entry[key]]))
+    : entry);
+
 /** Serialize writes and drain the latest draft before allowing an editor to close. */
 export function useEditAutosave<T>(key: string | number | null, initial: T, draft: T, persist: (value: T) => SaveResult) {
   const [status, setStatus] = useState<'saved' | 'saving' | 'error'>('saved');
-  const saved = useRef(JSON.stringify(initial));
+  const saved = useRef(encode(initial));
   const latest = useRef(draft);
   const write = useRef(persist);
   const active = useRef(key);
@@ -13,11 +18,11 @@ export function useEditAutosave<T>(key: string | number | null, initial: T, draf
   const timer = useRef<ReturnType<typeof setTimeout>>();
   latest.current = draft;
   write.current = persist;
-  const encoded = JSON.stringify(draft);
+  const encoded = encode(draft);
 
   useEffect(() => {
     active.current = key;
-    saved.current = JSON.stringify(initial);
+    saved.current = encode(initial);
     setStatus('saved');
     // The initial snapshot belongs to this editing session, not realtime reloads.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -30,9 +35,9 @@ export function useEditAutosave<T>(key: string | number | null, initial: T, draf
     const session = active.current;
     const run = async () => {
       try {
-        while (active.current === session && JSON.stringify(latest.current) !== saved.current) {
+        while (active.current === session && encode(latest.current) !== saved.current) {
           const value = latest.current;
-          const snapshot = JSON.stringify(value);
+          const snapshot = encode(value);
           setStatus('saving');
           if (await write.current(value) === false) throw new Error('Save failed');
           saved.current = snapshot;
@@ -54,6 +59,8 @@ export function useEditAutosave<T>(key: string | number | null, initial: T, draf
     if (key !== null && encoded !== saved.current) {
       setStatus('saving');
       timer.current = setTimeout(() => { void flush(); }, 700);
+    } else if (!pending.current) {
+      setStatus('saved');
     }
     return () => clearTimeout(timer.current);
   }, [key, encoded, flush]);

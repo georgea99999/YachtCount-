@@ -304,7 +304,7 @@ export function useInventory(vesselId?: string) {
 
     if (error) {
       console.error('Error editing stock item:', error);
-      return;
+      throw error;
     }
 
     setStockItems(prev =>

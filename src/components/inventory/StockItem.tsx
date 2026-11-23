@@ -2,6 +2,8 @@ import ProductName from './ProductName';
 import { StockEdit } from '@/lib/stockProduct';
 import { groupHistoryByMinute } from '@/lib/historyGroups';
 import { useState } from 'react';
+import { useEditAutosave, SaveResult } from '@/hooks/useEditAutosave';
+import EditSaveStatus from '@/components/EditSaveStatus';
 import { Minus, Plus, Trash2, NotebookPen, MoreHorizontal, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { StockItem as StockItemType, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
@@ -19,7 +21,7 @@ import { isLowStock } from '@/lib/lowStock';
 import { toast } from 'sonner';
 import MobileSwipeActions from './MobileSwipeActions';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
 interface StockItemProps {
@@ -28,7 +30,7 @@ interface StockItemProps {
   onUpdateQuantityDirect: (id: string, value: number) => void;
   onDelete: (id: string) => void;
   canDelete?: boolean;
-  onEditItem?: (id: string, updates: StockEdit) => void;
+  onEditItem?: (id: string, updates: StockEdit) => SaveResult;
   isSelected?: boolean;
   onSelect?: (id: string) => void;
   usageHistory?: UsageEntry[];
@@ -58,7 +60,7 @@ const StockItemRow = ({
   const [editBox, setEditBox] = useState(item.box);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsMin, setDetailsMin] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [minOverride, setMinOverride] = useState<number | undefined | null>(null);
   const minQuantity = minOverride === null ? item.minQuantity : minOverride;
   const [minDraft, setMinDraft] = useState<string | null>(null);
@@ -84,22 +86,8 @@ const StockItemRow = ({
     setEditBrand(item.brand ?? '');
     setEditSize(item.size ?? '');
     setEditBox(item.box);
+    setDetailsMin(minQuantity != null ? String(minQuantity) : '');
     setIsEditing(true);
-  };
-
-  const handleSaveEdit = () => {
-    if (editName.trim() && onEditItem) {
-      onEditItem(item.id, { name: editName.trim(), box: editBox, ...(editBrand !== (item.brand ?? '') ? { brand: editBrand.trim() } : {}), ...(editSize !== (item.size ?? '') ? { size: editSize.trim() } : {}) });
-    }
-    setIsEditing(false);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditName(item.name);
-    setEditBrand(item.brand ?? '');
-    setEditSize(item.size ?? '');
-    setEditBox(item.box);
   };
 
   const openDetails = () => {
@@ -112,25 +100,33 @@ const StockItemRow = ({
     setDetailsOpen(true);
   };
 
-  const saveDetails = async () => {
-    if (saving || !editName.trim() || !editBox) return;
-    setSaving(true);
-    try {
-      const value = detailsMin.trim() === '' ? undefined : Math.max(0, parseInt(detailsMin) || 0);
-      if (value !== minQuantity) {
-        const { error } = await supabase.from('stock_items').update({ min_quantity: value ?? null }).eq('id', item.id);
-        if (error) { toast.error('Could not save minimum stock'); return; }
-        setMinOverride(value);
-      }
-      if (editName.trim() !== item.name || editBox !== item.box || editBrand !== (item.brand ?? '') || editSize !== (item.size ?? '')) {
-        await onEditItem?.(item.id, { name: editName.trim(), box: editBox, ...(editBrand !== (item.brand ?? '') ? { brand: editBrand.trim() } : {}), ...(editSize !== (item.size ?? '') ? { size: editSize.trim() } : {}) });
-      }
-      setDetailsOpen(false);
-    } catch {
-      toast.error('Could not save changes. Please try again.');
-    } finally {
-      setSaving(false);
+  const initialDetails = { name: item.name, brand: item.brand ?? '', size: item.size ?? '', box: item.box, min: minQuantity ?? null };
+  const draftDetails = {
+    name: editName.trim() || item.name, brand: editBrand.trim(), size: editSize.trim(), box: editBox || item.box,
+    min: detailsMin.trim() === '' ? null : Math.max(0, parseInt(detailsMin) || 0),
+  };
+  const autosave = useEditAutosave(detailsOpen || isEditing ? item.id : null, initialDetails, draftDetails, async draft => {
+    if (draft.min !== (minQuantity ?? null)) {
+      const { error } = await supabase.from('stock_items').update({ min_quantity: draft.min }).eq('id', item.id);
+      if (error) throw error;
+      setMinOverride(draft.min ?? undefined);
     }
+    if (draft.name !== item.name || draft.box !== item.box || draft.brand !== (item.brand ?? '') || draft.size !== (item.size ?? '')) {
+      return await onEditItem?.(item.id, { name: draft.name, box: draft.box,
+        ...(draft.brand !== (item.brand ?? '') ? { brand: draft.brand } : {}),
+        ...(draft.size !== (item.size ?? '') ? { size: draft.size } : {}) });
+    }
+  });
+  const closeEditor = async () => {
+    if (closing) return;
+    setClosing(true);
+    if (await autosave.flush()) { setDetailsOpen(false); setIsEditing(false); }
+    else toast.error('Changes not saved. Please retry before closing.');
+    setClosing(false);
+  };
+  const blurEditor = () => {
+    if (!editName.trim()) setEditName(item.name);
+    void autosave.flush();
   };
 
   const HISTORY_PREVIEW_COUNT = 3;
@@ -189,7 +185,7 @@ const StockItemRow = ({
 
   if (isEditing) {
     return (
-      <div className="border-b border-border p-3 bg-accent/20 space-y-2">
+      <div onBlur={blurEditor} className="border-b border-border p-3 bg-accent/20 space-y-2">
         <div className="space-y-2">
           <Input
             value={editName}
@@ -212,15 +208,9 @@ const StockItemRow = ({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex gap-2 justify-end">
-          <Button variant="outline" size="sm" onClick={handleCancelEdit}>
-            <X className="h-4 w-4 mr-1" />
-            Cancel
-          </Button>
-          <Button size="sm" onClick={handleSaveEdit} disabled={!editName.trim()}>
-            <Check className="h-4 w-4 mr-1" />
-            Save
-          </Button>
+        <div className="flex items-center justify-end gap-2">
+          <EditSaveStatus status={autosave.status} onRetry={() => void autosave.flush()} />
+          <Button variant="ghost" size="icon" aria-label="Close editor" disabled={closing} onClick={() => void closeEditor()}><X className="h-4 w-4" /></Button>
         </div>
       </div>
     );
@@ -321,24 +311,24 @@ const StockItemRow = ({
       </div>
       
       </MobileSwipeActions>
-      <Dialog open={detailsOpen} onOpenChange={open => { if (!saving) setDetailsOpen(open); }}>
+      <Dialog open={detailsOpen} onOpenChange={open => { if (!open) void closeEditor(); }}>
         <DialogContent aria-describedby={undefined} className="w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[900px] max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Item</DialogTitle>
+            <DialogTitle className="flex flex-wrap items-center gap-3 pr-6">Edit Item <EditSaveStatus status={autosave.status} onRetry={() => void autosave.flush()} /></DialogTitle>
           </DialogHeader>
-          <form onSubmit={e => { e.preventDefault(); void saveDetails(); }} className="space-y-3">
+          <form onBlur={blurEditor} onSubmit={e => { e.preventDefault(); void autosave.flush(); }} className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor={`name-${item.id}`}>Product name</Label>
-              <Input id={`name-${item.id}`} value={editName} onChange={e => setEditName(e.target.value)} disabled={saving || !onEditItem} />
+              <Input id={`name-${item.id}`} value={editName} onChange={e => setEditName(e.target.value)} disabled={closing || !onEditItem} />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1"><Label htmlFor={`brand-${item.id}`}>Brand</Label><Input id={`brand-${item.id}`} placeholder="Optional" value={editBrand} onChange={e => setEditBrand(e.target.value)} disabled={saving || !onEditItem} /></div>
-              <div className="space-y-1"><Label htmlFor={`size-${item.id}`}>Size / Unit</Label><Input id={`size-${item.id}`} placeholder="e.g. 500ml" value={editSize} onChange={e => setEditSize(e.target.value)} disabled={saving || !onEditItem} /></div>
+              <div className="space-y-1"><Label htmlFor={`brand-${item.id}`}>Brand</Label><Input id={`brand-${item.id}`} placeholder="Optional" value={editBrand} onChange={e => setEditBrand(e.target.value)} disabled={closing || !onEditItem} /></div>
+              <div className="space-y-1"><Label htmlFor={`size-${item.id}`}>Size / Unit</Label><Input id={`size-${item.id}`} placeholder="e.g. 500ml" value={editSize} onChange={e => setEditSize(e.target.value)} disabled={closing || !onEditItem} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
             <div className="min-w-0 space-y-1">
               <Label className="block min-h-10 sm:min-h-0" htmlFor={`box-${item.id}`}>Box / location</Label>
-              <Select value={editBox} onValueChange={setEditBox} disabled={saving || !onEditItem}>
+              <Select value={editBox} onValueChange={setEditBox} disabled={closing || !onEditItem}>
                 <SelectTrigger id={`box-${item.id}`} className="w-full [&>span]:truncate"><SelectValue /></SelectTrigger>
                 <SelectContent className="max-h-60 bg-popover">
                   {Array.from(new Set([item.box, ...allBoxNames])).map(box => <SelectItem key={box} value={box}>{box}</SelectItem>)}
@@ -347,18 +337,15 @@ const StockItemRow = ({
             </div>
             <div className="min-w-0 space-y-1">
               <Label className="block min-h-10 sm:min-h-0" htmlFor={`details-min-${item.id}`}>Minimum stock alert</Label>
-              <Input id={`details-min-${item.id}`} type="number" min={0} placeholder="Off" value={detailsMin} onChange={e => setDetailsMin(e.target.value)} disabled={saving} />
+              <Input id={`details-min-${item.id}`} type="number" min={0} placeholder="Off" value={detailsMin} onChange={e => setDetailsMin(e.target.value)} disabled={closing} />
             </div>
             </div>
             <div className="border-t border-border">{renderHistory(true)}</div>
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-              {canDelete && <Button type="button" variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" disabled={saving} onClick={() => { setDetailsOpen(false); onDelete(item.id); }}>
+              {canDelete && <Button type="button" variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" disabled={closing} onClick={async () => { if (await autosave.flush()) { setDetailsOpen(false); onDelete(item.id); } }}>
                 <Trash2 className="mr-1 h-4 w-4" />Delete Item
               </Button>}
-              <DialogFooter className="ml-auto">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => setDetailsOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={saving || !editName.trim() || !editBox}>{saving ? 'Saving…' : 'Save Changes'}</Button>
-              </DialogFooter>
+
             </div>
           </form>
         </DialogContent>

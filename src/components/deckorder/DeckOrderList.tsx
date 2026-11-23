@@ -1,3 +1,5 @@
+import { useEditAutosave, SaveResult } from '@/hooks/useEditAutosave';
+import EditSaveStatus from '@/components/EditSaveStatus';
 import { useMemo, useState } from 'react';
 import Attachments from '@/components/Attachments';
 import {
@@ -45,7 +47,7 @@ import { DeckOrderItem } from '@/types/inventory';
 interface DeckOrderListProps {
   items: DeckOrderItem[];
   onAddItem: (item: Omit<DeckOrderItem, 'id'>) => void;
-  onUpdateItem: (id: number, updates: Partial<Omit<DeckOrderItem, 'id'>>) => void;
+  onUpdateItem: (id: number, updates: Partial<Omit<DeckOrderItem, 'id'>>) => SaveResult;
   onDeleteItem: (id: number) => void;
   onClearAll: () => void;
   canDelete?: boolean;
@@ -92,9 +94,29 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
     setDialog({ kind: 'edit', item });
   };
 
-  const closeDialog = () => {
-    setDialog({ kind: 'closed' });
-    setForm(emptyForm);
+  const [closing, setClosing] = useState(false);
+  const normalizeForm = (value: typeof emptyForm, fallback: string) => ({
+    productName: value.productName.trim() || fallback,
+    quantity: value.quantity.trim() || '1', colour: value.colour.trim(), size: value.size.trim(), link: value.link.trim(),
+  });
+  const editing = dialog.kind === 'edit' ? dialog.item : null;
+  const autosave = useEditAutosave(editing?.id ?? null,
+    normalizeForm(editing ?? emptyForm, editing?.productName ?? ''),
+    normalizeForm(form, editing?.productName ?? ''),
+    value => editing ? onUpdateItem(editing.id, value) : undefined);
+  const closeDialog = async (discard = false) => {
+    if (closing) return;
+    setClosing(true);
+    if (discard || !editing || await autosave.flush()) {
+      setDialog({ kind: 'closed' });
+      setForm(emptyForm);
+    }
+    setClosing(false);
+  };
+  const blurEditor = () => {
+    if (!editing) return;
+    if (!form.productName.trim()) setForm(current => ({ ...current, productName: editing.productName }));
+    void autosave.flush();
   };
 
   const handleConfirm = () => {
@@ -109,7 +131,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
     };
     if (dialog.kind === 'edit') onUpdateItem(dialog.item.id, payload);
     else onAddItem(payload);
-    closeDialog();
+    void closeDialog();
   };
 
   const handleDownloadPDF = () => {
@@ -406,14 +428,14 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
       <Dialog open={dialog.kind !== 'closed'} onOpenChange={(open) => { if (!open) closeDialog(); }}>
         <DialogContent className="md:w-[calc(100vw-2rem)] sm:max-w-md md:max-w-[900px] max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{dialog.kind === 'edit' ? 'Edit Item' : 'Add to Deck Order'}</DialogTitle>
+            <DialogTitle className="flex flex-wrap items-center gap-3 pr-6">{dialog.kind === 'edit' ? 'Edit Item' : 'Add to Deck Order'}{editing && <EditSaveStatus status={autosave.status} onRetry={() => void autosave.flush()} />}</DialogTitle>
             <DialogDescription>
               {dialog.kind === 'edit'
                 ? 'Update the details for this item on your deck order.'
                 : 'Add an item to your deck order. Only the name and quantity are needed.'}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div onBlur={blurEditor} className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="do-product">Product Name</Label>
               <Input
@@ -468,7 +490,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
           </div>
           <DialogFooter>
             {dialog.kind === 'edit' && canDelete && (
-              <Button variant="ghost" className="mr-auto gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => { onDeleteItem(dialog.item.id); closeDialog(); }}>
+              <Button variant="ghost" className="mr-auto gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive" disabled={closing} onClick={async () => { if (await autosave.flush()) { onDeleteItem(dialog.item.id); void closeDialog(true); } }}>
                 <Trash2 className="h-4 w-4" /> Delete
               </Button>
             )}
@@ -477,10 +499,10 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                 Added by {dialog.item.addedBy || 'Not recorded'}
               </p>
             )}
-            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
-            <Button onClick={handleConfirm} disabled={!form.productName.trim()}>
-              {dialog.kind === 'edit' ? 'Save' : 'Add to Order'}
-            </Button>
+            {!editing && <Button variant="outline" onClick={() => void closeDialog()}>Cancel</Button>}
+            {!editing && <Button onClick={handleConfirm} disabled={!form.productName.trim()}>
+              Add to Order
+            </Button>}
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -17,3 +17,4 @@
 
 - Keep optional inventory brand/size separate from the product name and share product display/search helpers across stock views; metadata stays searchable and survives cloud reloads and restores.
 - Derive locker audit status from server-validated fully counted boxes in saved stock takes, matching stable item IDs; partial and legacy records cannot falsely mark a locker checked.
+- Existing-entry editors use the shared serialized autosave hook, flush before closing, and retain drafts on failure; creation remains explicit to prevent accidental entries.

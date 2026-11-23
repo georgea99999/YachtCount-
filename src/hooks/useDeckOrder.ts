@@ -10,7 +10,7 @@ export function useDeckOrder(vesselId?:string) {
     setOrderItems(data.map(i=>({id:i.id,productName:i.product_name,quantity:i.quantity,colour:i.colour,size:i.size,link:i.link,addedBy:i.added_by_username})));
   };
   useEffect(()=>{void load();const c=supabase.channel('crew-orders').on('postgres_changes',{event:'*',schema:'public',table:'deck_orders'},()=>{void load();}).subscribe();return()=>{void supabase.removeChannel(c);};},[vesselId]);
-  const save=async(req:PromiseLike<{error:unknown}>)=>{const {error}=await req;if(error){toast.error('Order not saved');return;}await load();};
+  const save=async(req:PromiseLike<{error:unknown}>)=>{const {error}=await req;if(error){toast.error('Order not saved');return false;}await load();return true;};
   const addOrderItem=(i:Omit<DeckOrderItem,'id'>)=>save(supabase.from('deck_orders').insert({product_name:i.productName,quantity:i.quantity,colour:i.colour,size:i.size,link:i.link}));
   const updateOrderItem=(id:number,i:Partial<Omit<DeckOrderItem,'id'>>)=>save(supabase.from('deck_orders').update({product_name:i.productName,quantity:i.quantity,colour:i.colour,size:i.size,link:i.link}).eq('id',id));
   const deleteOrderItem=(id:number)=>save(supabase.from('deck_orders').delete().eq('id',id));

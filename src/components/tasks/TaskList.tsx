@@ -1,3 +1,5 @@
+import { useEditAutosave, SaveResult } from '@/hooks/useEditAutosave';
+import EditSaveStatus from '@/components/EditSaveStatus';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Attachments from '@/components/Attachments';
 import { Circle, CheckCircle2, Star, Plus, ChevronRight, ChevronDown, ChevronUp, ChevronLeft, Trash2, User, X, RotateCcw, List, LayoutGrid, StickyNote, ListChecks, CalendarDays } from 'lucide-react';
@@ -225,9 +227,7 @@ const TaskList = () => {
         onAdd={async (payload) => {
           if(await addTask(payload.text, { notes: payload.notes, starred: payload.starred, assignees: payload.assignees, checklist: payload.checklist, dueDate: payload.dueDate || undefined })) setDialog({ kind: 'closed' });
         }}
-        onSave={async (id, payload) => {
-          if(await updateTaskFields(id, payload)) setDialog({ kind: 'closed' });
-        }}
+        onSave={(id, payload) => updateTaskFields(id, payload)}
         onDelete={async (id) => {
           if(await deleteTask(id)) setDialog({ kind: 'closed' });
         }}
@@ -586,7 +586,7 @@ interface TaskDialogProps {
   crewMembers: string[];
   onClose: () => void;
   onAdd: (payload: TaskPayload) => void;
-  onSave: (id: number, payload: TaskPayload) => void;
+  onSave: (id: number, payload: TaskPayload) => SaveResult;
   onDelete: (id: number) => void;
 }
 
@@ -623,6 +623,35 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
     }
   }, [mode]);
 
+  const [closing, setClosing] = useState(false);
+  const pendingItemId = useRef(crypto.randomUUID());
+  const initialPayload: TaskPayload = { text: editing?.text ?? '', notes: editing?.notes ?? '', starred: !!editing?.starred,
+    assignees: editing?.assignees ?? [], checklist: editing?.checklist ?? [], dueDate: editing?.dueDate ?? '' };
+  const draftPayload: TaskPayload = { text: text.trim() || editing?.text || '', notes: notes.trim(), starred, assignees, dueDate,
+    checklist: [...checklist.map(item => ({ ...item, text: item.text.trim() || editing?.checklist?.find(original => original.id === item.id)?.text || '' })),
+      ...(newItem.trim() ? [{ id: pendingItemId.current, text: newItem.trim(), done: false }] : [])] };
+  const autosave = useEditAutosave(editing?.id ?? null, initialPayload, draftPayload,
+    payload => editing ? onSave(editing.id, payload) : undefined);
+  const closeEditor = async () => {
+    if (closing) return;
+    setClosing(true);
+    if (!editing || await autosave.flush()) onClose();
+    setClosing(false);
+  };
+  const blurEditor = () => {
+    if (!editing) return;
+    if (!text.trim()) setText(editing.text);
+    setChecklist(items => items.map(item => ({ ...item, text: item.text.trim() || editing.checklist?.find(original => original.id === item.id)?.text || item.text })));
+    void autosave.flush();
+  };
+  const appendChecklist = () => {
+    const value = newItem.trim();
+    if (!value) return;
+    setChecklist(items => [...items, { id: pendingItemId.current, text: value, done: false }]);
+    pendingItemId.current = crypto.randomUUID();
+    setNewItem('');
+  };
+
   const addAssignee = (username: string) => {
     const member = crewMembers.find(name => name.toLowerCase() === username.toLowerCase());
     if (!member) return;
@@ -647,21 +676,21 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
     if (editedItems.some(item => !item.text)) return;
     const items = pending ? [...editedItems, { id: crypto.randomUUID(), text: pending, done: false }] : editedItems;
     const payload: TaskPayload = { text, notes, starred, assignees, checklist: items, dueDate: editing ? dueDate : (dueDate || undefined) };
-    if (editing) onSave(editing.id, payload);
+    if (editing) void autosave.flush();
     else onAdd(payload);
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) void closeEditor(); }}>
       <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl md:max-w-[900px] max-h-[90dvh] overflow-y-auto bg-card">
         <DialogHeader>
-          <DialogTitle className="text-card-foreground">{editing ? 'Edit Task' : 'New Task'}</DialogTitle>
+          <DialogTitle className="flex flex-wrap items-center gap-3 pr-6 text-card-foreground">{editing ? 'Edit Task' : 'New Task'}{editing && <EditSaveStatus status={autosave.status} onRetry={() => void autosave.flush()} />}</DialogTitle>
           <DialogDescription>
             Star to pin, assign to one or more crew, or add notes for context.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 pt-2">
+        <div onBlur={blurEditor} className="flex flex-col gap-4 pt-2">
           <div className="space-y-1.5">
             <label htmlFor="task-title" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Task</label>
             <Input
@@ -712,10 +741,10 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
                 value={newItem}
                 onChange={(e) => setNewItem(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') { e.preventDefault(); const v = newItem.trim(); if (v) { setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: v, done: false }]); setNewItem(''); } }
+                  if (e.key === 'Enter') { e.preventDefault(); appendChecklist(); }
                 }}
               />
-              <Button type="button" variant="outline" size="icon" aria-label="Add checklist item" disabled={!newItem.trim()} onClick={() => { const v = newItem.trim(); if (v) { setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: v, done: false }]); setNewItem(''); } }}>
+              <Button type="button" variant="outline" size="icon" aria-label="Add checklist item" disabled={!newItem.trim()} onClick={appendChecklist}>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
@@ -816,7 +845,7 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
               {editing && (
                 <Button
                   variant="ghost"
-                  onClick={() => onDelete(editing.id)}
+                  disabled={closing} onClick={async () => { if (await autosave.flush()) onDelete(editing.id); }}
                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="h-4 w-4 mr-1.5" />
@@ -825,14 +854,14 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" onClick={onClose}>Cancel</Button>
-              <Button
+              {!editing && <Button variant="ghost" onClick={onClose}>Cancel</Button>}
+              {!editing && <Button
                 onClick={submit}
                 disabled={!text.trim() || checklist.some(item => !item.text.trim())}
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
-                {editing ? 'Save' : 'Add Task'}
-              </Button>
+                Add Task
+              </Button>}
             </div>
           </div>
 

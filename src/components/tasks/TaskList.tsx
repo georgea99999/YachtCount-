@@ -601,10 +601,12 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [newItem, setNewItem] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const savedTask = useRef<{ text: string; checklist: ChecklistItem[] }>({ text: '', checklist: [] });
 
   // Seed state whenever dialog opens / target changes
   useEffect(() => {
     if (mode.kind === 'edit') {
+      savedTask.current = { text: mode.task.text, checklist: mode.task.checklist ?? [] };
       setText(mode.task.text);
       setNotes(mode.task.notes ?? '');
       setStarred(!!mode.task.starred);
@@ -627,11 +629,16 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
   const pendingItemId = useRef(crypto.randomUUID());
   const initialPayload: TaskPayload = { text: editing?.text ?? '', notes: editing?.notes ?? '', starred: !!editing?.starred,
     assignees: editing?.assignees ?? [], checklist: editing?.checklist ?? [], dueDate: editing?.dueDate ?? '' };
-  const draftPayload: TaskPayload = { text: text.trim() || editing?.text || '', notes: notes.trim(), starred, assignees, dueDate,
-    checklist: [...checklist.map(item => ({ ...item, text: item.text.trim() || editing?.checklist?.find(original => original.id === item.id)?.text || '' })),
+  const draftPayload: TaskPayload = { text: text.trim() || savedTask.current.text || editing?.text || '', notes: notes.trim(), starred, assignees, dueDate,
+    checklist: [...checklist.map(item => ({ ...item, text: item.text.trim() || savedTask.current.checklist.find(original => original.id === item.id)?.text || '' })),
       ...(newItem.trim() ? [{ id: pendingItemId.current, text: newItem.trim(), done: false }] : [])] };
   const autosave = useEditAutosave(editing?.id ?? null, initialPayload, draftPayload,
-    payload => editing ? onSave(editing.id, payload) : undefined);
+    async payload => {
+      if (!editing) return;
+      const result = await onSave(editing.id, payload);
+      if (result !== false) savedTask.current = { text: payload.text, checklist: payload.checklist };
+      return result;
+    });
   const closeEditor = async () => {
     if (closing) return;
     setClosing(true);
@@ -640,8 +647,8 @@ const TaskDialog = ({ mode, crewMembers, onClose, onAdd, onSave, onDelete }: Tas
   };
   const blurEditor = () => {
     if (!editing) return;
-    if (!text.trim()) setText(editing.text);
-    setChecklist(items => items.map(item => ({ ...item, text: item.text.trim() || editing.checklist?.find(original => original.id === item.id)?.text || item.text })));
+    if (!text.trim()) setText(savedTask.current.text);
+    setChecklist(items => items.map(item => ({ ...item, text: item.text.trim() || savedTask.current.checklist.find(original => original.id === item.id)?.text || item.text })));
     void autosave.flush();
   };
   const appendChecklist = () => {

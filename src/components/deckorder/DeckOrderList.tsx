@@ -1,6 +1,6 @@
 import { useEditAutosave, SaveResult } from '@/hooks/useEditAutosave';
 import EditSaveStatus from '@/components/EditSaveStatus';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Attachments from '@/components/Attachments';
 import {
   ArrowUpDown,
@@ -77,6 +77,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [dialog, setDialog] = useState<{ kind: 'closed' } | { kind: 'add' } | { kind: 'edit'; item: DeckOrderItem }>({ kind: 'closed' });
   const [form, setForm] = useState(emptyForm);
+  const savedName = useRef('');
 
   const openAdd = () => {
     setForm(emptyForm);
@@ -84,6 +85,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
   };
 
   const openEdit = (item: DeckOrderItem) => {
+    savedName.current = item.productName;
     setForm({
       productName: item.productName,
       quantity: item.quantity,
@@ -102,8 +104,13 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
   const editing = dialog.kind === 'edit' ? dialog.item : null;
   const autosave = useEditAutosave(editing?.id ?? null,
     normalizeForm(editing ?? emptyForm, editing?.productName ?? ''),
-    normalizeForm(form, editing?.productName ?? ''),
-    value => editing ? onUpdateItem(editing.id, value) : undefined);
+    normalizeForm(form, savedName.current),
+    async value => {
+      if (!editing) return;
+      const result = await onUpdateItem(editing.id, value);
+      if (result !== false) savedName.current = value.productName;
+      return result;
+    });
   const closeDialog = async (discard = false) => {
     if (closing) return;
     setClosing(true);
@@ -115,7 +122,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
   };
   const blurEditor = () => {
     if (!editing) return;
-    if (!form.productName.trim()) setForm(current => ({ ...current, productName: editing.productName }));
+    if (!form.productName.trim()) setForm(current => ({ ...current, productName: savedName.current }));
     void autosave.flush();
   };
 

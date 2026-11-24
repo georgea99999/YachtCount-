@@ -64,4 +64,17 @@ describe('existing task checklist editing', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(mock.save).not.toHaveBeenCalled();
   });
+
+  it('keeps the most recently saved task title if it is subsequently cleared', async () => {
+    mock.save.mockResolvedValue(true);
+    openTask();
+    const title = screen.getByLabelText('Task');
+    fireEvent.change(title, { target: { value: 'Anchor Inspection' } });
+    fireEvent.blur(title);
+    await waitFor(() => expect(mock.save).toHaveBeenCalledWith(42, expect.objectContaining({ text: 'Anchor Inspection' })));
+    fireEvent.change(title, { target: { value: '' } });
+    fireEvent.change(screen.getByPlaceholderText('Add details, links, or context...'), { target: { value: 'Inspect seals' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(mock.save).toHaveBeenLastCalledWith(42, expect.objectContaining({ text: 'Anchor Inspection', notes: 'Inspect seals' })));
+  });
 });

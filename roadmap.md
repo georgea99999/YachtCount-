@@ -1,4 +1,4 @@
-- [ ] Automatically save existing Stock Take, Deck Order and To Do edits; preserve explicit creation, blank-title recovery and failed-save drafts; verify tests and signed-in persistence.
+- [x] Automatically save existing Stock Take, Deck Order and To Do edits; preserve explicit creation, blank-title recovery and failed-save drafts; 92 tests pass, signed-in reload persistence and failed-save retry verified, isolated test data removed.
 - [x] Add Locker status next to Past, with fully verified box timestamps, crew names and targeted counting; signed-in partial/full count persistence and desktop/phone layouts verified, temporary data removed.
 - [x] Extend CSV import with Brand, Size/unit and Min stock; Product, Box/Locker and Qty remain mandatory.
 - [x] Match Stock Take, Deck Order, Start Count and To Do working windows to 900px on desktop; preserve phone sizing.

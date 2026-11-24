@@ -1,10 +1,10 @@
 import ProductName from './ProductName';
 import { StockEdit } from '@/lib/stockProduct';
 import { groupHistoryByMinute } from '@/lib/historyGroups';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useEditAutosave, SaveResult } from '@/hooks/useEditAutosave';
 import EditSaveStatus from '@/components/EditSaveStatus';
-import { Minus, Plus, Trash2, NotebookPen, MoreHorizontal, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Minus, Plus, Trash2, NotebookPen, MoreHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { StockItem as StockItemType, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +55,7 @@ const StockItemRow = ({
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
+  const savedName = useRef(item.name);
   const [editBrand, setEditBrand] = useState(item.brand ?? '');
   const [editSize, setEditSize] = useState(item.size ?? '');
   const [editBox, setEditBox] = useState(item.box);
@@ -82,6 +83,7 @@ const StockItemRow = ({
   ));
 
   const handleStartEdit = () => {
+    savedName.current = item.name;
     setEditName(item.name);
     setEditBrand(item.brand ?? '');
     setEditSize(item.size ?? '');
@@ -91,6 +93,7 @@ const StockItemRow = ({
   };
 
   const openDetails = () => {
+    savedName.current = item.name;
     setEditName(item.name);
     setEditBrand(item.brand ?? '');
     setEditSize(item.size ?? '');
@@ -102,7 +105,7 @@ const StockItemRow = ({
 
   const initialDetails = { name: item.name, brand: item.brand ?? '', size: item.size ?? '', box: item.box, min: minQuantity ?? null };
   const draftDetails = {
-    name: editName.trim() || item.name, brand: editBrand.trim(), size: editSize.trim(), box: editBox || item.box,
+    name: editName.trim() || savedName.current, brand: editBrand.trim(), size: editSize.trim(), box: editBox || item.box,
     min: detailsMin.trim() === '' ? null : Math.max(0, parseInt(detailsMin) || 0),
   };
   const autosave = useEditAutosave(detailsOpen || isEditing ? item.id : null, initialDetails, draftDetails, async draft => {
@@ -112,9 +115,11 @@ const StockItemRow = ({
       setMinOverride(draft.min ?? undefined);
     }
     if (draft.name !== item.name || draft.box !== item.box || draft.brand !== (item.brand ?? '') || draft.size !== (item.size ?? '')) {
-      return await onEditItem?.(item.id, { name: draft.name, box: draft.box,
+      const result = await onEditItem?.(item.id, { name: draft.name, box: draft.box,
         ...(draft.brand !== (item.brand ?? '') ? { brand: draft.brand } : {}),
         ...(draft.size !== (item.size ?? '') ? { size: draft.size } : {}) });
+      if (result !== false) savedName.current = draft.name;
+      return result;
     }
   });
   const closeEditor = async () => {
@@ -125,7 +130,7 @@ const StockItemRow = ({
     setClosing(false);
   };
   const blurEditor = () => {
-    if (!editName.trim()) setEditName(item.name);
+    if (!editName.trim()) setEditName(savedName.current);
     void autosave.flush();
   };
 

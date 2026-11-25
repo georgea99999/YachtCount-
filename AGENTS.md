@@ -12,7 +12,7 @@
 - Enforce vessel-admin (owner and junior roles) stock deletion with a restrictive DELETE policy alongside crew access policies; hiding controls is not an authorization boundary.
 - Delete empty inventory boxes through an authenticated owner-validated database function that checks live stock under a write lock; this protects stock during concurrent crew changes.- Vessels may have multiple owner-role admins; admin grants and permanent removal of inactive crew go through the owner-validated crew-access function, and removal nulls user links while keeping actor name text so history survives account deletion.
 - Only platform owners (public.platform_admins) may create new vessels, via the crew-access 'provision' action; there is no public vessel sign-up.
-- Tasks carry a status column (todo / in_progress / completed) synced to the legacy completed flag by the sync_task_completed trigger, which also stamps completer and time; the To Do board view and list view both read status so they never disagree.
+- Tasks carry a status column (todo / in_progress / completed) synced to the legacy completed flag by the sync_task_completed trigger, which also stamps completer and time; the To Do list reads status so the two never disagree.
 - Desktop stock-row actions share one centered edit/history/minimum dialog; mobile retains its existing swipe callbacks and history sheet so desktop refinements do not change phone workflows.
 
 - Keep optional inventory brand/size separate from the product name and share product display/search helpers across stock views; metadata stays searchable and survives cloud reloads and restores.

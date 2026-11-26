@@ -21,14 +21,14 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {
   removeChannel: vi.fn(),
 } }));
 
-describe('task board status', () => {
+describe('task status', () => {
   beforeEach(() => { mock.calls = []; mock.rows = [
     { id: 1, text: 'Wash down decks', completed: false, status: 'todo', deleted_at: null },
     { id: 2, text: 'Service winches', completed: false, status: 'in_progress', deleted_at: null },
     { id: 3, text: 'Polish stainless', completed: true, status: 'completed', deleted_at: null },
   ]; });
 
-  it('loads each task with its board status', async () => {
+  it('loads each task with its status', async () => {
     const { result } = renderHook(() => useTasks());
     await waitFor(() => expect(result.current.tasks).toHaveLength(3));
     expect(result.current.tasks.map(t => t.status)).toEqual(['todo', 'in_progress', 'completed']);

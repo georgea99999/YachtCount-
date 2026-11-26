@@ -24,7 +24,6 @@ vi.mock('@/hooks/useTasks', () => ({
 afterEach(() => { cleanup(); vi.clearAllMocks(); localStorage.clear(); });
 
 const openTask = () => {
-  localStorage.setItem('yc_tasks_view', 'list');
   render(<TaskList />);
   fireEvent.click(screen.getByRole('button', { name: /Anchor Locker Prep/ }));
 };

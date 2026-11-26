@@ -1,3 +1,4 @@
+- [x] Show the header search only on Stock Take and clear any typed query on tab change; verified signed in on desktop and phone.
 - [x] Automatically save existing Stock Take, Deck Order and To Do edits; preserve explicit creation, blank-title recovery and failed-save drafts; 92 tests pass, signed-in reload persistence and failed-save retry verified, isolated test data removed.
 - [x] Add Locker status next to Past, with fully verified box timestamps, crew names and targeted counting; signed-in partial/full count persistence and desktop/phone layouts verified, temporary data removed.
 - [x] Extend CSV import with Brand, Size/unit and Min stock; Product, Box/Locker and Qty remain mandatory.

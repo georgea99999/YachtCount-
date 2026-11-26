@@ -79,6 +79,12 @@ const Index = ({ onLogout }: IndexProps) => {
     setSelectedBox(value === 'all' ? '' : value);
   };
 
+  // Search only belongs to Stock Take, so drop any stale query on tab change.
+  const handleTabChange = (tab: TabType) => {
+    if (tab !== 'stock') setSearchTerm('');
+    setActiveTab(tab);
+  };
+
   const handleSendToDeckOrder = (item: Omit<typeof orderItems[0], 'id'>) => {
     addOrderItem(item);
     toast.success(`"${item.productName}" added to Deck Order`);
@@ -110,7 +116,7 @@ const Index = ({ onLogout }: IndexProps) => {
         {/* Sidebar */}
         <Sidebar
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={handleTabChange}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           onLogout={onLogout}

@@ -79,10 +79,12 @@ const Header = ({
 
 
         {/* Right: Theme, Search & Notifications */}
+          {activeTab === 'stock' && (<>
         <div className="hidden md:flex md:max-w-sm md:flex-1 items-center gap-2 rounded-full border border-primary-foreground/15 bg-navy-dark px-4 h-10 focus-within:border-primary-foreground/40">
           <Search className="h-4 w-4 shrink-0 text-primary-foreground/60" />
           <input type="search" aria-label="Search products" placeholder="Search products…" value={searchTerm} onChange={e => onSearchChange(e.target.value)} className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-primary-foreground/50 outline-none" />
         </div>
+          </>)}
 
          <div className="flex shrink-0 items-center gap-0 md:gap-1">
            <div className="hidden items-center gap-1 md:flex">
@@ -93,6 +95,7 @@ const Header = ({
           <ThemeToggle />
            </div>
           {/* Search Popover */}
+           {activeTab === 'stock' && (
           <Popover open={showSearch} onOpenChange={setShowSearch}>
             <PopoverTrigger asChild className="md:hidden">
                <Button title="Search products" aria-label="Search products" variant="ghost" size="icon" className="h-9 w-9 text-primary-foreground hover:bg-sidebar-accent">
@@ -112,6 +115,7 @@ const Header = ({
               </div>
             </PopoverContent>
           </Popover>
+           )}
 
           {/* Notifications Popover */}
           <Popover>

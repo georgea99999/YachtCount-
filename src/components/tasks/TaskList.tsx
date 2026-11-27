@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useTasks } from '@/hooks/useTasks';
 import { Task, ChecklistItem } from '@/types/inventory';
+import MobileSwipeActions from '@/components/inventory/MobileSwipeActions';
 import { cn } from '@/lib/utils';
 import { useCrew } from '@/hooks/useCrew';
 
@@ -228,6 +229,7 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, on
 
   return (
     <div className="bg-card text-card-foreground rounded-xl border border-border shadow-sm overflow-hidden">
+      <MobileSwipeActions itemName={task.text} disabled={archived} canDelete={!archived} onDelete={onDelete} swipeFromButtons className="bg-card">
       <div className="group flex items-start gap-3 px-4 py-3.5">
         {!archived && <button onClick={onToggle} className="shrink-0 self-start -mt-0.5" aria-label="Toggle complete">
           {task.completed ? (
@@ -294,7 +296,7 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, on
 
         {!archived && <button
           onClick={onDelete}
-          className="shrink-0 self-start mt-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+          className="hidden md:block shrink-0 self-start mt-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
           aria-label="Delete task"
         >
           <Trash2 className="h-4 w-4" />
@@ -309,6 +311,7 @@ const TaskRow = ({ task, archived = false, onToggle, onStar, onOpen, onCheck, on
           />
         </button>}
       </div>
+      </MobileSwipeActions>
     </div>
   );
 };

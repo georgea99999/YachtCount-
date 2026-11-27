@@ -10,15 +10,17 @@ interface MobileSwipeActionsProps {
   itemName: string;
   disabled?: boolean;
   canDelete: boolean;
-  onEdit: () => void;
-  onHistory: () => void;
+  onEdit?: () => void;
+  onHistory?: () => void;
+  /** Let swipes start on buttons inside the row (rows that are one big tap target). */
+  swipeFromButtons?: boolean;
   onDelete: () => void;
 }
 
-export default function MobileSwipeActions({ children, className, itemName, disabled, canDelete, onEdit, onHistory, onDelete }: MobileSwipeActionsProps) {
+export default function MobileSwipeActions({ children, className, itemName, disabled, canDelete, onEdit, onHistory, onDelete, swipeFromButtons }: MobileSwipeActionsProps) {
   const mobile = useIsMobile();
-  const enabled = mobile && !disabled;
-  const width = canDelete ? 192 : 128;
+  const enabled = mobile && !disabled && (!!onEdit || !!onHistory || canDelete);
+  const width = 64 * ((onEdit ? 1 : 0) + (onHistory ? 1 : 0) + (canDelete ? 1 : 0));
   const root = useRef<HTMLDivElement>(null);
   const gesture = useRef<{ x: number; y: number; offset: number; horizontal: boolean | null } | null>(null);
   const moved = useRef(false);
@@ -43,7 +45,7 @@ export default function MobileSwipeActions({ children, className, itemName, disa
 
   const start = (event: PointerEvent<HTMLDivElement>) => {
     if (!enabled || !event.isPrimary || event.button !== 0) return;
-    if (event.target instanceof Element && event.target.closest('button, input, [role="checkbox"]')) return;
+    if (!swipeFromButtons && event.target instanceof Element && event.target.closest('button, input, [role="checkbox"]')) return;
     moved.current = false;
     gesture.current = { x: event.clientX, y: event.clientY, offset: offsetRef.current, horizontal: null };
   };
@@ -74,16 +76,16 @@ export default function MobileSwipeActions({ children, className, itemName, disa
     <div ref={root} className="relative overflow-hidden" onKeyDown={(event) => { if (event.key === 'Escape') close(); }}>
       {enabled && (
         <div className={cn('absolute inset-y-0 right-0 flex', offset === 0 && 'invisible')} aria-hidden={offset === 0}>
-          <Button variant="ghost" tabIndex={offset === 0 ? -1 : 0} aria-label={`Edit ${itemName}`} title="Edit item"
+          {onEdit && <Button variant="ghost" tabIndex={offset === 0 ? -1 : 0} aria-label={`Edit ${itemName}`} title="Edit item"
             className="h-full w-16 flex-col gap-1 rounded-none bg-muted text-foreground hover:bg-muted/80"
             onClick={() => { close(); onEdit(); }}>
             <Pencil className="h-5 w-5" /><span className="text-xs">Edit</span>
-          </Button>
-          <Button tabIndex={offset === 0 ? -1 : 0} aria-label={`History for ${itemName}`} title="Stock history and minimum alert"
+          </Button>}
+          {onHistory && <Button tabIndex={offset === 0 ? -1 : 0} aria-label={`History for ${itemName}`} title="Stock history and minimum alert"
             className="h-full w-16 flex-col gap-1 rounded-none"
             onClick={() => { close(); onHistory(); }}>
             <History className="h-5 w-5" /><span className="text-xs">History</span>
-          </Button>
+          </Button>}
           {canDelete && <Button variant="destructive" tabIndex={offset === 0 ? -1 : 0} aria-label={`Delete ${itemName}`} title="Delete item"
             className="h-full w-16 flex-col gap-1 rounded-none"
             onClick={() => { close(); onDelete(); }}>
